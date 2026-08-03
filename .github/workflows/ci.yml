@@ -1,0 +1,46 @@
+# ADR-069 — CI quality gates (lint / typecheck / test / build)
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # ADR-069: never continue-on-error for quality gates; never echo secrets.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate (typecheck + lint + test)
+        run: npm run validate
+
+      - name: Build
+        run: npm run build
+        env:
+          # Next may read NODE_ENV during build; no secrets required for compile.
+          NODE_ENV: production
+
+      - name: Migration review reminder
+        run: |
+          echo "ADR-069: review Drizzle migrations for locks, NOT NULL backfills,"
+          echo "index strategy, and expand/contract before merge (apply job = ADR-070)."
+          echo "Migrations dir: src/infrastructure/database/migrations"

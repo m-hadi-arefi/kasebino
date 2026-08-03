@@ -1,0 +1,44 @@
+# ADR-067 — keep build context lean; never bake secrets or local junk.
+
+node_modules
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.next
+out
+dist
+coverage
+*.tsbuildinfo
+
+.git
+.gitignore
+.cursor
+.vscode
+.idea
+
+.env
+.env.*
+!.env.example
+
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+README.md
+AGENT.md
+PRD.md
+adrs
+docs
+scripts
+
+# Local/test artifacts
+**/*.test.ts
+**/__tests__
+vitest.config.ts
+eslint.config.js
+tsconfig.contracts.json
+
+# OS junk
+.DS_Store
+Thumbs.db

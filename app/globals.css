@@ -1,0 +1,121 @@
+/*
+ * MerchantOS design tokens (ADR-020).
+ * Direction: modern Iranian retail utility — daylight shop-counter clarity.
+ * Avoid purple-on-white AI defaults and cream/terracotta clichés.
+ */
+@import "tailwindcss";
+
+@source "../app/**/*.{ts,tsx}";
+@source "../src/**/*.{ts,tsx}";
+@source "../middleware.ts";
+
+:root {
+  /* Raw values (Iranian retail utility — teal primary, cool daylight) */
+  --mos-bg: #f3f5f7;
+  --mos-surface: #ffffff;
+  --mos-fg: #142033;
+  --mos-muted: #5b677a;
+  --mos-primary: #0f6b63;
+  --mos-primary-fg: #f7fbfa;
+  --mos-success: #1f7a45;
+  --mos-warning: #b45309;
+  --mos-danger: #b42318;
+  --mos-border: #d5dce5;
+  --mos-radius-sm: 0.375rem;
+  --mos-radius-md: 0.5rem;
+  --mos-radius-lg: 0.75rem;
+  --mos-shadow-sm: 0 1px 2px rgb(20 32 51 / 0.06);
+
+  /* Design-system.md public CSS variables */
+  --color-bg: var(--mos-bg);
+  --color-surface: var(--mos-surface);
+  --color-fg: var(--mos-fg);
+  --color-muted: var(--mos-muted);
+  --color-primary: var(--mos-primary);
+  --color-primary-fg: var(--mos-primary-fg);
+  --color-success: var(--mos-success);
+  --color-warning: var(--mos-warning);
+  --color-danger: var(--mos-danger);
+  --color-border: var(--mos-border);
+  --radius-sm: var(--mos-radius-sm);
+  --radius-md: var(--mos-radius-md);
+  --radius-lg: var(--mos-radius-lg);
+  --shadow-sm: var(--mos-shadow-sm);
+
+  /* Typography — Persian stack (Vazirmatn via next/font) */
+  --font-sans: var(--font-vazirmatn), "Vazirmatn", "Tahoma", sans-serif;
+  --font-display: var(--font-vazirmatn), "Vazirmatn", "Tahoma", sans-serif;
+
+  /* Spacing scale base (4px) */
+  --space-unit: 0.25rem;
+
+  /* Density — POS vs analytical */
+  --density-pos-tap-min: 2.75rem; /* 44px */
+  --density-analytical-tap-min: 2.5rem;
+
+  /* shadcn-compatible aliases */
+  --background: var(--color-bg);
+  --foreground: var(--color-fg);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-fg);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-fg);
+  --muted: #e8edf2;
+  --muted-foreground: var(--color-muted);
+  --destructive: var(--color-danger);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-primary);
+  --radius: var(--radius-md);
+}
+
+@theme inline {
+  --color-bg: var(--mos-bg);
+  --color-surface: var(--mos-surface);
+  --color-fg: var(--mos-fg);
+  --color-muted: var(--mos-muted);
+  --color-primary: var(--mos-primary);
+  --color-primary-fg: var(--mos-primary-fg);
+  --color-success: var(--mos-success);
+  --color-warning: var(--mos-warning);
+  --color-danger: var(--mos-danger);
+  --color-border: var(--mos-border);
+
+  --color-background: var(--mos-bg);
+  --color-foreground: var(--mos-fg);
+  --color-card: var(--mos-surface);
+  --color-card-foreground: var(--mos-fg);
+  --color-primary-foreground: var(--mos-primary-fg);
+  --color-destructive: var(--mos-danger);
+  --color-ring: var(--mos-primary);
+  --color-input: var(--mos-border);
+
+  --radius-sm: var(--mos-radius-sm);
+  --radius-md: var(--mos-radius-md);
+  --radius-lg: var(--mos-radius-lg);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+
+  --shadow-sm: var(--mos-shadow-sm);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 1rem; /* ≥16px mobile inputs — prevents iOS zoom */
+    line-height: 1.6;
+    text-align: start;
+    -webkit-font-smoothing: antialiased;
+  }
+}
