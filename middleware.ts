@@ -13,11 +13,13 @@ import { authConfig } from "@/auth.config";
 import {
   customerLoginPath,
   extractStoreSlug,
+  isAdminProtectedPath,
   isCustomerDashboardPath,
   isCustomerLoginPath,
   isCustomerSession,
   isMerchantProtectedPath,
   isMerchantSession,
+  isPlatformAdminSession,
   merchantLoginPath,
 } from "@/infrastructure/auth/session-guard";
 import {
@@ -237,6 +239,29 @@ export default auth((request) => {
     ensureCsrfCookie(request, response);
     response.headers.set(ROUTE_AUDIENCE_HEADER, audience);
     return response;
+  }
+
+  // ADR-113 — admin UI is platform_admin only (merchant JWT is not enough).
+  if (isAdminProtectedPath(pathname)) {
+    if (!session) {
+      const url = new URL(
+        merchantLoginPath(`${pathname}${request.nextUrl.search}`),
+        request.nextUrl.origin,
+      );
+      const response = NextResponse.redirect(url);
+      applySecurityHeaders(response);
+      ensureCsrfCookie(request, response);
+      response.headers.set(ROUTE_AUDIENCE_HEADER, audience);
+      return response;
+    }
+    if (!isPlatformAdminSession(session)) {
+      const url = new URL("/dashboard", request.nextUrl.origin);
+      const response = NextResponse.redirect(url);
+      applySecurityHeaders(response);
+      ensureCsrfCookie(request, response);
+      response.headers.set(ROUTE_AUDIENCE_HEADER, audience);
+      return response;
+    }
   }
 
   if (

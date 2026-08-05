@@ -3,7 +3,7 @@
  * Never import Mongo infrastructure into client components — posts HTTP beacon.
  */
 
-import { csrfHeadersForBrowserFetch } from "@/infrastructure/security";
+import { csrfHeadersForBrowserFetch } from "../../../infrastructure/security/index.js";
 
 export type PosFunnelStep =
   | "pos_opened"

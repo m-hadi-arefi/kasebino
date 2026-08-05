@@ -20,7 +20,7 @@ import {
 } from "../envelopes.js";
 import {
   requireCustomerAuth,
-  requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermissionResolved,
 } from "../require-auth.js";
 import type { HttpHandlerResult, HttpRequestLike } from "../types.js";
@@ -74,7 +74,7 @@ export async function handleCreateOrder(
     return methodNotAllowed(correlationId, "POST");
   }
 
-  const merchantSession = requireMerchantAuth(session, correlationId);
+  const merchantSession = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   const customer = requireCustomerAuth(session, correlationId);
   if (!merchantSession.ok && !customer.ok) {
     return merchantSession.result;
@@ -197,7 +197,7 @@ export async function handleGetOrder(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const merchantSession = requireMerchantAuth(session, correlationId);
+  const merchantSession = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (merchantSession.ok) {
     const scoped = await assertOrderTenant(
       ctx,
@@ -248,7 +248,7 @@ async function merchantOrderAction(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const scoped = await assertOrderTenant(
     ctx,
@@ -335,7 +335,7 @@ export async function handleOrderCancel(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const scoped = await assertOrderTenant(
     ctx,
@@ -375,7 +375,7 @@ export async function handleOrderRefund(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const scoped = await assertOrderTenant(
     ctx,

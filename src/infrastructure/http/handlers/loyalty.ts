@@ -19,7 +19,7 @@ import {
 import { enqueueDomainEvent } from "../enqueue-domain-event.js";
 import {
   requireCustomerAuth,
-  requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermissionResolved,
 } from "../require-auth.js";
 import type { HttpHandlerResult, HttpRequestLike } from "../types.js";
@@ -83,7 +83,7 @@ export async function handleConfigureLoyaltyRule(
   if (request.method.toUpperCase() !== "PUT" && request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "PUT");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const parsed = await parseBody(request, configureRuleSchema, correlationId);
   if (!parsed.ok) return parsed.result;
@@ -135,7 +135,7 @@ export async function handleGetWallet(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const membership = await ctx.repos.storeMemberships.findById(membershipId);
   const storeId = membership?.storeId;
@@ -239,7 +239,7 @@ export async function handleRedeemPoints(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const parsed = await parseBody(request, redeemSchema, correlationId);
   if (!parsed.ok) return parsed.result;

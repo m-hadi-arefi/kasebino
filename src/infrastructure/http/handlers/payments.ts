@@ -25,7 +25,7 @@ import {
   requireIdempotencyHeader,
 } from "../envelopes.js";
 import {
-  requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermissionResolved,
 } from "../require-auth.js";
 import type { HttpHandlerResult, HttpRequestLike } from "../types.js";
@@ -99,7 +99,7 @@ export async function handleCreatePaymentIntent(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
 
   const idem = requireIdempotencyHeader(request, correlationId);
@@ -382,7 +382,7 @@ export async function handleRefundPayment(
     return methodNotAllowed(correlationId, "POST");
   }
 
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
 
   const payment = await ctx.repos.payments.findById(paymentId);

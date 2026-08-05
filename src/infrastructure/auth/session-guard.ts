@@ -69,10 +69,40 @@ export function merchantIdFromSession(
   return null;
 }
 
-/** Paths that require a merchant (or admin staff) JWT. */
+function rolesOfSession(session: AuthSessionSnapshot): string[] {
+  const fromRoot = session?.roles;
+  const fromUser = session?.user?.roles;
+  if (Array.isArray(fromRoot) && fromRoot.length > 0) {
+    return fromRoot.filter((r): r is string => typeof r === "string");
+  }
+  if (Array.isArray(fromUser) && fromUser.length > 0) {
+    return fromUser.filter((r): r is string => typeof r === "string");
+  }
+  const single = session?.role ?? session?.user?.role;
+  if (typeof single === "string" && single.length > 0) {
+    return [single];
+  }
+  return [];
+}
+
+/** Platform admin JWT (ADR-013 / ADR-113) — not merchant staff. */
+export function isPlatformAdminSession(session: AuthSessionSnapshot): boolean {
+  return rolesOfSession(session).includes("platform_admin");
+}
+
+/** Paths that require platform_admin (never merchant-owner alone). */
+export function isAdminProtectedPath(pathname: string): boolean {
+  const path = pathname.split("?")[0] ?? pathname;
+  return path === "/admin" || path.startsWith("/admin/");
+}
+
+/** Paths that require a merchant JWT (staff surfaces; excludes /admin). */
 export function isMerchantProtectedPath(pathname: string): boolean {
   const path = pathname.split("?")[0] ?? pathname;
   if (path === "/login" || path.startsWith("/login/")) {
+    return false;
+  }
+  if (isAdminProtectedPath(path)) {
     return false;
   }
   return (
@@ -95,9 +125,7 @@ export function isMerchantProtectedPath(pathname: string): boolean {
     path === "/onboarding" ||
     path.startsWith("/onboarding/") ||
     path === "/notifications" ||
-    path.startsWith("/notifications/") ||
-    path === "/admin" ||
-    path.startsWith("/admin/")
+    path.startsWith("/notifications/")
   );
 }
 

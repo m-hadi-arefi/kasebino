@@ -25,7 +25,7 @@ import {
   parseBody,
 } from "../envelopes.js";
 import {
-  requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermissionResolved,
 } from "../require-auth.js";
 import type { HttpHandlerResult, HttpRequestLike } from "../types.js";
@@ -131,7 +131,7 @@ export async function handleGetMembership(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const existing = await ctx.repos.storeMemberships.findById(membershipId);
   if (
@@ -171,7 +171,7 @@ export async function handleGetMembershipHistory(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const existing = await ctx.repos.storeMemberships.findById(membershipId);
   if (
@@ -260,7 +260,7 @@ export async function handleJoinMembership(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const parsed = await parseBody(request, joinSchema, correlationId);
   if (!parsed.ok) return parsed.result;
@@ -307,7 +307,7 @@ export async function handleDeleteMembership(
   if (request.method.toUpperCase() !== "DELETE") {
     return methodNotAllowed(correlationId, "DELETE");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const existing = await ctx.repos.storeMemberships.findById(membershipId);
   if (!existing || existing.merchantId !== pre.actor.merchantId) {

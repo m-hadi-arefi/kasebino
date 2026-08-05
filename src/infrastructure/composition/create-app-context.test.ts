@@ -70,6 +70,15 @@ describe("ADR-123 composition root policies", () => {
     ).not.toThrow();
   });
 
+  it("allows console SMS for local Docker image (NODE_ENV=production, MOS_ENV=local)", () => {
+    expect(() =>
+      assertProductionSmsPolicy({
+        NODE_ENV: "production",
+        MOS_ENV: "local",
+      }),
+    ).not.toThrow();
+  });
+
   it("rejects blind sandbox payment when MOS_ENV=production", () => {
     expect(() =>
       assertProductionPaymentGatewayPolicy({

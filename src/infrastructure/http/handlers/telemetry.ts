@@ -260,7 +260,7 @@ export async function handleTelemetryProductFunnel(
   trackPosFunnelStep({
     step: parsed.data.step,
     merchantId: parsed.data.merchantId,
-    storeId: parsed.data.storeId,
+    storeId: parsed.data.storeId ?? null,
     correlationId: parsed.data.correlationId ?? correlationId,
   });
 

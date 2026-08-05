@@ -30,10 +30,13 @@ describe("ADR-119 security hardening runtime", () => {
       nodeEnv: "development",
     });
     expect(local["Content-Security-Policy"]).toMatch(/default-src 'self'/);
+    expect(local["Content-Security-Policy"]).toMatch(/worker-src 'self' blob:/);
     expect(local["X-Content-Type-Options"]).toBe("nosniff");
     expect(local["X-Frame-Options"]).toBe("DENY");
     expect(local["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
-    expect(local["Permissions-Policy"]).toMatch(/camera=\(\)/);
+    // POS barcode camera allowed on same origin; other sensors remain off.
+    expect(local["Permissions-Policy"]).toMatch(/camera=\(self\)/);
+    expect(local["Permissions-Policy"]).toMatch(/microphone=\(\)/);
     expect(local["Cross-Origin-Opener-Policy"]).toBe("same-origin");
     expect(local["Strict-Transport-Security"]).toBeUndefined();
 

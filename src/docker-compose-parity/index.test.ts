@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -138,6 +139,11 @@ describe("ADR-066 Docker Compose local parity", () => {
       expect(env).toMatch(new RegExp(`^${key}=`, "m"));
     }
     expect(COMPOSE_REQUIREMENTS.secretsNotCommitted).toBe(true);
-    expect(existsSync(join(root, ".env"))).toBe(false);
+    // Local `.env` may exist for dev; it must not be git-tracked (ADR-068).
+    const trackedEnv = execFileSync("git", ["ls-files", "--", ".env"], {
+      cwd: root,
+      encoding: "utf8",
+    }).trim();
+    expect(trackedEnv).toBe("");
   });
 });

@@ -35,6 +35,8 @@ export const MUTATING_HTTP_METHODS = new Set([
 export const DEFAULT_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  // mqtt.js (ADR-124) spawns blob: workers; barcode/canvas may use blob URLs.
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
@@ -45,8 +47,9 @@ export const DEFAULT_CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
 ].join("; ");
 
+// POS camera barcode (ADR-096) needs camera; mic/geolocation/payment stay off.
 export const DEFAULT_PERMISSIONS_POLICY =
-  "camera=(), microphone=(), geolocation=(), payment=(), usb=()" as const;
+  "camera=(self), microphone=(), geolocation=(), payment=(), usb=()" as const;
 
 export type SecurityHeaderMap = Record<string, string>;
 

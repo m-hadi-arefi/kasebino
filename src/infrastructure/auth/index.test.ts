@@ -20,10 +20,12 @@ import {
 } from "./otp-runtime.js";
 import {
   customerLoginPath,
+  isAdminProtectedPath,
   isCustomerDashboardPath,
   isMerchantProtectedPath,
   isMerchantSession,
   isCustomerSession,
+  isPlatformAdminSession,
   merchantIdFromSession,
   merchantLoginPath,
 } from "./session-guard.js";
@@ -77,13 +79,31 @@ describe("ADR-095 Auth.js wiring support", () => {
     expect(isMerchantProtectedPath("/orders")).toBe(true);
     expect(isMerchantProtectedPath("/stores")).toBe(true);
     expect(isMerchantProtectedPath("/stores/s1/qr")).toBe(true);
-    expect(isMerchantProtectedPath("/admin")).toBe(true);
+    expect(isMerchantProtectedPath("/admin")).toBe(false);
+    expect(isAdminProtectedPath("/admin")).toBe(true);
+    expect(isAdminProtectedPath("/admin/merchants")).toBe(true);
     expect(isMerchantProtectedPath("/login")).toBe(false);
     expect(isCustomerDashboardPath("/s/demo/dashboard")).toBe(true);
     expect(isCustomerDashboardPath("/s/demo/dashboard/orders")).toBe(true);
     expect(isCustomerDashboardPath("/s/demo/catalog")).toBe(false);
     expect(merchantLoginPath("/dashboard")).toContain("callbackUrl");
     expect(customerLoginPath("demo")).toBe("/s/demo/login");
+  });
+
+  it("detects platform_admin sessions for admin UI gate", () => {
+    expect(
+      isPlatformAdminSession({
+        user: { id: "a1", roles: ["platform_admin"] },
+        roles: ["platform_admin"],
+      }),
+    ).toBe(true);
+    expect(
+      isPlatformAdminSession({
+        audience: "merchant",
+        user: { id: "u1", merchantId: "m1", roles: ["merchant_owner"] },
+        roles: ["merchant_owner"],
+      }),
+    ).toBe(false);
   });
 
   it("classifies merchant vs customer sessions and merchantId for realtime", () => {

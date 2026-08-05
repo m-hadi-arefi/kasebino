@@ -13,6 +13,7 @@ import {
   type AuthSessionSnapshot,
 } from "@/infrastructure/auth";
 import { getApiContext } from "@/infrastructure/composition";
+import { hydrateMerchantSessionClaims } from "@/infrastructure/http";
 
 /**
  * Short-lived MQTT client credentials — ADR-039 / ADR-095 / ADR-119 / ADR-124.
@@ -22,11 +23,14 @@ import { getApiContext } from "@/infrastructure/composition";
 
 function createSessionAuthorizer(
   session: AuthSessionSnapshot,
+  resolveHydrated: () => Promise<AuthSessionSnapshot>,
 ): RealtimeTokenAuthorizer {
   return {
     async resolveMerchantSession() {
       // Explicitly session-only — identity headers are ignored (ADR-119).
-      const merchantId = merchantIdFromSession(session);
+      // AUTH-06: hydrate merchantId after onboarding create-merchant without re-login.
+      const hydrated = await resolveHydrated();
+      const merchantId = merchantIdFromSession(hydrated);
       if (!merchantId) {
         return null;
       }
@@ -53,7 +57,9 @@ export async function POST(request: Request) {
   const ctx = getApiContext();
 
   const result = await handleRealtimeTokenRequest(request, {
-    authorizer: createSessionAuthorizer(session),
+    authorizer: createSessionAuthorizer(session, () =>
+      hydrateMerchantSessionClaims(session, ctx.repos.merchants),
+    ),
     env,
     brokerUrlHint,
     requestedStoreId,

@@ -30,6 +30,7 @@ export {
   requireActiveMerchantPermission,
   requireCustomerAuth,
   requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermission,
   requireMerchantPermissionResolved,
   requirePlatformAdmin,

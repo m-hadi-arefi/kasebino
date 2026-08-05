@@ -52,7 +52,12 @@ services:
     volumes:
       - .:/app
       - app_node_modules:/app/node_modules
-    command: ["sh", "-c", "npm ci && npm run worker:outbox"]
+    command:
+      [
+        "sh",
+        "-c",
+        "if [ ! -x node_modules/.bin/tsx ]; then npm ci; fi; npx tsx src/workers/outbox-worker.ts",
+      ]
     environment:
       NODE_ENV: development
       MOS_ENV: ${MOS_ENV:-local}

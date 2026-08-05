@@ -213,6 +213,19 @@ export function requireMerchantPermission(
   return authed;
 }
 
+/** ADR-121 — same as requireMerchantAuth after owner→merchant claim hydrate. */
+export async function requireMerchantAuthResolved(
+  session: AuthSessionSnapshot,
+  correlationId: string,
+  merchants: MerchantRepository,
+): Promise<
+  | { ok: true; actor: AuthenticatedMerchant; auth: IdentityAuthContext }
+  | { ok: false; result: HttpHandlerResult }
+> {
+  const hydrated = await hydrateMerchantSessionClaims(session, merchants);
+  return requireMerchantAuth(hydrated, correlationId);
+}
+
 /** ADR-121 — same as requireMerchantPermission after owner→merchant claim hydrate. */
 export async function requireMerchantPermissionResolved(
   session: AuthSessionSnapshot,

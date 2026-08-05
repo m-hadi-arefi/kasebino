@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -25,6 +26,14 @@ import {
 } from "./index.js";
 
 const root = process.cwd();
+
+function isGitTracked(relativePath: string): boolean {
+  const out = execFileSync("git", ["ls-files", "--", relativePath], {
+    cwd: root,
+    encoding: "utf8",
+  }).trim();
+  return out.length > 0;
+}
 
 function completeEnv(
   overrides: Record<string, string | undefined> = {},
@@ -85,7 +94,8 @@ describe("ADR-068 Environment and Secret Management", () => {
 
     expect(() =>
       assertSecretsNotCommitted({
-        dotEnvExistsInRepo: existsSync(join(root, ".env")),
+        // Local `.env` is expected for dev; contract forbids *committing* it.
+        dotEnvExistsInRepo: isGitTracked(".env"),
         envExampleExists: existsSync(envPath),
       }),
     ).not.toThrow();

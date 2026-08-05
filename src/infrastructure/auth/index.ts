@@ -33,11 +33,13 @@ export {
 export {
   customerLoginPath,
   extractStoreSlug,
+  isAdminProtectedPath,
   isCustomerDashboardPath,
   isCustomerLoginPath,
   isCustomerSession,
   isMerchantProtectedPath,
   isMerchantSession,
+  isPlatformAdminSession,
   merchantIdFromSession,
   merchantLoginPath,
   sessionAudience,

@@ -6,14 +6,13 @@
 import {
   assertRequiredEnvInProduction,
   EnvConfigError,
-  isProductionLike,
-  resolveNodeEnv,
 } from "../../env-secrets/index.js";
 import {
   assertConsoleSmsAllowed,
   createCustomerSmsAdapter,
   createMerchantSmsAdapter,
   isConsoleSmsAdapter,
+  isLocalSmsEnvironment,
   resolveSmsRuntimeEnv,
 } from "../auth/sms-adapter-factory.js";
 
@@ -45,6 +44,7 @@ export function assertProductionCompositionEnv(
 /**
  * Production config rejects Console SMS as the default adapter (ADR-095 / ADR-123).
  * Explicit MOS_FORCE_CONSOLE_SMS=1 only allowed in local/development.
+ * MOS_ENV=local (Docker production image on local stack) keeps Console SMS.
  */
 export function assertProductionSmsPolicy(
   env: NodeJS.ProcessEnv = process.env,
@@ -57,18 +57,13 @@ export function assertProductionSmsPolicy(
 
   const merchant = createMerchantSmsAdapter(smsEnv);
   const customer = createCustomerSmsAdapter(smsEnv);
-  if (isConsoleSmsAdapter(merchant) || isConsoleSmsAdapter(customer)) {
-    const nodeEnv = resolveNodeEnv(env);
-    const mos = smsEnv.mosEnv.toLowerCase();
-    if (
-      isProductionLike(nodeEnv) ||
-      mos === "production" ||
-      mos === "staging"
-    ) {
-      throw new Error(
-        "Console SMS adapter is forbidden as production default (ADR-123 / ADR-095).",
-      );
-    }
+  if (
+    (isConsoleSmsAdapter(merchant) || isConsoleSmsAdapter(customer)) &&
+    !isLocalSmsEnvironment(smsEnv)
+  ) {
+    throw new Error(
+      "Console SMS adapter is forbidden as production default (ADR-123 / ADR-095).",
+    );
   }
 }
 

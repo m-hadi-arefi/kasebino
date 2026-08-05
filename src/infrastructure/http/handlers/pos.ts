@@ -17,7 +17,7 @@ import {
   requireIdempotencyHeader,
 } from "../envelopes.js";
 import {
-  requireMerchantAuth,
+  requireMerchantAuthResolved,
   requireMerchantPermission,
   requireActiveMerchantPermission,
 } from "../require-auth.js";
@@ -142,7 +142,7 @@ export async function handleGetSale(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
   const sale = await ctx.repos.sales.findById(saleId);
   if (!sale || sale.merchantId !== pre.actor.merchantId) {
@@ -169,7 +169,7 @@ export async function handleGetSaleReceipt(
   if (request.method.toUpperCase() !== "GET") {
     return methodNotAllowed(correlationId, "GET");
   }
-  const pre = requireMerchantAuth(session, correlationId);
+  const pre = await requireMerchantAuthResolved(session, correlationId, ctx.repos.merchants);
   if (!pre.ok) return pre.result;
 
   const sale = await ctx.repos.sales.findById(saleId);

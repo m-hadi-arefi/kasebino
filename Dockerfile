@@ -13,10 +13,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-# Build-time placeholders so Next collectPageData does not need live deps.
-ENV AUTH_SECRET=build-time-placeholder-not-for-runtime
-ENV DATABASE_URL=postgres://merchantos:merchantos@127.0.0.1:5432/merchantos
-RUN npm run build
+# Build-time ARG only (never ENV) so secrets are not baked into image layers (ADR-067).
+ARG AUTH_SECRET=build-time-placeholder-not-for-runtime
+ARG DATABASE_URL=postgres://merchantos:merchantos@127.0.0.1:5432/merchantos
+RUN AUTH_SECRET="$AUTH_SECRET" DATABASE_URL="$DATABASE_URL" npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app

@@ -17,7 +17,6 @@ import {
   parseBody,
 } from "../envelopes.js";
 import {
-  requireMerchantAuth,
   requireMerchantPermissionResolved,
 } from "../require-auth.js";
 import type { HttpHandlerResult, HttpRequestLike } from "../types.js";
@@ -113,10 +112,9 @@ export async function handleAdjustInventory(
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed(correlationId, "POST");
   }
-  const pre = requireMerchantAuth(session, correlationId);
-  if (!pre.ok) return pre.result;
   const parsed = await parseBody(request, adjustSchema, correlationId);
   if (!parsed.ok) return parsed.result;
+  // AUTH-06: hydrate merchantId before permission gate (post-onboarding JWT may still be null).
   const auth = await requireMerchantPermissionResolved(
     session,
     correlationId,
