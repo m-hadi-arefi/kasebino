@@ -29,13 +29,15 @@ Analytical/telemetry document store for MerchantOS: event warehouse, audit, clic
 - Access via analytics/audit infrastructure adapters only  
 - Config: `MONGODB_URL` (compose / `.env.example`; do not use a divergent alias in app code)  
 - Local: Docker Compose `mongo` service  
+- Runtime mode: `MOS_MONGO_MODE=memory` forces in-memory stores (tests / offline CI); omit for live Compose Mongo  
+- Live client + stores: `src/infrastructure/mongodb/` (ADR-110)  
 
 ## Folder conventions
 
 ```
 src/mongodb-analytics/          # plane contract (ADR-056)
-src/infrastructure/mongodb/   # client stub / future adapters — not domain
-src/modules/analytics/          # later ARDs
+src/infrastructure/mongodb/   # live client + adapters (ADR-110)
+src/modules/analytics/          # merchant OLTP dashboard projections (PG)
 src/modules/audit/              # later ARDs
 ```
 
@@ -58,10 +60,19 @@ src/modules/audit/              # later ARDs
 - Encrypt in transit  
 - Restrict credentials; separate read vs write users if possible  
 
+## Fail policies (ADR-110)
+
+| Path | Mongo down |
+| --- | --- |
+| CompleteSale / POS OLTP | succeed (outbox / fail-open track) |
+| AuditPort.record | fail-open (`queued_failed`) |
+| Telemetry beacons | 202 best-effort; oversized → 413 |
+| Outbox `mongodb_warehouse` | retry / DLQ (off checkout path) |
+
 ## Example architecture usage
 
-Outbox consumer persists `SaleCompleted` into warehouse; product tracker sends `FeatureUsed`; admin dashboard reads rollups from `mos_mgmt`.
+Outbox consumer persists `SaleCompleted` into warehouse (`mos_events`); product tracker sends `FeatureUsed`; QR land posts `/api/v1/telemetry/beacon` with `source=qr`; admin dashboard reads audit from `mos_audit`.
 
 ## Related
 
-`docs/architecture/mongodb-architecture.md`, `docs/rules/mongodb-rules.md`
+`docs/architecture/mongodb-architecture.md`, `docs/rules/mongodb-rules.md`, ADR-110

@@ -1,0 +1,65 @@
+/* ADR-122 marketing landing — intentional motion; honors reduced-motion */
+
+.mos-mkt-hero-media {
+  animation: mos-mkt-drift 28s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.mos-mkt-hero-copy {
+  animation: mos-mkt-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mos-mkt-cta-primary {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.mos-mkt-cta-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgb(15 107 99 / 0.28);
+}
+
+.mos-mkt-cta-primary:active {
+  transform: translateY(0);
+}
+
+.mos-mkt-shot {
+  transition: transform 220ms ease;
+}
+
+.mos-mkt-shot:hover {
+  transform: translateY(-4px);
+}
+
+@keyframes mos-mkt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mos-mkt-drift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.06) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mos-mkt-hero-media,
+  .mos-mkt-hero-copy,
+  .mos-mkt-cta-primary,
+  .mos-mkt-shot {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

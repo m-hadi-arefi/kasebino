@@ -17,6 +17,12 @@ export {
   type LookupByBarcodeResult,
   type SearchByNameInput,
   type SearchByNameResult,
+  type SoftDeleteCategoryInput,
+  type SoftDeleteCategoryResult,
   type SoftDeleteProductInput,
   type SoftDeleteProductResult,
+  type UpdateCategoryInput,
+  type UpdateCategoryResult,
+  type UpdateProductInput,
+  type UpdateProductResult,
 } from "./use-cases.js";

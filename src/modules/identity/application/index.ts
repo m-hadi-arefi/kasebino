@@ -17,6 +17,8 @@ export {
   isAuthorizationError,
   jwtHasPermission,
   normalizeRoles,
+  requirePermission,
+  requirePermissionFromJwtClaims,
   type AuthContext,
   type AuthorizeInput,
   type CanonicalRole,

@@ -150,7 +150,7 @@ describe("ADR-051 Redis Architecture", () => {
     expect(REDIS_REQUIREMENTS.unicodePersianValuesSafe).toBe(true);
   });
 
-  it("exposes a thin REDIS_URL client stub under infrastructure", () => {
+  it("exposes REDIS_URL client under infrastructure (ADR-108 live)", () => {
     expect(DEFERRED_PLACEMENT.clientStub).toBe(
       "src/infrastructure/redis/client.ts",
     );

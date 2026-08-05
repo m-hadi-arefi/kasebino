@@ -28,3 +28,4 @@ Implementation guides for MerchantOS. Each guide defines purpose, conventions, a
 | React Hook Form | [react-hook-form.md](./react-hook-form.md) |
 | OpenTelemetry | [opentelemetry.md](./opentelemetry.md) |
 | JWT | [jwt.md](./jwt.md) |
+| Composition root (DI) | [composition-root.md](./composition-root.md) |

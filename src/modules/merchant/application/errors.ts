@@ -7,6 +7,7 @@ export const MERCHANT_ERROR_CODES = [
   "INVALID_TRADE_NAME",
   "INVALID_SLUG",
   "SLUG_TAKEN",
+  "OWNER_ALREADY_HAS_MERCHANT",
   "INVALID_PHONE",
   "MERCHANT_NOT_FOUND",
   "ALREADY_ACTIVE",
@@ -22,6 +23,8 @@ export const MERCHANT_ERROR_MESSAGES_FA = {
   INVALID_SLUG:
     "شناسه آدرس معتبر نیست. فقط حروف انگلیسی کوچک، عدد و خط تیره مجاز است.",
   SLUG_TAKEN: "این شناسه آدرس قبلاً استفاده شده است. شناسه دیگری انتخاب کنید.",
+  OWNER_ALREADY_HAS_MERCHANT:
+    "برای این کاربر قبلاً کسب‌وکار ثبت شده است.",
   INVALID_PHONE:
     "شماره موبایل معتبر نیست. لطفاً شماره را با ۰۹ وارد کنید.",
   MERCHANT_NOT_FOUND: "فروشنده یافت نشد.",

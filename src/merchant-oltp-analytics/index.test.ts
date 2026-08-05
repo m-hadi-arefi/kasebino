@@ -64,7 +64,7 @@ describe("ADR-063 Merchant OLTP Dashboard Analytics", () => {
 
   it("maps AN capabilities to Persian titles and reserved API paths", () => {
     expect(AN_CAPABILITY_MAP["AN-01"].path).toBe(
-      "/api/v1/analytics/overview",
+      "/api/v1/analytics/merchant/overview",
     );
     expect(AN_CAPABILITY_MAP["AN-04"].titleFa).toBe(
       MERCHANT_OLTP_TITLES_FA.retention,

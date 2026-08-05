@@ -19,7 +19,7 @@
 4. DB indexes for hot lookups
 5. Analytics pre-aggregation tables updated async from events
 6. Image optimization via Next.js + MinIO CDN-like caching headers
-7. Horizontal scale; no sticky sessions required
+7. Horizontal scale; no sticky sessions required — contract `src/scalability-stateless/` (ADR-071 / NFR-02)
 
 ## Measurement
 

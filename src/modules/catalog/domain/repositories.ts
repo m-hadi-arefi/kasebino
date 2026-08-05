@@ -20,5 +20,9 @@ export type ProductRepository = {
 export type CategoryRepository = {
   save(category: Category): Promise<void>;
   findById(id: string): Promise<Category | null>;
-  listByMerchantId(merchantId: string): Promise<Category[]>;
+  listByMerchantId(
+    merchantId: string,
+    options?: { includeDeleted?: boolean },
+  ): Promise<Category[]>;
+  update(category: Category): Promise<void>;
 };

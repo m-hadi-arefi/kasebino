@@ -11,13 +11,17 @@ import {
 } from "../../../shared/domain/money.js";
 import {
   createCategoryAggregate,
+  renameCategory,
+  softDeleteCategory,
   type Category,
 } from "../domain/category.js";
 import {
   productCreatedEvent,
   productDeletedEvent,
+  productUpdatedEvent,
 } from "../domain/events.js";
 import {
+  applyProductUpdate,
   createProductAggregate,
   softDeleteProduct,
   type Product,
@@ -76,6 +80,42 @@ export type SoftDeleteProductInput = {
 export type SoftDeleteProductResult = {
   product: Product;
   event: ReturnType<typeof productDeletedEvent>;
+};
+
+export type UpdateProductInput = {
+  productId: string;
+  merchantId: string;
+  name: string;
+  sku: string;
+  barcode: string;
+  priceAmountMinor: number | bigint;
+  description?: string | null;
+  categoryId?: string | null;
+};
+
+export type UpdateProductResult = {
+  product: Product;
+  event: ReturnType<typeof productUpdatedEvent>;
+  priceDisplayToman: string;
+};
+
+export type UpdateCategoryInput = {
+  categoryId: string;
+  merchantId: string;
+  name: string;
+};
+
+export type UpdateCategoryResult = {
+  category: Category;
+};
+
+export type SoftDeleteCategoryInput = {
+  categoryId: string;
+  merchantId: string;
+};
+
+export type SoftDeleteCategoryResult = {
+  category: Category;
 };
 
 export type LookupByBarcodeInput = {
@@ -195,7 +235,11 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
       input.categoryId.trim() !== ""
     ) {
       const category = await deps.categories.findById(input.categoryId.trim());
-      if (!category || category.merchantId !== merchantId) {
+      if (
+        !category ||
+        category.merchantId !== merchantId ||
+        category.deletedAt !== null
+      ) {
         throw new CatalogDomainError("CATEGORY_NOT_FOUND");
       }
       categoryId = category.id;
@@ -265,10 +309,140 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
     const event = productDeletedEvent({
       productId: product.id,
       merchantId: product.merchantId,
+      barcode: product.barcode,
       occurredAt: at,
     });
 
     return { product, event };
+  }
+
+  async function updateProduct(
+    input: UpdateProductInput,
+  ): Promise<UpdateProductResult> {
+    const merchantId = input.merchantId.trim();
+    const product = await deps.products.findById(input.productId);
+    if (!product || product.merchantId !== merchantId) {
+      throw new CatalogDomainError("PRODUCT_NOT_FOUND");
+    }
+    if (product.deletedAt !== null) {
+      throw new CatalogDomainError("PRODUCT_ALREADY_DELETED");
+    }
+
+    const name = requireName(input.name);
+    const sku = requireSku(input.sku);
+    const barcode = requireBarcode(input.barcode);
+    const price = requirePrice(input.priceAmountMinor);
+    const description = optionalDescription(input.description);
+
+    let categoryId: string | null = null;
+    if (
+      input.categoryId !== undefined &&
+      input.categoryId !== null &&
+      input.categoryId.trim() !== ""
+    ) {
+      const category = await deps.categories.findById(input.categoryId.trim());
+      if (
+        !category ||
+        category.merchantId !== merchantId ||
+        category.deletedAt !== null
+      ) {
+        throw new CatalogDomainError("CATEGORY_NOT_FOUND");
+      }
+      categoryId = category.id;
+    } else if (input.categoryId === null) {
+      categoryId = null;
+    } else {
+      categoryId = product.categoryId;
+    }
+
+    const previousBarcode = product.barcode;
+    if (barcode !== previousBarcode) {
+      const existingBarcode = await deps.products.findByBarcode(
+        merchantId,
+        barcode,
+      );
+      if (
+        existingBarcode &&
+        existingBarcode.deletedAt === null &&
+        existingBarcode.id !== product.id
+      ) {
+        throw new CatalogDomainError("BARCODE_TAKEN");
+      }
+    }
+
+    if (sku !== product.sku) {
+      const existingSku = await deps.products.findBySku(merchantId, sku);
+      if (
+        existingSku &&
+        existingSku.deletedAt === null &&
+        existingSku.id !== product.id
+      ) {
+        throw new CatalogDomainError("SKU_TAKEN");
+      }
+    }
+
+    const at = now();
+    applyProductUpdate(product, {
+      name,
+      description,
+      sku,
+      barcode,
+      categoryId,
+      price,
+      now: at,
+    });
+    await deps.products.update(product);
+
+    const event = productUpdatedEvent({
+      productId: product.id,
+      merchantId: product.merchantId,
+      name: product.name,
+      sku: product.sku,
+      barcode: product.barcode,
+      priceAmountMinor: product.price.amountMinor.toString(),
+      categoryId: product.categoryId,
+      previousBarcode,
+      occurredAt: at,
+    });
+
+    return {
+      product,
+      event,
+      priceDisplayToman: formatTomanDisplay(product.price),
+    };
+  }
+
+  async function updateCategoryById(
+    input: UpdateCategoryInput,
+  ): Promise<UpdateCategoryResult> {
+    const merchantId = input.merchantId.trim();
+    const category = await deps.categories.findById(input.categoryId);
+    if (!category || category.merchantId !== merchantId) {
+      throw new CatalogDomainError("CATEGORY_NOT_FOUND");
+    }
+    if (category.deletedAt !== null) {
+      throw new CatalogDomainError("CATEGORY_ALREADY_DELETED");
+    }
+    const name = requireCategoryName(input.name);
+    renameCategory(category, name, now());
+    await deps.categories.update(category);
+    return { category };
+  }
+
+  async function softDeleteCategoryById(
+    input: SoftDeleteCategoryInput,
+  ): Promise<SoftDeleteCategoryResult> {
+    const merchantId = input.merchantId.trim();
+    const category = await deps.categories.findById(input.categoryId);
+    if (!category || category.merchantId !== merchantId) {
+      throw new CatalogDomainError("CATEGORY_NOT_FOUND");
+    }
+    if (category.deletedAt !== null) {
+      throw new CatalogDomainError("CATEGORY_ALREADY_DELETED");
+    }
+    softDeleteCategory(category, now());
+    await deps.categories.update(category);
+    return { category };
   }
 
   /**
@@ -297,6 +471,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
   /**
    * Lightweight merchant-scoped name search (Persian UTF-8 contains after
    * trim + digit normalize). Fuzzy pg_trgm → ARD migration path.
+   * Soft-deleted products excluded from default merchant/POS search.
    */
   async function searchByName(
     input: SearchByNameInput,
@@ -315,7 +490,11 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
 
     const listed = await deps.products.listByMerchantId(merchantId);
     const products = listed
-      .filter((p) => normalizeSearchText(p.name).includes(needle))
+      .filter(
+        (p) =>
+          p.deletedAt === null &&
+          normalizeSearchText(p.name).includes(needle),
+      )
       .slice(0, limit);
 
     return { products };
@@ -324,7 +503,10 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
   return {
     createCategory,
     createProduct,
+    updateProduct,
     softDeleteProductById,
+    updateCategoryById,
+    softDeleteCategoryById,
     lookupByBarcode,
     searchByName,
   };

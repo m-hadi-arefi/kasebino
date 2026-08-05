@@ -4,8 +4,8 @@
  * MinIO S3 API for receipts / media / QR assets. Presigned upload/download;
  * object keys in PostgreSQL — never DB BLOBs. Private buckets; type/size limits.
  *
- * Compose service shipped by ADR-066. Real AWS/MinIO SDK client deferred —
- * thin config stub under `src/infrastructure/minio/client.ts`.
+ * Compose service shipped by ADR-066. Live S3 SDK adapter: ADR-111
+ * (`src/infrastructure/minio/`). In-memory adapter remains test-only.
  *
  * Normative prose: docs/tech/minio.md, docs/architecture/16-storage-architecture.md
  */
@@ -53,12 +53,13 @@ export const MINIO_ENGINE = {
 
 /**
  * MVP buckets (ADR-040 + store-first QR).
- * Aligns ADR prose products→media, merchantdocs QR assets→qr.
+ * Aligns ADR prose products→media, merchantdocs QR assets→qrcodes.
+ * Physical name `qrcodes` (not `qr`) — S3 requires ≥3-char bucket names.
  */
 export const MINIO_BUCKETS = {
   receipts: "receipts",
   media: "media",
-  qr: "qr",
+  qr: "qrcodes",
 } as const satisfies Record<string, ObjectBucket>;
 
 export type MinioBucketName =
@@ -86,6 +87,7 @@ export const OBJECT_LIMITS = {
     maxBytes: 5 * 1024 * 1024,
     allowedContentTypes: [
       "application/pdf",
+      "text/html",
       "image/png",
       "image/jpeg",
       "image/webp",
@@ -93,6 +95,7 @@ export const OBJECT_LIMITS = {
   },
   media: {
     maxBytes: 2 * 1024 * 1024,
+    /** No SVG — XSS risk when served inline as logos (ADR-111). */
     allowedContentTypes: [
       "image/png",
       "image/jpeg",
@@ -100,7 +103,7 @@ export const OBJECT_LIMITS = {
       "image/gif",
     ] as const,
   },
-  qr: {
+  qrcodes: {
     maxBytes: 512 * 1024,
     allowedContentTypes: ["image/png", "image/svg+xml"] as const,
   },
@@ -143,6 +146,8 @@ export const PLACEMENT = {
   port: "src/minio-storage/port.ts",
   inMemoryAdapter: "src/minio-storage/in-memory-adapter.ts",
   clientStub: "src/infrastructure/minio/client.ts",
+  liveAdapter: "src/infrastructure/minio/minio-object-storage-adapter.ts",
+  runtime: "src/infrastructure/minio/create-minio-runtime.ts",
   techFolderConvention: "src/shared/infrastructure/storage",
   composeService: "minio",
   storageArchitectureDoc: "docs/architecture/16-storage-architecture.md",
@@ -170,8 +175,10 @@ export const MINIO_REQUIREMENTS = {
   typeAndSizeLimits: true,
   composeMinioFromAdr066: true,
   utf8FaFilenameMetadata: true,
-  /** Full AWS SDK client not required in this ADR — port + stub. */
-  noAwsSdkRequiredInThisAdr: true,
+  /** ADR-040 contract only; live SDK lands in ADR-111. */
+  noAwsSdkRequiredInThisAdr: false,
+  liveS3SdkInAdr111: true,
+  inMemoryAdapterTestOnly: true,
 } as const;
 
 /** Forbidden storage practices. */
@@ -319,7 +326,7 @@ export function assertKnownBucket(bucket: string): asserts bucket is MinioBucket
   if (!isMinioBucket(bucket)) {
     throw new ObjectValidationError(
       "unknown_bucket",
-      `Unknown MinIO bucket "${bucket}" (ADR-040); expected receipts|media|qr.`,
+      `Unknown MinIO bucket "${bucket}" (ADR-040); expected receipts|media|qrcodes.`,
     );
   }
 }

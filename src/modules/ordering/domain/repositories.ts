@@ -18,6 +18,13 @@ export type OrderRepository = {
     status?: OrderStatus;
     limit?: number;
   }): Promise<Order[]>;
+  /** Customer portal — orders for one store membership (ADR-103). */
+  listByMembership(input: {
+    merchantId: string;
+    storeId: string;
+    membershipId: string;
+    limit?: number;
+  }): Promise<Order[]>;
   listByStatus(input: {
     status: OrderStatus;
     merchantId?: string;

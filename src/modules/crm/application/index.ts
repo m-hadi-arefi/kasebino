@@ -13,8 +13,12 @@ export {
   type CrmUseCases,
   type JoinWithDigitalConsentInput,
   type JoinWithDigitalConsentResult,
+  type MembershipHistoryResult,
+  type MembershipListItem,
+  type MembershipProfileResult,
   type SoftDeleteMembershipInput,
   type SoftDeleteMembershipResult,
+  type StoreSegmentsResult,
   type UpsertFromPosPhoneCaptureInput,
   type UpsertFromPosPhoneCaptureResult,
 } from "./use-cases.js";

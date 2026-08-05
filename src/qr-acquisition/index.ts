@@ -2,7 +2,7 @@
  * ADR-081 — QR Acquisition Architecture Decision.
  *
  * Physical QR → storefront land with `?src=qr` → OTP join / browse → membership.
- * Stable storefront URL; printable PNG/SVG in MinIO `qr` bucket; attribution events.
+ * Stable storefront URL; printable PNG/SVG in MinIO `qrcodes` bucket; attribution events.
  * NEVER put secrets/tokens/PII in QR payload.
  */
 
@@ -60,17 +60,17 @@ export const QR_URL_STABILITY = {
 /** MinIO placement for printable QR binaries (never PG BLOB). */
 export const QR_MINIO_STORAGE = {
   bucket: MINIO_BUCKETS.qr,
-  allowedContentTypes: OBJECT_LIMITS.qr.allowedContentTypes,
-  maxBytes: OBJECT_LIMITS.qr.maxBytes,
+  allowedContentTypes: OBJECT_LIMITS.qrcodes.allowedContentTypes,
+  maxBytes: OBJECT_LIMITS.qrcodes.maxBytes,
   storeField: "qrAssetRef",
   /** Generation lib (e.g. qrcode PNG/SVG) chosen at wiring time — contract only. */
   generationLibDeferred: true,
-  rule: "Store QR PNG/SVG in MinIO qr bucket; persist object key on Store.qrAssetRef (ADR-081 / ADR-040).",
+  rule: "Store QR PNG/SVG in MinIO qrcodes bucket; persist object key on Store.qrAssetRef (ADR-081 / ADR-040).",
 } as const;
 
 /**
  * StoreQrRef VO — object pointer for printable store QR (ARD-033 Domain Model).
- * Persist key in PG; binary lives in MinIO `qr`.
+ * Persist key in PG; binary lives in MinIO `qrcodes`.
  */
 export type StoreQrRef = {
   bucket: typeof MINIO_BUCKETS.qr;
@@ -91,7 +91,7 @@ export function createStoreQrRef(input: CreateStoreQrRefInput): StoreQrRef {
     throw new Error("StoreQrRef.objectKey must be non-empty (ADR-081).");
   }
   if (
-    !(OBJECT_LIMITS.qr.allowedContentTypes as readonly string[]).includes(
+    !(OBJECT_LIMITS.qrcodes.allowedContentTypes as readonly string[]).includes(
       input.contentType,
     )
   ) {
@@ -102,10 +102,10 @@ export function createStoreQrRef(input: CreateStoreQrRefInput): StoreQrRef {
   if (
     !Number.isFinite(input.byteSize) ||
     input.byteSize <= 0 ||
-    input.byteSize > OBJECT_LIMITS.qr.maxBytes
+    input.byteSize > OBJECT_LIMITS.qrcodes.maxBytes
   ) {
     throw new Error(
-      `StoreQrRef.byteSize out of range (ADR-081); max ${OBJECT_LIMITS.qr.maxBytes}.`,
+      `StoreQrRef.byteSize out of range (ADR-081); max ${OBJECT_LIMITS.qrcodes.maxBytes}.`,
     );
   }
   return {

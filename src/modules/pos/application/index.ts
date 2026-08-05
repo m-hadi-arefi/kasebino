@@ -11,7 +11,9 @@ export type {
   LoyaltyEarnPort,
   MembershipUpsertPort,
   MembershipUpsertPortResult,
-} from "./ports.js";export {
+  SaleOutboxPort,
+} from "./ports.js";
+export {
   createPosUseCases,
   type CompleteSaleInput,
   type CompleteSaleResult,

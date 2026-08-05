@@ -12,6 +12,8 @@ export {
   MERCHANT_OLTP_DASHBOARD_DECISION,
   MERCHANT_OLTP_TITLES_FA,
   MERCHANT_OLTP_UX_FA,
+  InMemoryMembershipCountersPort,
+  InMemorySalesCountersPort,
   assertCacheTtl60Seconds,
   assertPersianTitles,
   buildMerchantOverview,

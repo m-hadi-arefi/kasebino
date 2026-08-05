@@ -1,0 +1,9 @@
+export {
+  MARKETING_BRAND_FA,
+  MARKETING_COPY_FA,
+  MARKETING_CTA,
+  MARKETING_SECTION_IDS,
+  MARKETING_SEO_FA,
+  MARKETING_UIUX_GATE,
+  type MarketingSectionId,
+} from "./copy.js";

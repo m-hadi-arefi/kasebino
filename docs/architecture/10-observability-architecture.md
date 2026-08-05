@@ -5,7 +5,7 @@
 1. **Logs** — structured JSON: level, msg, merchantId, correlationId, route, duration
 2. **Metrics** — request rate/latency, OTP success, sale completion, cache hit ratio, outbox lag, **Mongo ingest lag/errors**
 3. **Traces** — OpenTelemetry-ready spans across use case → PostgreSQL (Drizzle) → Redis → EMQX → **Mongo ingest**
-4. **Health** — `/api/health` liveness; `/api/ready` checks Postgres (+ Redis); **Mongo optional degraded mode** documented
+4. **Health** — `/api/health` liveness; `/api/ready` checks Postgres + Redis (required); Mongo/EMQX/MinIO reported (optional unless `MOS_READY_REQUIRE_*=1`); see `docs/observability/health-checks.md`
 5. **Errors** — centralized error monitoring hook (provider selectable)
 6. **Product/ops correlation** — same `correlationId` on domain events, warehouse docs, audit docs, and traces (ARD-028)
 

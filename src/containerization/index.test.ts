@@ -49,7 +49,7 @@ describe("ADR-067 Containerization Standards", () => {
     expect(CONTAINER_PROBES.healthPath).toBe("/api/health");
     expect(CONTAINER_PROBES.readyPath).toBe("/api/ready");
     expect(CONTAINER_PROBES.healthImplemented).toBe(true);
-    expect(CONTAINER_PROBES.readyImplemented).toBe(false);
+    expect(CONTAINER_PROBES.readyImplemented).toBe(true);
     expect(TWELVE_FACTOR_RULES.configViaEnv).toBe(true);
     expect(TWELVE_FACTOR_RULES.statelessProcess).toBe(true);
     expect(TWELVE_FACTOR_RULES.portBinding).toBe(true);
@@ -106,5 +106,14 @@ describe("ADR-067 Containerization Standards", () => {
     expect(src).toMatch(/export\s+function\s+GET/);
     expect(src).toContain('"ok"');
     expect(src).toMatch(/status/);
+  });
+
+  it("ships readiness route for LB / deploy probes (ADR-112)", () => {
+    const readyPath = join(root, CONTAINER_FILES.readyRoute);
+    expect(existsSync(readyPath)).toBe(true);
+    const src = readFileSync(readyPath, "utf8");
+    expect(src).toMatch(/export\s+async\s+function\s+GET/);
+    expect(src).toContain("runReadinessChecks");
+    expect(src).toContain("503");
   });
 });

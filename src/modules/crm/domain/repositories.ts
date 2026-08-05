@@ -21,4 +21,9 @@ export type StoreMembershipRepository = {
     storeId: string,
     options?: { merchantId?: string; includeDeleted?: boolean },
   ): Promise<StoreMembership[]>;
+  /** Merchant-wide membership list for analytics counters (ADR-106). */
+  listByMerchantId(
+    merchantId: string,
+    options?: { includeDeleted?: boolean },
+  ): Promise<StoreMembership[]>;
 };

@@ -18,8 +18,10 @@ export {
 } from "./hours.js";
 export type { Store } from "./store.js";
 export {
+  applyStoreAddress,
   applyStoreBranding,
   applyStoreHours,
+  applyStoreStatus,
   createStoreAggregate,
 } from "./store.js";
 export {

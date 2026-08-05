@@ -61,6 +61,26 @@ export class InMemoryOrderRepository implements OrderRepository {
     return out;
   }
 
+  async listByMembership(input: {
+    merchantId: string;
+    storeId: string;
+    membershipId: string;
+    limit?: number;
+  }): Promise<Order[]> {
+    const limit = input.limit ?? 50;
+    const out: Order[] = [];
+    for (const order of this.byId.values()) {
+      if (order.merchantId !== input.merchantId) continue;
+      if (order.storeId !== input.storeId) continue;
+      if (order.membershipId !== input.membershipId) continue;
+      out.push(cloneOrder(order));
+      if (out.length >= limit) break;
+    }
+    return out.sort(
+      (a, b) => b.pendingPaymentAt.getTime() - a.pendingPaymentAt.getTime(),
+    );
+  }
+
   async listByStatus(input: {
     status: OrderStatus;
     merchantId?: string;

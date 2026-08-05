@@ -108,6 +108,14 @@ export function createMerchantUseCases(deps: MerchantUseCaseDeps) {
     const tradeName = requireTradeName(input.tradeName);
     const slug = requireSlug(input.slug);
     const ownerUserId = input.ownerUserId.trim();
+    if (!ownerUserId) {
+      throw new MerchantDomainError("MERCHANT_NOT_FOUND");
+    }
+
+    const owned = await deps.merchants.findByOwnerUserId(ownerUserId);
+    if (owned) {
+      throw new MerchantDomainError("OWNER_ALREADY_HAS_MERCHANT");
+    }
 
     const existing = await deps.merchants.findBySlug(slug);
     if (existing) {

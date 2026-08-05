@@ -85,6 +85,18 @@ describe("ADR-017 App Router structure", () => {
       true,
     );
     expect(
+      existsSync(join(root, APP_ROUTER_FILESYSTEM.merchant.ordersPage)),
+    ).toBe(true);
+    expect(
+      existsSync(join(root, APP_ROUTER_FILESYSTEM.merchant.storesPage)),
+    ).toBe(true);
+    expect(
+      existsSync(join(root, APP_ROUTER_FILESYSTEM.merchant.storeLocationPage)),
+    ).toBe(true);
+    expect(
+      existsSync(join(root, APP_ROUTER_FILESYSTEM.merchant.storeQrPrintPage)),
+    ).toBe(true);
+    expect(
       existsSync(join(root, APP_ROUTER_FILESYSTEM.merchant.manifestRoute)),
     ).toBe(true);
     expect(
@@ -97,6 +109,12 @@ describe("ADR-017 App Router structure", () => {
       true,
     );
     expect(existsSync(join(root, APP_ROUTER_FILESYSTEM.storefront.catalogPage))).toBe(
+      true,
+    );
+    expect(existsSync(join(root, APP_ROUTER_FILESYSTEM.storefront.productPage))).toBe(
+      true,
+    );
+    expect(existsSync(join(root, APP_ROUTER_FILESYSTEM.storefront.checkoutPage))).toBe(
       true,
     );
     expect(existsSync(join(root, APP_ROUTER_FILESYSTEM.storefront.aboutPage))).toBe(
@@ -180,6 +198,7 @@ describe("ADR-017 App Router structure", () => {
     expect(classifyRouteAudience("/")).toBe("marketing");
     expect(classifyRouteAudience("/dashboard")).toBe("merchant");
     expect(classifyRouteAudience("/pos")).toBe("merchant");
+    expect(classifyRouteAudience("/orders")).toBe("merchant");
     expect(classifyRouteAudience("/staff/manifest.webmanifest")).toBe("merchant");
     expect(classifyRouteAudience("/s/atina-kerman")).toBe("storefront");
     expect(classifyRouteAudience("/admin")).toBe("admin");

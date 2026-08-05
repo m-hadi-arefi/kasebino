@@ -223,7 +223,7 @@ describe("ADR-076 Security Architecture", () => {
       "strict-origin-when-cross-origin",
     );
     expect(SECURITY_HEADERS_CHECKLIST.permissionsPolicy.required).toBe(true);
-    expect(SECURITY_HEADERS_CHECKLIST.runtimeWiring).toMatch(/deferred/);
+    expect(SECURITY_HEADERS_CHECKLIST.runtimeWiring).toMatch(/adr_119/);
 
     expect(() =>
       assertSecurityHeadersChecklistComplete({

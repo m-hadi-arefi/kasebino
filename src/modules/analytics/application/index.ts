@@ -1,9 +1,15 @@
 export {
+  createAnalyticsDashboardUseCases,
   createAnalyticsOverviewUseCases,
   createAnalyticsProjectionHandler,
   stubJalaliRange,
+  northStarRollingRange,
+  type AnalyticsDashboardUseCases,
   type AnalyticsOverviewUseCases,
   type AnalyticsProjectionHandler,
   type ApplySaleCompletedInput,
   type GetMerchantOverviewInput,
+  type MerchantCustomersProjection,
+  type MerchantRetentionProjection,
+  type MerchantRevenueProjection,
 } from "./use-cases.js";

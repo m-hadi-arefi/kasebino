@@ -63,6 +63,9 @@ export const CACHE_INVALIDATION_UNICODE = {
 export const CACHE_INVALIDATION_MVP_EVENTS = [
   "SaleCompleted",
   "ProductUpdated",
+  "ProductCreated",
+  "ProductDeleted",
+  "InventoryChanged",
   "StoreUpdated",
 ] as const;
 
@@ -86,6 +89,12 @@ export type ProductUpdatedInvalidationPayload = {
   barcode?: string | null;
 };
 
+export type InventoryChangedInvalidationPayload = {
+  merchantId: string;
+  storeId: string;
+  productId: string;
+};
+
 export type SaleCompletedInvalidationPayload = {
   merchantId: string;
   storeId: string;
@@ -105,8 +114,12 @@ export type MappedCacheInvalidationInput =
       payload: StoreUpdatedInvalidationPayload;
     }
   | {
-      eventType: "ProductUpdated";
+      eventType: "ProductUpdated" | "ProductCreated" | "ProductDeleted";
       payload: ProductUpdatedInvalidationPayload;
+    }
+  | {
+      eventType: "InventoryChanged";
+      payload: InventoryChangedInvalidationPayload;
     }
   | {
       eventType: "SaleCompleted";
@@ -229,6 +242,17 @@ function keysForSaleCompleted(
   return uniqueKeys(keys);
 }
 
+function keysForInventoryChanged(
+  env: string,
+  payload: InventoryChangedInvalidationPayload,
+): string[] {
+  const { merchantId, storeId, productId } = payload;
+  return uniqueKeys([
+    buildStockKey({ env, merchantId, storeId, productId }),
+    buildStorefrontProductKey({ env, merchantId, productId }),
+  ]);
+}
+
 /**
  * Pure event → keys map (event-catalog Cache invalidation columns + ADR-053 builders).
  * Explicit ID deletes only — no SCAN / FLUSHDB.
@@ -242,10 +266,20 @@ export function keysForEvent(input: InvalidateOnEventInput): string[] {
       input.payload as StoreUpdatedInvalidationPayload,
     );
   }
-  if (eventType === "ProductUpdated") {
+  if (
+    eventType === "ProductUpdated" ||
+    eventType === "ProductCreated" ||
+    eventType === "ProductDeleted"
+  ) {
     return keysForProductUpdated(
       env,
       input.payload as ProductUpdatedInvalidationPayload,
+    );
+  }
+  if (eventType === "InventoryChanged") {
+    return keysForInventoryChanged(
+      env,
+      input.payload as InventoryChangedInvalidationPayload,
     );
   }
   if (eventType === "SaleCompleted") {

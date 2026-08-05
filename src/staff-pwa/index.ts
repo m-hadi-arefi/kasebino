@@ -102,6 +102,8 @@ export const STAFF_PWA_COPY_FA = {
   installed: "اپلیکیشن صندوق روی دستگاه شماست.",
   regionLabel: "پیشنهاد نصب اپلیکیشن صندوق",
   browserHint: "از منوی مرورگر، «افزودن به صفحهٔ اصلی» را انتخاب کنید.",
+  iosHint:
+    "در سافاری آیفون: دکمهٔ اشتراک‌گذاری را بزنید، سپس «افزودن به صفحهٔ اصلی» را انتخاب کنید.",
 } as const;
 
 export const STAFF_PWA_INSTALL_UX = {

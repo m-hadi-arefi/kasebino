@@ -1,11 +1,10 @@
 /**
- * Thin EMQX / MQTT connection stub (ADR-038).
+ * EMQX / MQTT connection config (ADR-038 / ADR-109).
  *
  * Resolves MQTT_URL for infrastructure layers. Does not open a broker
- * connection at import time. Publish operations use `EmqxPublishPort`
- * (`src/emqx-realtime`). Prefer module-owned adapters when wiring a real
- * mqtt.js client later (docs/tech/emqx.md). Browser subscribe strategy:
- * `src/realtime-client` (ADR-039).
+ * connection at import time. Live publish → `MqttJsEmqxPublisher`
+ * (`mqtt-publisher.ts`). Browser subscribe strategy: `src/realtime-client`
+ * (ADR-039).
  */
 
 import { CONNECTION } from "../../emqx-realtime/index.js";
@@ -14,6 +13,19 @@ export type EmqxConnectionConfig = {
   url: string;
   envVar: typeof CONNECTION.urlEnv;
 };
+
+/** MOS_MQTT_MODE=memory|live — memory uses InMemoryMqttBroker in worker. */
+export type MqttRuntimeMode = "memory" | "live";
+
+export function resolveMqttRuntimeMode(
+  env: NodeJS.ProcessEnv = process.env,
+): MqttRuntimeMode {
+  const raw = env.MOS_MQTT_MODE?.trim().toLowerCase();
+  if (raw === "memory" || raw === "mock") return "memory";
+  if (raw === "live") return "live";
+  // Default live when MQTT_URL present; otherwise memory for unit tests.
+  return env.MQTT_URL?.trim() ? "live" : "memory";
+}
 
 /**
  * Resolve MQTT broker URL from an explicit value (tests / DI).

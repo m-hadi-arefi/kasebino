@@ -10,6 +10,7 @@ import {
   COMPOSE_REQUIREMENTS,
   COMPOSE_SERVICE_PORTS,
   COMPOSE_SERVICES,
+  COMPOSE_WORKER_PROFILE,
   DOCKER_COMPOSE_PARITY,
   ENV_EXAMPLE_REQUIRED_KEYS,
   POSTGRES_UTF8_REQUIREMENTS,
@@ -22,9 +23,10 @@ import {
 const root = process.cwd();
 
 describe("ADR-066 Docker Compose local parity", () => {
-  it("declares local parity services including optional app profile", () => {
+  it("declares local parity services including optional app + worker profiles", () => {
     expect(COMPOSE_SERVICES).toEqual([
       "app",
+      "worker",
       "postgres",
       "redis",
       "emqx",
@@ -33,9 +35,14 @@ describe("ADR-066 Docker Compose local parity", () => {
     ]);
     expect(COMPOSE_APP_PROFILE.optional).toBe(true);
     expect(COMPOSE_APP_PROFILE.profile).toBe("app");
+    expect(COMPOSE_WORKER_PROFILE.optional).toBe(true);
+    expect(COMPOSE_WORKER_PROFILE.profile).toBe("worker");
+    expect(COMPOSE_WORKER_PROFILE.dependsOn).toEqual(["postgres", "emqx"]);
     expect(isComposeService("postgres")).toBe(true);
+    expect(isComposeService("worker")).toBe(true);
     expect(isComposeService("delivery")).toBe(false);
     expect(DOCKER_COMPOSE_PARITY.services).toEqual(COMPOSE_SERVICES);
+    expect(DOCKER_COMPOSE_PARITY.workerProfile).toBe(COMPOSE_WORKER_PROFILE);
   });
 
   it("locks host ports to infrastructure architecture defaults", () => {
@@ -100,12 +107,18 @@ describe("ADR-066 Docker Compose local parity", () => {
     expect(names.sort()).toEqual([...COMPOSE_SERVICES].sort());
 
     for (const service of COMPOSE_SERVICES) {
-      if (service === "app") {
-        expect(yaml).toMatch(/profiles:\s*\n\s*-\s*["']?app["']?/);
+      if (service === "app" || service === "worker") {
+        expect(yaml).toMatch(
+          new RegExp(`profiles:\\s*\\n\\s*-\\s*["']?${service}["']?`),
+        );
       } else {
         expect(yaml).toContain("healthcheck:");
       }
     }
+
+    expect(yaml).toContain("npm run worker:outbox");
+    expect(COMPOSE_SERVICE_PORTS.worker).toEqual([]);
+    expect(COMPOSE_DATA_PLANES.worker.role).toBe("outbox_worker_process");
 
     expect(yaml).toContain("POSTGRES_INITDB_ARGS");
     expect(yaml).toContain("--encoding=UTF8");

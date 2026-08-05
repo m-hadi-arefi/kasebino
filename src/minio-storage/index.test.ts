@@ -118,16 +118,16 @@ describe("ADR-040 File Storage MinIO Strategy", () => {
     expect(MINIO_ENGINE.consolePort).toBe(9001);
   });
 
-  it("defines private receipts/media/qr buckets with type/size limits", () => {
+  it("defines private receipts/media/qrcodes buckets with type/size limits", () => {
     expect(MINIO_BUCKETS).toEqual({
       receipts: "receipts",
       media: "media",
-      qr: "qr",
+      qr: "qrcodes",
     });
-    expect([...MINIO_BUCKET_LIST]).toEqual(["receipts", "media", "qr"]);
+    expect([...MINIO_BUCKET_LIST]).toEqual(["receipts", "media", "qrcodes"]);
     expect(OBJECT_LIMITS.receipts.maxBytes).toBe(5 * 1024 * 1024);
     expect(OBJECT_LIMITS.media.maxBytes).toBe(2 * 1024 * 1024);
-    expect(OBJECT_LIMITS.qr.maxBytes).toBe(512 * 1024);
+    expect(OBJECT_LIMITS.qrcodes.maxBytes).toBe(512 * 1024);
 
     expect(() => assertKnownBucket("receipts")).not.toThrow();
     expect(() => assertKnownBucket("public")).toThrow(ObjectValidationError);
@@ -150,9 +150,9 @@ describe("ADR-040 File Storage MinIO Strategy", () => {
 
     expect(() =>
       validateObjectConstraints({
-        bucket: "qr",
+        bucket: "qrcodes",
         contentType: "image/png",
-        byteSize: OBJECT_LIMITS.qr.maxBytes + 1,
+        byteSize: OBJECT_LIMITS.qrcodes.maxBytes + 1,
       }),
     ).toThrow(/exceeds max/);
   });

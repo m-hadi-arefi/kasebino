@@ -75,7 +75,19 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     return this.byId.get(id) ?? null;
   }
 
-  async listByMerchantId(merchantId: string): Promise<Category[]> {
-    return [...this.byId.values()].filter((c) => c.merchantId === merchantId);
+  async listByMerchantId(
+    merchantId: string,
+    options?: { includeDeleted?: boolean },
+  ): Promise<Category[]> {
+    const includeDeleted = options?.includeDeleted === true;
+    return [...this.byId.values()].filter(
+      (c) =>
+        c.merchantId === merchantId &&
+        (includeDeleted || c.deletedAt === null),
+    );
+  }
+
+  async update(category: Category): Promise<void> {
+    this.byId.set(category.id, category);
   }
 }

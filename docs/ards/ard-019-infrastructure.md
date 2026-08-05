@@ -20,7 +20,7 @@ Makes environments operable beyond developer laptops.
 
 ## Requirements
 
-- NFR-02
+- NFR-02 — **foundation:** `src/scalability-stateless/` (ADR-071) encodes Stateless Multi-Instance; k8s/LB deploy scaffolding remains ADR-070+
 - NFR-03
 - PRD §16
 - MongoDB topology for ARD-021+

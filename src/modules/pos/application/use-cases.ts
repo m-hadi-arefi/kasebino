@@ -18,7 +18,11 @@ import type {
   InventoryDecrementPort,
   LoyaltyEarnPort,
   MembershipUpsertPort,
+  SaleOutboxPort,
 } from "./ports.js";
+import { storeSaleReceiptObject } from "./store-sale-receipt.js";
+import type { ObjectStoragePort } from "../../../minio-storage/index.js";
+import { attachSaleReceiptRef } from "../domain/sale.js";
 
 export type PosUseCaseDeps = {
   sales: SaleRepository;
@@ -31,6 +35,18 @@ export type PosUseCaseDeps = {
    * Must never fail CompleteSale when Mongo / buffer is down.
    */
   analyticsAfterSale?: AnalyticsAfterSalePort;
+  /** ADR-096 — persist SaleCreated / SaleCompleted to outbox after OLTP save. */
+  outbox?: SaleOutboxPort;
+  /**
+   * ADR-111 — MinIO (or in-memory) object storage for receipt HTML.
+   * Failures must never fail CompleteSale; outbox retries later.
+   */
+  objectStorage?: ObjectStoragePort;
+  /** Optional store display name for receipt header. */
+  resolveStoreDisplayName?: (input: {
+    merchantId: string;
+    storeId: string;
+  }) => Promise<string | null>;
   now?: () => Date;
   idFactory?: () => string;
 };
@@ -237,6 +253,34 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
 
     await deps.sales.save(sale);
 
+    // ADR-111: best-effort receipt render — never fail CompleteSale when MinIO down.
+    if (deps.objectStorage) {
+      try {
+        let storeDisplayName: string | null = null;
+        if (deps.resolveStoreDisplayName) {
+          storeDisplayName = await deps.resolveStoreDisplayName({
+            merchantId: sale.merchantId,
+            storeId: sale.storeId,
+          });
+        }
+        const stored = await storeSaleReceiptObject({
+          storage: deps.objectStorage,
+          sale,
+          storeDisplayName,
+        });
+        attachSaleReceiptRef(sale, {
+          objectKey: stored.objectKey,
+          contentType: stored.receiptRef.contentType,
+        });
+        await deps.sales.updateReceiptRef(sale.id, {
+          objectKey: stored.objectKey,
+          contentType: stored.receiptRef.contentType,
+        });
+      } catch {
+        // Isolation belt — receipt retry via SaleCompleted outbox consumer.
+      }
+    }
+
     const createdEvent = saleCreatedEvent({
       saleId: sale.id,
       merchantId: sale.merchantId,
@@ -257,6 +301,15 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
       idempotencyKey: sale.idempotencyKey,
       occurredAt: at,
     });
+
+    if (deps.outbox) {
+      await deps.outbox.enqueueSaleEvents({
+        createdEvent,
+        completedEvent: event,
+        merchantId: sale.merchantId,
+        storeId: sale.storeId,
+      });
+    }
 
     // ADR-065: analytics after OLTP commit only; never fail CompleteSale.
     if (deps.analyticsAfterSale) {

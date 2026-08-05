@@ -39,17 +39,24 @@ describe("ADR-031 Merchant Authentication contract", () => {
     expect(() => assertOtpRateLimitPerMinute(10)).toThrow(/3/);
   });
 
-  it("never returns OTP in production; defers SMS provider to ADR-083", () => {
+  it("never returns OTP in production/staging; defers SMS provider to ADR-083", () => {
     expect(MERCHANT_OTP_ENV_RULES.production.returnOtpInApi).toBe(false);
     expect(MERCHANT_OTP_ENV_RULES.development.returnOtpInApi).toBe(true);
     expect(MERCHANT_OTP_ENV_RULES.smsProviderAdr).toBe("ADR-083");
     expect(MERCHANT_OTP_ENV_RULES.smsProviderStatus).toBe("proposed");
     expect(shouldReturnDevOtp("development")).toBe(true);
     expect(shouldReturnDevOtp("production")).toBe(false);
+    expect(shouldReturnDevOtp("staging")).toBe(false);
+    expect(shouldReturnDevOtp("test")).toBe(false);
+    expect(shouldReturnDevOtp("production", "1")).toBe(true);
+    expect(shouldReturnDevOtp("staging", undefined)).toBe(false);
     expect(shouldSendSms("production")).toBe(true);
     expect(shouldSendSms("development")).toBe(false);
     expect(() =>
       assertNeverReturnOtpInProduction("production", true),
+    ).toThrow(/never include OTP/i);
+    expect(() =>
+      assertNeverReturnOtpInProduction("staging", true),
     ).toThrow(/never include OTP/i);
     expect(() =>
       assertNeverReturnOtpInProduction("production", false),

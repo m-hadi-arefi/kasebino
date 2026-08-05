@@ -26,7 +26,7 @@ Reproducible deploys; horizontal scale.
 
 - `Dockerfile at repo root`
 - `.dockerignore`
-- Health liveness: `GET /api/health` (ready `/api/ready` reserved)
+- Health liveness: `GET /api/health`; readiness: `GET /api/ready` (ADR-112; see `docs/observability/health-checks.md`)
 
 ## Anti-patterns
 

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { staffManifestPath } from "@/staff-pwa";
 import { StaffInstallPrompt } from "./install-prompt";
 import { StaffOfflineStatus } from "./offline-status";
+import { PosProviders } from "./pos-providers";
+import { PosRegister } from "./pos-register";
 
 export const metadata: Metadata = {
   title: "صندوق فروش | کاسبینو",
@@ -15,8 +17,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Merchant staff POS shell — ADR-022 install + ADR-024 offline queue.
- * Never store customer PWA.
+ * Merchant staff POS — ADR-096 CompleteSale UI + ADR-024 offline chrome.
+ * Staff PWA only (ADR-022); never store customer PWA (ADR-023).
  */
 export default function MerchantPosPage() {
   return (
@@ -32,12 +34,12 @@ export default function MerchantPosPage() {
           </p>
         </header>
         <StaffOfflineStatus />
-        <section
-          aria-label="وضعیت صندوق"
-          className="flex flex-col gap-2 text-sm text-[var(--color-muted)]"
-        >
-          <p>مسیر آنلاین صندوق اولویت دارد؛ صف آفلاین در قطعی شبکه فعال است.</p>
-        </section>
+        <p className="text-sm text-[var(--color-muted)]">
+          مسیر آنلاین صندوق اولویت دارد؛ صف آفلاین در قطعی شبکه فعال است.
+        </p>
+        <PosProviders>
+          <PosRegister />
+        </PosProviders>
       </main>
       <StaffInstallPrompt />
     </>

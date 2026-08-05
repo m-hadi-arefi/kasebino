@@ -169,8 +169,8 @@ Handler idempotency tests.
 - [ ] Transaction boundaries implemented/documented
 
 
-- [ ] New order creates notification
-- [ ] List/read APIs work
+- [x] New order creates notification
+- [x] List/read APIs work
 - [ ] Realtime hook ready
 
 ## Localization Requirements

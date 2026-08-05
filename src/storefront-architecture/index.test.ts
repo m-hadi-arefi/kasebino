@@ -154,8 +154,12 @@ describe("ADR-086 Storefront Architecture", () => {
     expect(home).toMatch(/catalog|کاتالوگ/);
     expect(home).toMatch(/dashboard|پنل من/);
     expect(home).not.toMatch(/delivery|courier/i);
-    expect(catalog).toMatch(/کاتالوگ/);
-    expect(catalog).toMatch(/هنوز کالایی|کالا/);
+    expect(catalog).toMatch(/کاتالوگ|emptyCatalog|catalogTitle/);
+    const storefrontCopy = readFileSync(
+      join(root, "src/modules/storefront/ui/copy.ts"),
+      "utf8",
+    );
+    expect(storefrontCopy).toMatch(/هنوز کالایی|کالا/);
     expect(about).toMatch(/درباره|مغازه/);
     expect(layout).toMatch(/ویترین|فروشگاه/);
     expect(home).toMatch(/revalidate\s*=\s*600/);

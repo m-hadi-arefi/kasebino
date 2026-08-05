@@ -1,5 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
+import {
+  isMerchantSession,
+  merchantIdFromSession,
+} from "@/infrastructure/auth/session-guard";
+import { getApiContext } from "@/infrastructure/composition";
+
+import { StoreSwitcher } from "../stores/store-switcher";
+import { DashboardAnalyticsWidgets } from "./dashboard-analytics-widgets";
+import { DashboardCustomersWidget } from "./dashboard-customers-widget";
+import { DashboardProviders } from "./dashboard-providers";
 
 export const metadata: Metadata = {
   title: "داشبورد فروشگاه | کاسبینو",
@@ -7,34 +20,27 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const widgets = [
-  {
-    id: "overview",
-    title: "نمای کلی",
-    hint: "فروش و عضویت فعال",
-    metric: "تعداد فروش · درآمد (تومان)",
-  },
-  {
-    id: "revenue",
-    title: "درآمد",
-    hint: "جمع فروش در بازهٔ شمسی",
-    metric: "مبالغ به تومان",
-  },
-  {
-    id: "customers",
-    title: "مشتریان",
-    hint: "عضویت‌های فعال و جدید",
-    metric: "عضویت‌های مغازه",
-  },
-  {
-    id: "retention",
-    title: "بازماندگی",
-    hint: "مشتریان بازمانده ماهانه",
-    metric: "شمال‌ستارهٔ حفظ مشتری",
-  },
-] as const;
+export default async function MerchantDashboardPage() {
+  const session = await auth();
+  if (!isMerchantSession(session)) {
+    redirect("/login?callbackUrl=/dashboard");
+  }
 
-export default function MerchantDashboardPage() {
+  const ctx = getApiContext();
+  const userId = session?.user?.id;
+  let merchantId = merchantIdFromSession(session);
+  if (!merchantId && typeof userId === "string") {
+    const owned = await ctx.repos.merchants.findByOwnerUserId(userId);
+    merchantId = owned?.id ?? null;
+  }
+  if (!merchantId) {
+    redirect("/onboarding");
+  }
+  const stores = await ctx.repos.stores.listByMerchantId(merchantId);
+  if (stores.length === 0) {
+    redirect("/onboarding");
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
       <header className="flex flex-col gap-2">
@@ -45,46 +51,32 @@ export default function MerchantDashboardPage() {
           نبض حفظ مشتری — فروش، عضویت و بازگشت
         </p>
         <p className="text-sm text-[var(--color-muted)]">
-          مبالغ به تومان · بازهٔ تاریخ‌ها به تقویم شمسی (تهران)
+          مبالغ به تومان · بازهٔ تاریخ‌ها به تقویم شمسی (تهران) · کش حدود ۶۰
+          ثانیه · درآمد، مشتریان و بازماندگی زنده از analytics
         </p>
       </header>
+
+      <StoreSwitcher />
 
       <section
         aria-live="polite"
         className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5"
       >
-        <p className="font-medium text-[var(--color-fg)]">
-          برای مشاهدهٔ داشبورد وارد شوید.
-        </p>
+        <p className="font-medium text-[var(--color-fg)]">ورود موفق</p>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          ورود با پیامک برای صاحب مغازه و کارکنان
+          شناسه: {session?.user?.id ?? "—"} · نسخهٔ توکن:{" "}
+          {session?.tokenVersion ?? session?.user?.tokenVersion ?? 0}
         </p>
       </section>
 
       <section aria-label="ویجت‌های نمای کلی" className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-[var(--color-fg)]">نمای کلی</h2>
-        <p className="text-sm text-[var(--color-muted)]">
-          داده از analytics OLTP (به‌زودی) · به‌روزرسانی کش تقریباً هر ۶۰ ثانیه
-        </p>
-        <ul className="flex flex-col gap-3">
-          {widgets.map((widget) => (
-            <li
-              key={widget.id}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
-            >
-              <p className="font-medium text-[var(--color-fg)]">{widget.title}</p>
-              <p className="mt-1 text-sm text-[var(--color-muted)]">
-                {widget.hint}
-              </p>
-              <p className="mt-2 text-sm text-[var(--color-fg)]">
-                {widget.metric}
-              </p>
-              <p className="mt-2 text-sm text-[var(--color-muted)]">
-                هنوز داده‌ای برای نمایش نیست.
-              </p>
-            </li>
-          ))}
-        </ul>
+        <DashboardProviders>
+          <ul className="flex flex-col gap-3">
+            <DashboardAnalyticsWidgets />
+            <DashboardCustomersWidget />
+          </ul>
+        </DashboardProviders>
       </section>
 
       <nav
@@ -96,6 +88,54 @@ export default function MerchantDashboardPage() {
           className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
         >
           صندوق فروش
+        </Link>
+        <Link
+          href="/customers"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          مشتریان
+        </Link>
+        <Link
+          href="/products"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          کالاها
+        </Link>
+        <Link
+          href="/inventory"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          موجودی
+        </Link>
+        <Link
+          href="/loyalty"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          باشگاه مشتریان
+        </Link>
+        <Link
+          href="/orders"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          سفارش‌های پیکاپ
+        </Link>
+        <Link
+          href="/notifications"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          اعلان‌ها
+        </Link>
+        <Link
+          href="/stores"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          فروشگاه‌ها
+        </Link>
+        <Link
+          href="/onboarding"
+          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
+        >
+          راه‌اندازی
         </Link>
       </nav>
 

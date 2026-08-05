@@ -79,11 +79,12 @@ export const MERCHANT_OLTP_ANALYTICS = {
   ] as const,
   cacheTtlSeconds: 60,
   apiPaths: {
-    overview: "/api/v1/analytics/overview",
-    revenue: "/api/v1/analytics/revenue",
-    customers: "/api/v1/analytics/customers",
-    retention: "/api/v1/analytics/retention",
+    overview: "/api/v1/analytics/merchant/overview",
+    revenue: "/api/v1/analytics/merchant/revenue",
+    customers: "/api/v1/analytics/merchant/customers",
+    retention: "/api/v1/analytics/merchant/retention",
   },
+
   moneyFiguresMustReconcileToPg: true,
   redisCacheAside: true,
 } as const;

@@ -48,7 +48,8 @@ export const DATA_RETENTION_DECISION = {
     audit: "src/audit-logging/",
     warehouse: "src/event-warehouse/",
   },
-  liveTtlJobsDeferred: true,
+  liveTtlJobsDeferred: false,
+  liveTtlIndexesImplementedAdr110: true,
   relatedArds: ["ARD-019", "ARD-021", "ARD-022", "ARD-024", "ARD-027"] as const,
 } as const;
 
@@ -508,7 +509,8 @@ export const DATA_RETENTION_REQUIREMENTS = {
   neverTtlPostgresSales: true,
   persianPrivacyCopyKeys: true,
   envOverridableDefaults: true,
-  liveTtlJobsDeferred: true,
+  liveTtlJobsDeferred: false,
+  liveTtlIndexesImplementedAdr110: true,
 } as const;
 
 export const DATA_RETENTION_PLACEMENT = {
@@ -516,6 +518,8 @@ export const DATA_RETENTION_PLACEMENT = {
   detailAdr: "ADR-064",
   architectureDoc: DATA_RETENTION_DECISION.architectureDoc,
   liveJobsDeferredTo: ["ARD-019", "ARD-021"] as const,
+  ttlBootstrapPackage: "src/infrastructure/mongodb/",
+  ttlBootstrapAdr: "ADR-110",
 } as const;
 
 export function daysToExpireAfterSeconds(days: number): number {

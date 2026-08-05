@@ -27,6 +27,9 @@ import {
   type Wallet,
 } from "../domain/wallet.js";
 import { LoyaltyDomainError } from "./errors.js";
+import type { DomainEventBase } from "../../../shared/ddd/index.js";
+import type { OutboxStore } from "../../../outbox/index.js";
+import { envelopeFromDomainEvent } from "../../../event-driven/index.js";
 
 export type LoyaltyUseCaseDeps = {
   wallets: WalletRepository;
@@ -371,7 +374,8 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
     async redeemPoints(input: RedeemPointsInput): Promise<{
       wallet: Wallet;
       points: number;
-      event: ReturnType<typeof pointsRedeemedEvent>;
+      created: boolean;
+      event: ReturnType<typeof pointsRedeemedEvent> | null;
     }> {
       requireIds(input.merchantId, input.storeId);
       if (!input.membershipId.trim()) {
@@ -379,6 +383,22 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
       }
       if (!Number.isInteger(input.points) || input.points < 1) {
         throw new LoyaltyDomainError("INVALID_POINTS");
+      }
+
+      if (input.referenceId?.trim()) {
+        const prior = await deps.ledger.findRedeemByReferenceId(
+          input.referenceId.trim(),
+        );
+        if (prior) {
+          const wallet = await deps.wallets.findById(prior.walletId);
+          if (!wallet) throw new LoyaltyDomainError("WALLET_NOT_FOUND");
+          return {
+            wallet,
+            points: prior.points,
+            created: false,
+            event: null,
+          };
+        }
       }
 
       const wallet = await deps.wallets.findByStoreMembershipId(
@@ -431,7 +451,7 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
         occurredAt: at,
       });
 
-      return { wallet, points: input.points, event };
+      return { wallet, points: input.points, created: true, event };
     },
 
     /**
@@ -516,14 +536,16 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
 export type LoyaltyUseCases = ReturnType<typeof createLoyaltyUseCases>;
 
 /**
- * POS CompleteSale port adapter (ADR-009 ↔ ADR-010).
+ * POS CompleteSale port adapter (ADR-009 ↔ ADR-010 / ADR-099).
+ * Optionally enqueues PointsEarned to the transactional outbox.
  */
 export function createLoyaltyEarnPort(
   useCases: Pick<LoyaltyUseCases, "earnPointsForSale">,
+  options?: { outbox?: OutboxStore },
 ): LoyaltyEarnPort {
   return {
     async earnForSale(input) {
-      await useCases.earnPointsForSale({
+      const result = await useCases.earnPointsForSale({
         saleId: input.saleId,
         merchantId: input.merchantId,
         storeId: input.storeId,
@@ -531,6 +553,74 @@ export function createLoyaltyEarnPort(
         customerId: input.customerId,
         totalAmountMinor: input.totalAmountMinor,
       });
+      if (result.event && options?.outbox) {
+        await enqueueLoyaltyDomainEvent(options.outbox, result.event, {
+          merchantId: result.event.payload.merchantId as string,
+          storeId: result.event.payload.storeId as string,
+        });
+      }
+    },
+  };
+}
+
+export async function enqueueLoyaltyDomainEvent(
+  outbox: OutboxStore,
+  domainEvent: DomainEventBase & { payload: Record<string, unknown> },
+  tenant: { merchantId: string; storeId: string },
+): Promise<void> {
+  await outbox.enqueue({
+    envelope: envelopeFromDomainEvent({
+      domainEvent,
+      merchantId: tenant.merchantId,
+      storeId: tenant.storeId,
+    }),
+    aggregateId: domainEvent.aggregateId,
+    aggregateType: domainEvent.aggregateType,
+  });
+}
+
+/**
+ * ADR-099 scheduled expiry — executes expireStaleWallets and enqueues PointsExpired.
+ */
+export async function runLoyaltyPointsExpiryJob(input: {
+  loyalty: Pick<LoyaltyUseCases, "expireStaleWallets">;
+  outbox?: OutboxStore;
+  merchantId?: string;
+  storeId?: string;
+  limit?: number;
+  now?: () => Date;
+}): Promise<{
+  jobName: "loyalty_points_expiry";
+  ranAt: string;
+  status: "completed";
+  expiredCount: number;
+  policySnapshot: Record<string, unknown>;
+}> {
+  const ranAt = (input.now ?? (() => new Date()))().toISOString();
+  const { expired } = await input.loyalty.expireStaleWallets({
+    ...(input.merchantId !== undefined ? { merchantId: input.merchantId } : {}),
+    ...(input.storeId !== undefined ? { storeId: input.storeId } : {}),
+    ...(input.limit !== undefined ? { limit: input.limit } : {}),
+  });
+
+  if (input.outbox) {
+    for (const item of expired) {
+      await enqueueLoyaltyDomainEvent(input.outbox, item.event, {
+        merchantId: item.wallet.merchantId,
+        storeId: item.wallet.storeId,
+      });
+    }
+  }
+
+  return {
+    jobName: "loyalty_points_expiry",
+    ranAt,
+    status: "completed",
+    expiredCount: expired.length,
+    policySnapshot: {
+      defaultMonthsAfterLastEarn:
+        LOYALTY_DECISION.expiry.defaultMonthsAfterLastEarn,
+      eventName: LOYALTY_DECISION.expiry.expiryEventName,
     },
   };
 }

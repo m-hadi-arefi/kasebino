@@ -16,7 +16,9 @@
 >
 > **ADR-038 foundations (2026-08-03):** EMQX publish package in `src/emqx-realtime` (tenant topics, QoS1 port, ACL + short-lived cred mint, outbox→MQTT handler, in-memory broker).
 >
-> **ADR-039 foundations (2026-08-03):** Browser/staff client in `src/realtime-client` + `POST /api/v1/realtime/token` (MQTT-over-WS preferred, TanStack Query invalidate, poll fallback, reconnect backoff, Persian reconnect copy). This ARD remains `todo` until compose EMQX subscriber e2e + live merchant boards wire the client.
+> **ADR-039 foundations (2026-08-03):** Browser/staff client in `src/realtime-client` + `POST /api/v1/realtime/token` (MQTT-over-WS preferred, TanStack Query invalidate, poll fallback, reconnect backoff, Persian reconnect copy).
+>
+> **ADR-124 runtime (2026-08-05):** mqtt.js browser transport + `useRealtimeStoreChannel` wired on merchant orders board / POS / notifications; token scoped to active store; `NEXT_PUBLIC_MOS_MQTT_CLIENT=0` poll-only. Full Compose EMQX subscriber e2e may still keep this ARD `todo` until ops smoke.
 
 ## Objective
 

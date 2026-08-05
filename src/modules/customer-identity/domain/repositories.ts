@@ -15,6 +15,7 @@ export type CustomerOtpChallengeRepository = {
 
 /** Domain port — Drizzle adapter deferred (ARD-030 persistence). */
 export type CustomerIdentityRepository = {
+  findById(id: string): Promise<CustomerIdentity | null>;
   findByPhoneE164(phoneE164: string): Promise<CustomerIdentity | null>;
   save(identity: CustomerIdentity): Promise<void>;
 };

@@ -32,6 +32,9 @@ export type Sale = {
   readonly totalAmountMinor: bigint;
   status: SaleStatus;
   readonly idempotencyKey: string;
+  /** MinIO object key in receipts bucket (ADR-111). */
+  receiptObjectKey: string | null;
+  receiptContentType: string | null;
   readonly completedAt: Date | null;
   readonly createdAt: Date;
   updatedAt: Date;
@@ -94,11 +97,23 @@ export function createCompletedSaleAggregate(
     totalAmountMinor,
     status: "completed",
     idempotencyKey: input.idempotencyKey,
+    receiptObjectKey: null,
+    receiptContentType: null,
     completedAt: now,
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
   };
+}
+
+export function attachSaleReceiptRef(
+  sale: Sale,
+  input: { objectKey: string; contentType: string },
+  at: Date = new Date(),
+): void {
+  sale.receiptObjectKey = input.objectKey.trim();
+  sale.receiptContentType = input.contentType.trim();
+  sale.updatedAt = at;
 }
 
 export function cancelSale(sale: Sale, at: Date = new Date()): void {

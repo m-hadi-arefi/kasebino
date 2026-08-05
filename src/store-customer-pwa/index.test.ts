@@ -105,6 +105,11 @@ describe("ADR-023 Store Customer PWA Architecture", () => {
     expect(STORE_CUSTOMER_PWA_OFFLINE.authRequiresNetwork).toBe(true);
     expect(STORE_CUSTOMER_PWA_OFFLINE.ordersRequireNetwork).toBe(true);
     expect(STORE_CUSTOMER_PWA_OFFLINE.noteFa).toMatch(/کاتالوگ|آفلاین/);
+    expect(STORE_CUSTOMER_PWA_OFFLINE.serviceWorker).toBe(
+      "/sw-store-customer.js",
+    );
+    expect(STORE_CUSTOMER_PWA_OFFLINE.sharedWithStaffForbidden).toBe(true);
+    expect(STORE_CUSTOMER_PWA_COPY_FA.iosHint).toMatch(/سافاری|صفحهٔ اصلی/);
     expect(STORE_CUSTOMER_PWA_EVENTS.installPromptShown).toBe(
       "StorePwaInstallPromptShown",
     );

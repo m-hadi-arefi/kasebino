@@ -108,17 +108,19 @@ describe("ADR-032 Customer identity OTP foundations", () => {
     expect(CUSTOMER_OTP_SMS_TEMPLATE_FA).toMatch(/[\u0600-\u06FF]/);
   });
 
-  it("omits devOtp in production responses", async () => {
-    const { useCases } = createTestUseCases({
-      nodeEnv: "production",
-      otpCode: "654321",
-    });
-    const result = await useCases.requestOtp({
-      phone: "+989123456789",
-      consentCheckboxAccepted: true,
-    });
-    expect(result.devOtp).toBeUndefined();
-    expect(result.phoneE164).toBe("+989123456789");
+  it("omits devOtp in production and staging responses", async () => {
+    for (const nodeEnv of ["production", "staging", "test"] as const) {
+      const { useCases } = createTestUseCases({
+        nodeEnv,
+        otpCode: "654321",
+      });
+      const result = await useCases.requestOtp({
+        phone: "+989123456789",
+        consentCheckboxAccepted: true,
+      });
+      expect(result.devOtp).toBeUndefined();
+      expect(result.phoneE164).toBe("+989123456789");
+    }
   });
 
   it("verifies OTP and emits CustomerLoggedIn with role=customer", async () => {

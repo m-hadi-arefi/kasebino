@@ -158,6 +158,7 @@ describe("ADR-033 merchant Auth.js JWT config stub", () => {
       token,
     });
     expect(session).toMatchObject({
+      audience: "merchant",
       merchantId: "merchant-9",
       roles: ["owner"],
       tokenVersion: 2,

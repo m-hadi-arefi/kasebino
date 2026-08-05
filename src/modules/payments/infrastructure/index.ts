@@ -1,5 +1,6 @@
 export { SandboxPaymentGateway, MockPaymentGateway } from "./gateway/sandbox-payment-gateway.js";
 export { InMemoryPaymentRepository } from "./persistence/in-memory-payment-repository.js";
+export { DrizzlePaymentRepository } from "./persistence/drizzle-payment-repository.js";
 export {
   createSandboxPaymentConfirmPort,
   type PaymentConfirmPortShape,

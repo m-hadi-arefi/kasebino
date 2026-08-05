@@ -108,6 +108,29 @@ export type OutboxStore = {
   getById(id: string): Promise<OutboxMessage | null>;
 };
 
+export type DeadLetterRecordInput = {
+  outboxId: string;
+  message: OutboxMessage;
+  error: string;
+  deadLetteredAt?: Date;
+};
+
+/** ADR-109 — durable DLQ persistence (not an empty catch). */
+export type DeadLetterStore = {
+  record(input: DeadLetterRecordInput): Promise<void>;
+  list?(limit?: number): Promise<
+    Array<{
+      id: string;
+      outboxId: string;
+      eventId: string;
+      eventType: string;
+      lastError: string;
+      attemptCount: number;
+      deadLetteredAt: Date;
+    }>
+  >;
+};
+
 export type ProcessedSet = {
   /** Returns true if newly recorded; false if already processed (idempotent skip). */
   tryMarkProcessed(eventId: string, consumer: OutboxConsumerName): Promise<boolean>;
@@ -122,6 +145,15 @@ export type OutboxConsumerHandlers = Partial<
   Record<OutboxConsumerName, OutboxDispatchHandler>
 >;
 
+/** Thin metrics hooks for ADR-116 scrapers (lag = occurredAt → published). */
+export type OutboxWorkerMetrics = {
+  recordLagMs?(lagMs: number): void;
+  recordPublished?(count?: number): void;
+  recordFailed?(count?: number): void;
+  recordDeadLetter?(count?: number): void;
+  recordJobRun?(jobName: string, affected: number): void;
+};
+
 export type OutboxWorkerOptions = {
   store: OutboxStore;
   processed: ProcessedSet;
@@ -130,6 +162,10 @@ export type OutboxWorkerOptions = {
   consumers?: readonly OutboxConsumerName[];
   now?: () => Date;
   batchSize?: number;
+  /** Persist poison messages after maxRetries (ADR-109). */
+  deadLetter?: DeadLetterStore;
+  metrics?: OutboxWorkerMetrics;
+  maxRetries?: number;
 };
 
 export type DispatchBatchResult = {
@@ -137,6 +173,7 @@ export type DispatchBatchResult = {
   published: number;
   failed: number;
   skippedIdempotent: number;
+  deadLettered: number;
 };
 
 function processedKey(eventId: string, consumer: OutboxConsumerName): string {
@@ -215,6 +252,50 @@ export class InMemoryOutboxStore implements OutboxStore {
   }
 }
 
+/** In-memory DLQ for tests (ADR-109). */
+export class InMemoryDeadLetterStore implements DeadLetterStore {
+  readonly records: Array<{
+    id: string;
+    outboxId: string;
+    eventId: string;
+    eventType: string;
+    merchantId: string;
+    storeId: string | null;
+    payloadJson: string;
+    attemptCount: number;
+    lastError: string;
+    deadLetteredAt: Date;
+  }> = [];
+
+  async record(input: DeadLetterRecordInput): Promise<void> {
+    const at = input.deadLetteredAt ?? new Date();
+    this.records.push({
+      id: randomUUID(),
+      outboxId: input.outboxId,
+      eventId: input.message.eventId,
+      eventType: input.message.eventType,
+      merchantId: input.message.merchantId,
+      storeId: input.message.storeId,
+      payloadJson: JSON.stringify(input.message.envelope),
+      attemptCount: input.message.attemptCount,
+      lastError: input.error,
+      deadLetteredAt: at,
+    });
+  }
+
+  async list(limit = 100) {
+    return this.records.slice(0, limit).map((r) => ({
+      id: r.id,
+      outboxId: r.outboxId,
+      eventId: r.eventId,
+      eventType: r.eventType,
+      lastError: r.lastError,
+      attemptCount: r.attemptCount,
+      deadLetteredAt: r.deadLetteredAt,
+    }));
+  }
+}
+
 /** Idempotent processed set keyed by consumer + eventId (ADR-036 PROCESSED_EVENTS). */
 export class InMemoryProcessedSet implements ProcessedSet {
   private readonly keys = new Set<string>();
@@ -241,13 +322,15 @@ const DEFAULT_CONSUMERS = Object.keys(OUTBOX_CONSUMERS) as OutboxConsumerName[];
 
 /**
  * One poll/dispatch cycle: load pending → run each consumer once (idempotent) →
- * mark published when all consumers succeed.
+ * mark published when all consumers succeed. Poison → DLQ after maxRetries.
  */
 export function createOutboxWorker(options: OutboxWorkerOptions) {
   const consumers = options.consumers ?? DEFAULT_CONSUMERS;
   const handlers = options.handlers ?? {};
   const batchSize = options.batchSize ?? OUTBOX_POLL.batchSize;
   const now = options.now ?? (() => new Date());
+  const maxRetries = options.maxRetries ?? DELIVERY_GUARANTEES.maxRetries;
+  const metrics = options.metrics;
 
   async function dispatchMessage(
     message: OutboxMessage,
@@ -277,19 +360,44 @@ export function createOutboxWorker(options: OutboxWorkerOptions) {
     let published = 0;
     let failed = 0;
     let skippedIdempotent = 0;
+    let deadLettered = 0;
 
     for (const message of pending) {
       try {
         const result = await dispatchMessage(message);
         skippedIdempotent += result.skippedIdempotent;
-        await options.store.markPublished(message.id, now());
+        const publishedAt = now();
+        await options.store.markPublished(message.id, publishedAt);
         published += 1;
+        metrics?.recordPublished?.(1);
+        const lagMs = Math.max(
+          0,
+          publishedAt.getTime() - message.occurredAt.getTime(),
+        );
+        metrics?.recordLagMs?.(lagMs);
       } catch (err) {
         failed += 1;
+        metrics?.recordFailed?.(1);
         const text = err instanceof Error ? err.message : String(err);
         await options.store.markAttemptFailed(message.id, text);
-        if (message.attemptCount + 1 >= DELIVERY_GUARANTEES.maxRetries) {
-          // Dead-letter persistence → ARD-001 / future DLQ table.
+        const nextAttempts = message.attemptCount + 1;
+        if (nextAttempts >= maxRetries) {
+          if (options.deadLetter) {
+            await options.deadLetter.record({
+              outboxId: message.id,
+              message: {
+                ...message,
+                attemptCount: nextAttempts,
+                lastError: text,
+              },
+              error: text,
+              deadLetteredAt: now(),
+            });
+          }
+          // Terminal: leave pending set so crash/resume does not infinite-loop poison.
+          await options.store.markPublished(message.id, now());
+          deadLettered += 1;
+          metrics?.recordDeadLetter?.(1);
         }
       }
     }
@@ -299,6 +407,7 @@ export function createOutboxWorker(options: OutboxWorkerOptions) {
       published,
       failed,
       skippedIdempotent,
+      deadLettered,
     };
   }
 
@@ -307,88 +416,7 @@ export function createOutboxWorker(options: OutboxWorkerOptions) {
     dispatchMessage,
     consumers,
     poll: OUTBOX_POLL,
-  };
-}
-
-/**
- * Scheduled job hooks — workers share this codebase (ADR-004).
- * Domain execution ports wired when pickup / loyalty modules call these.
- */
-export const SCHEDULED_JOB_HOOKS = {
-  pickupUnpaidCancel: {
-    jobName: "pickup_unpaid_cancel" as const,
-    timerPolicy: PICKUP_TIMER_POLICY,
-    unpaidTimeoutMinutes: PICKUP_TIMER_POLICY.unpaidPendingPaymentTimeoutMinutes,
-    resultStatus: PICKUP_TIMER_POLICY.unpaidTimeoutResultStatus,
-    /** Stub: invoke pickup cancel use case when ADR-011 lands. */
-    status: "stub" as const,
-  },
-  pickupReadyHoldCancel: {
-    jobName: "pickup_ready_hold_cancel" as const,
-    holdHours: PICKUP_TIMER_POLICY.readyForPickupHoldHours,
-    refundRequiresStaff: PICKUP_TIMER_POLICY.refundRequiresExplicitStaffAction,
-    status: "stub" as const,
-  },
-  loyaltyPointsExpiry: {
-    jobName: "loyalty_points_expiry" as const,
-    expiryPolicy: LOYALTY_EXPIRY_POLICY,
-    defaultMonthsAfterLastEarn:
-      LOYALTY_EXPIRY_POLICY.defaultMonthsAfterLastEarn,
-    eventName: LOYALTY_EXPIRY_POLICY.expiryEventName,
-    /** Stub: call modules/loyalty expireStaleWallets (use case ready). */
-    status: "stub" as const,
-  },
-} as const;
-
-export type ScheduledJobName =
-  (typeof SCHEDULED_JOB_HOOKS)[keyof typeof SCHEDULED_JOB_HOOKS]["jobName"];
-
-export type ScheduledJobRunResult = {
-  jobName: ScheduledJobName;
-  ranAt: string;
-  /** Domain port not wired yet — returns acknowledged stub. */
-  status: "stub_acknowledged";
-  policySnapshot: Record<string, unknown>;
-};
-
-/** Run a registered scheduled job stub (domain port wiring later). */
-export function runScheduledJobStub(
-  jobName: ScheduledJobName,
-  now: () => Date = () => new Date(),
-): ScheduledJobRunResult {
-  if (jobName === "pickup_unpaid_cancel") {
-    const hook = SCHEDULED_JOB_HOOKS.pickupUnpaidCancel;
-    return {
-      jobName,
-      ranAt: now().toISOString(),
-      status: "stub_acknowledged",
-      policySnapshot: {
-        unpaidTimeoutMinutes: hook.unpaidTimeoutMinutes,
-        resultStatus: hook.resultStatus,
-      },
-    };
-  }
-  if (jobName === "pickup_ready_hold_cancel") {
-    const hook = SCHEDULED_JOB_HOOKS.pickupReadyHoldCancel;
-    return {
-      jobName,
-      ranAt: now().toISOString(),
-      status: "stub_acknowledged",
-      policySnapshot: {
-        holdHours: hook.holdHours,
-        refundRequiresStaff: hook.refundRequiresStaff,
-      },
-    };
-  }
-  const hook = SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry;
-  return {
-    jobName,
-    ranAt: now().toISOString(),
-    status: "stub_acknowledged",
-    policySnapshot: {
-      defaultMonthsAfterLastEarn: hook.defaultMonthsAfterLastEarn,
-      eventName: hook.eventName,
-    },
+    maxRetries,
   };
 }
 
@@ -400,10 +428,233 @@ export const OUTBOX_WORKER_UX_FA = {
   ...EVENT_UX_FA,
   JOB_PICKUP_UNPAID_CANCELLED:
     "سفارش پرداخت‌نشده به‌خاطر اتمام مهلت لغو شد.",
+  JOB_PICKUP_READY_HOLD_EXPIRED:
+    "مهلت آماده‌به‌تحویل تمام شد؛ سفارش لغو شد. بازپرداخت فقط با اقدام صریح کارکنان.",
   JOB_LOYALTY_POINTS_EXPIRED: "امتیازهای منقضی‌شده از کیف امتیاز کسر شد.",
   dir: "rtl" as const,
   locale: "fa-IR" as const,
 } as const;
+
+/**
+ * Scheduled job hooks — workers share this codebase (ADR-004).
+ * ADR-109 wires pickup timers + loyalty expiry via domain ports.
+ */
+export const SCHEDULED_JOB_HOOKS = {
+  pickupUnpaidCancel: {
+    jobName: "pickup_unpaid_cancel" as const,
+    timerPolicy: PICKUP_TIMER_POLICY,
+    unpaidTimeoutMinutes: PICKUP_TIMER_POLICY.unpaidPendingPaymentTimeoutMinutes,
+    resultStatus: PICKUP_TIMER_POLICY.unpaidTimeoutResultStatus,
+    status: "wired" as const,
+    runner: "modules/ordering/application/cancelUnpaidExpiredOrders" as const,
+    messageFa: OUTBOX_WORKER_UX_FA.JOB_PICKUP_UNPAID_CANCELLED,
+  },
+  pickupReadyHoldCancel: {
+    jobName: "pickup_ready_hold_cancel" as const,
+    holdHours: PICKUP_TIMER_POLICY.readyForPickupHoldHours,
+    refundRequiresStaff: PICKUP_TIMER_POLICY.refundRequiresExplicitStaffAction,
+    status: "wired" as const,
+    runner: "modules/ordering/application/expireReadyForPickupHolds" as const,
+    messageFa: OUTBOX_WORKER_UX_FA.JOB_PICKUP_READY_HOLD_EXPIRED,
+  },
+  loyaltyPointsExpiry: {
+    jobName: "loyalty_points_expiry" as const,
+    expiryPolicy: LOYALTY_EXPIRY_POLICY,
+    defaultMonthsAfterLastEarn:
+      LOYALTY_EXPIRY_POLICY.defaultMonthsAfterLastEarn,
+    eventName: LOYALTY_EXPIRY_POLICY.expiryEventName,
+    status: "wired" as const,
+    runner: "modules/loyalty/application/runLoyaltyPointsExpiryJob" as const,
+    messageFa: OUTBOX_WORKER_UX_FA.JOB_LOYALTY_POINTS_EXPIRED,
+  },
+} as const;
+
+export type ScheduledJobName =
+  (typeof SCHEDULED_JOB_HOOKS)[keyof typeof SCHEDULED_JOB_HOOKS]["jobName"];
+
+export type ScheduledJobRunResult = {
+  jobName: ScheduledJobName;
+  ranAt: string;
+  status: "completed" | "stub_acknowledged" | "use_loyalty_runner";
+  affectedCount: number;
+  policySnapshot: Record<string, unknown>;
+  messageFa?: string;
+};
+
+/** Ordering ports used by pickup timer jobs (ADR-091 / ADR-109). */
+export type PickupTimerJobPorts = {
+  cancelUnpaidExpiredOrders(options?: {
+    merchantId?: string;
+    storeId?: string;
+    limit?: number;
+  }): Promise<{ cancelledCount: number }>;
+  expireReadyForPickupHolds(options?: {
+    merchantId?: string;
+    storeId?: string;
+    limit?: number;
+  }): Promise<{ expiredCount: number }>;
+};
+
+export type LoyaltyExpiryJobPort = (input: {
+  now?: () => Date;
+  limit?: number;
+}) => Promise<{ expiredCount: number }>;
+
+export type ScheduledJobPorts = {
+  ordering?: PickupTimerJobPorts;
+  runLoyaltyExpiry?: LoyaltyExpiryJobPort;
+  now?: () => Date;
+  metrics?: OutboxWorkerMetrics;
+};
+
+/**
+ * Run a scheduled job. Without domain ports, returns legacy stub status
+ * (tests that only assert policy snapshot). With ports (worker runtime), completes.
+ */
+export async function runScheduledJob(
+  jobName: ScheduledJobName,
+  ports: ScheduledJobPorts = {},
+): Promise<ScheduledJobRunResult> {
+  const now = ports.now ?? (() => new Date());
+  const ranAt = now().toISOString();
+
+  if (jobName === "pickup_unpaid_cancel") {
+    const hook = SCHEDULED_JOB_HOOKS.pickupUnpaidCancel;
+    const policySnapshot = {
+      unpaidTimeoutMinutes: hook.unpaidTimeoutMinutes,
+      resultStatus: hook.resultStatus,
+    };
+    if (!ports.ordering) {
+      return {
+        jobName,
+        ranAt,
+        status: "stub_acknowledged",
+        affectedCount: 0,
+        policySnapshot,
+        messageFa: hook.messageFa,
+      };
+    }
+    const result = await ports.ordering.cancelUnpaidExpiredOrders();
+    ports.metrics?.recordJobRun?.(jobName, result.cancelledCount);
+    return {
+      jobName,
+      ranAt,
+      status: "completed",
+      affectedCount: result.cancelledCount,
+      policySnapshot,
+      messageFa: hook.messageFa,
+    };
+  }
+
+  if (jobName === "pickup_ready_hold_cancel") {
+    const hook = SCHEDULED_JOB_HOOKS.pickupReadyHoldCancel;
+    const policySnapshot = {
+      holdHours: hook.holdHours,
+      refundRequiresStaff: hook.refundRequiresStaff,
+    };
+    if (!ports.ordering) {
+      return {
+        jobName,
+        ranAt,
+        status: "stub_acknowledged",
+        affectedCount: 0,
+        policySnapshot,
+        messageFa: hook.messageFa,
+      };
+    }
+    const result = await ports.ordering.expireReadyForPickupHolds();
+    ports.metrics?.recordJobRun?.(jobName, result.expiredCount);
+    return {
+      jobName,
+      ranAt,
+      status: "completed",
+      affectedCount: result.expiredCount,
+      policySnapshot,
+      messageFa: hook.messageFa,
+    };
+  }
+
+  const hook = SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry;
+  const policySnapshot = {
+    defaultMonthsAfterLastEarn: hook.defaultMonthsAfterLastEarn,
+    eventName: hook.eventName,
+    runner: hook.runner,
+  };
+  if (!ports.runLoyaltyExpiry) {
+    return {
+      jobName,
+      ranAt,
+      status: "use_loyalty_runner",
+      affectedCount: 0,
+      policySnapshot,
+      messageFa: hook.messageFa,
+    };
+  }
+  const result = await ports.runLoyaltyExpiry({ now });
+  ports.metrics?.recordJobRun?.(jobName, result.expiredCount);
+  return {
+    jobName,
+    ranAt,
+    status: "completed",
+    affectedCount: result.expiredCount,
+    policySnapshot,
+    messageFa: hook.messageFa,
+  };
+}
+
+/** @deprecated Prefer `runScheduledJob` — kept for ADR-035 contract tests. */
+export function runScheduledJobStub(
+  jobName: ScheduledJobName,
+  now: () => Date = () => new Date(),
+): ScheduledJobRunResult {
+  // Sync wrapper — ports unset → stub / use_loyalty_runner statuses.
+  if (jobName === "pickup_unpaid_cancel") {
+    const hook = SCHEDULED_JOB_HOOKS.pickupUnpaidCancel;
+    return {
+      jobName,
+      ranAt: now().toISOString(),
+      status: "stub_acknowledged",
+      affectedCount: 0,
+      policySnapshot: {
+        unpaidTimeoutMinutes: hook.unpaidTimeoutMinutes,
+        resultStatus: hook.resultStatus,
+      },
+      messageFa: hook.messageFa,
+    };
+  }
+  if (jobName === "pickup_ready_hold_cancel") {
+    const hook = SCHEDULED_JOB_HOOKS.pickupReadyHoldCancel;
+    return {
+      jobName,
+      ranAt: now().toISOString(),
+      status: "stub_acknowledged",
+      affectedCount: 0,
+      policySnapshot: {
+        holdHours: hook.holdHours,
+        refundRequiresStaff: hook.refundRequiresStaff,
+      },
+      messageFa: hook.messageFa,
+    };
+  }
+  const hook = SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry;
+  return {
+    jobName,
+    ranAt: now().toISOString(),
+    status: "use_loyalty_runner",
+    affectedCount: 0,
+    policySnapshot: {
+      defaultMonthsAfterLastEarn: hook.defaultMonthsAfterLastEarn,
+      eventName: hook.eventName,
+      runner: hook.runner,
+    },
+    messageFa: hook.messageFa,
+  };
+}
+
+/**
+ * Iranian First — worker-adjacent user-visible copy stays Persian (ADR-036).
+ * Primary definition lives above SCHEDULED_JOB_HOOKS.
+ */
 
 export function assertWorkersShareCodebase(): void {
   if (!OUTBOX_WORKER_DECISION.workersShareCodebase) {

@@ -15,8 +15,10 @@ import {
   type StoreHours,
 } from "../domain/hours.js";
 import {
+  applyStoreAddress,
   applyStoreBranding,
   applyStoreHours,
+  applyStoreStatus,
   createStoreAggregate,
   type Store,
 } from "../domain/store.js";
@@ -76,6 +78,39 @@ export type UpdateStoreHoursResult = {
   store: Store;
   event: ReturnType<typeof storeUpdatedEvent>;
 };
+
+export type UpdateStoreAddressInput = {
+  storeId: string;
+  address: StoreAddressInput;
+};
+
+export type UpdateStoreAddressResult = {
+  store: Store;
+  event: ReturnType<typeof storeUpdatedEvent>;
+};
+
+export type ActivateStoreInput = {
+  storeId: string;
+};
+
+export type ActivateStoreResult = {
+  store: Store;
+  event: ReturnType<typeof storeUpdatedEvent>;
+};
+
+/** LOC-01 — public activation requires structured address + valid WGS84 geo. */
+export function assertStoreActivatable(store: Store): void {
+  const a = store.address;
+  if (
+    !a.line1?.trim() ||
+    !a.city?.trim() ||
+    !a.province?.trim() ||
+    !isValidLatitude(a.latitude) ||
+    !isValidLongitude(a.longitude)
+  ) {
+    throw new StoreDomainError("GEO_REQUIRED_FOR_ACTIVE");
+  }
+}
 
 function requireDisplayName(raw: string): string {
   const displayName = raw.trim();
@@ -298,7 +333,74 @@ export function createStoreUseCases(deps: StoreUseCaseDeps) {
     return { store, event };
   }
 
-  return { createStore, updateBranding, updateHours };
+  async function updateAddress(
+    input: UpdateStoreAddressInput,
+  ): Promise<UpdateStoreAddressResult> {
+    const store = await deps.stores.findById(input.storeId);
+    if (!store) {
+      throw new StoreDomainError("STORE_NOT_FOUND");
+    }
+
+    const address = requireAddress(input.address);
+    const at = now();
+    const changedFields = applyStoreAddress(store, address, at);
+    if (changedFields.length === 0) {
+      throw new StoreDomainError("NO_CHANGES");
+    }
+
+    await deps.stores.update(store);
+
+    const event = storeUpdatedEvent({
+      storeId: store.id,
+      merchantId: store.merchantId,
+      changedFields,
+      occurredAt: at,
+    });
+
+    return { store, event };
+  }
+
+  async function activateStore(
+    input: ActivateStoreInput,
+  ): Promise<ActivateStoreResult> {
+    const store = await deps.stores.findById(input.storeId);
+    if (!store) {
+      throw new StoreDomainError("STORE_NOT_FOUND");
+    }
+    if (store.status === "active") {
+      throw new StoreDomainError("INVALID_ACTIVATE_TRANSITION");
+    }
+    if (store.status !== "draft" && store.status !== "inactive") {
+      throw new StoreDomainError("INVALID_ACTIVATE_TRANSITION");
+    }
+
+    assertStoreActivatable(store);
+
+    const at = now();
+    const changedFields = applyStoreStatus(store, "active", at);
+    if (changedFields.length === 0) {
+      throw new StoreDomainError("NO_CHANGES");
+    }
+
+    await deps.stores.update(store);
+
+    const event = storeUpdatedEvent({
+      storeId: store.id,
+      merchantId: store.merchantId,
+      changedFields,
+      occurredAt: at,
+    });
+
+    return { store, event };
+  }
+
+  return {
+    createStore,
+    updateBranding,
+    updateHours,
+    updateAddress,
+    activateStore,
+  };
 }
 
 export type StoreUseCases = ReturnType<typeof createStoreUseCases>;

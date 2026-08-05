@@ -60,6 +60,33 @@ export function softDeleteProduct(
   product.updatedAt = at;
 }
 
+export type ApplyProductUpdateInput = {
+  name: string;
+  description: string | null;
+  sku: string;
+  barcode: string;
+  categoryId: string | null;
+  price: Money;
+  now?: Date;
+};
+
+export function applyProductUpdate(
+  product: Product,
+  input: ApplyProductUpdateInput,
+): void {
+  if (product.deletedAt !== null) {
+    throw new Error("Cannot update soft-deleted product");
+  }
+  const at = input.now ?? new Date();
+  product.name = input.name;
+  product.description = input.description;
+  product.sku = input.sku;
+  product.barcode = input.barcode;
+  product.categoryId = input.categoryId;
+  product.price = input.price;
+  product.updatedAt = at;
+}
+
 export function isProductActive(product: Product): boolean {
   return product.deletedAt === null;
 }

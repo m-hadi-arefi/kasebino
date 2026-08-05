@@ -6,6 +6,7 @@ export {
 } from "./events.js";
 export type { SaleRepository } from "./repositories.js";
 export {
+  attachSaleReceiptRef,
   SALE_STATUSES,
   buildSaleLine,
   cancelSale,

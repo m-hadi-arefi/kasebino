@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createLoyaltyEarnPort,
   createLoyaltyUseCases,
+  runLoyaltyPointsExpiryJob,
   InMemoryPointRuleRepository,
   InMemoryPointsLedgerRepository,
   InMemoryWalletRepository,
@@ -16,6 +17,7 @@ import {
   type InventoryDecrementPort,
   type MembershipUpsertPort,
 } from "../pos/index.js";
+import { InMemoryOutboxStore } from "../../outbox/index.js";
 
 function createLoyaltyHarness(opts?: { now?: () => Date }) {
   const wallets = new InMemoryWalletRepository();
@@ -100,7 +102,19 @@ describe("ADR-010 Loyalty module", () => {
       referenceId: "pos-1",
     });
     expect(redeemed.wallet.balance).toBe(1);
-    expect(redeemed.event.eventName).toBe("PointsRedeemed");
+    expect(redeemed.created).toBe(true);
+    expect(redeemed.event?.eventName).toBe("PointsRedeemed");
+
+    const replay = await useCases.redeemPoints({
+      merchantId: "m1",
+      storeId: "s1",
+      membershipId: "mem-1",
+      points: 2,
+      referenceId: "pos-1",
+    });
+    expect(replay.created).toBe(false);
+    expect(replay.wallet.balance).toBe(1);
+    expect(replay.event).toBeNull();
 
     try {
       await useCases.redeemPoints({
@@ -292,5 +306,34 @@ describe("ADR-010 Loyalty module", () => {
     expect(new LoyaltyDomainError("INVALID_POINTS").messageFa).toMatch(
       /امتیاز/,
     );
+  });
+
+  it("runLoyaltyPointsExpiryJob expires wallets and enqueues PointsExpired", async () => {
+    let now = new Date("2024-01-15T10:00:00.000Z");
+    const harness = createLoyaltyHarness({ now: () => now });
+    await harness.useCases.earnPointsForSale({
+      saleId: "sale-job",
+      merchantId: "m1",
+      storeId: "s1",
+      membershipId: "mem-job",
+      customerId: "cust-job",
+      totalAmountMinor: 100_000n,
+    });
+    now = addCalendarMonths(now, 12);
+    const outbox = new InMemoryOutboxStore();
+    const result = await runLoyaltyPointsExpiryJob({
+      loyalty: harness.useCases,
+      outbox,
+      now: () => now,
+    });
+    expect(result.status).toBe("completed");
+    expect(result.expiredCount).toBe(1);
+    const pending = await outbox.pollPending(10);
+    expect(pending).toHaveLength(1);
+    expect(pending[0]?.envelope.eventType).toBe("PointsExpired");
+    const wallet = await harness.useCases.getWallet({
+      membershipId: "mem-job",
+    });
+    expect(wallet?.balance).toBe(0);
   });
 });

@@ -34,6 +34,9 @@ export type NotificationsUseCaseDeps = {
 export type ListNotificationsInput = {
   merchantId: string;
   userId?: string | null;
+  recipientUserIds?: string[];
+  storeId?: string | null;
+  audience?: "merchant" | "customer";
   unreadOnly?: boolean;
   limit?: number;
 };
@@ -41,6 +44,10 @@ export type ListNotificationsInput = {
 export type MarkReadInput = {
   merchantId: string;
   notificationId: string;
+  /** When set, recipient or broadcast only (customer portal). */
+  userId?: string | null;
+  recipientUserIds?: string[];
+  audience?: "merchant" | "customer";
 };
 
 export type SendOtpSmsInput = {
@@ -242,6 +249,11 @@ export function createNotificationsUseCases(deps: NotificationsUseCaseDeps) {
         channel: "in_app",
         limit: input.limit ?? 50,
         ...(input.userId !== undefined ? { userId: input.userId } : {}),
+        ...(input.recipientUserIds !== undefined
+          ? { recipientUserIds: input.recipientUserIds }
+          : {}),
+        ...(input.storeId !== undefined ? { storeId: input.storeId } : {}),
+        ...(input.audience !== undefined ? { audience: input.audience } : {}),
         ...(input.unreadOnly !== undefined
           ? { unreadOnly: input.unreadOnly }
           : {}),
@@ -257,6 +269,21 @@ export function createNotificationsUseCases(deps: NotificationsUseCaseDeps) {
       if (row.merchantId !== input.merchantId) {
         throw new NotificationsDomainError("CROSS_TENANT_FORBIDDEN");
       }
+      if (input.audience !== undefined && row.audience !== input.audience) {
+        throw new NotificationsDomainError("CROSS_TENANT_FORBIDDEN");
+      }
+      const allowedRecipients =
+        input.recipientUserIds ??
+        (input.userId !== undefined && input.userId !== null
+          ? [input.userId]
+          : undefined);
+      if (
+        allowedRecipients !== undefined &&
+        row.userId !== null &&
+        !allowedRecipients.includes(row.userId)
+      ) {
+        throw new NotificationsDomainError("CROSS_TENANT_FORBIDDEN");
+      }
       markNotificationRead(row, now());
       await deps.notifications.update(row);
       return row;
@@ -265,11 +292,21 @@ export function createNotificationsUseCases(deps: NotificationsUseCaseDeps) {
     async countUnread(
       merchantId: string,
       userId?: string | null,
+      audience?: "merchant" | "customer",
+      options?: {
+        recipientUserIds?: string[];
+        storeId?: string | null;
+      },
     ): Promise<number> {
       if (!merchantId.trim()) {
         throw new NotificationsDomainError("INVALID_MERCHANT");
       }
-      return deps.notifications.countUnread(merchantId, userId);
+      return deps.notifications.countUnread(
+        merchantId,
+        userId,
+        audience,
+        options,
+      );
     },
 
     /**

@@ -75,7 +75,7 @@ describe("ADR-032 Customer SMS OTP Authentication contract", () => {
     expect(CUSTOMER_AUTH.events.loggedIn).toBe("CustomerLoggedIn");
   });
 
-  it("documents OTP rate limit 3/min and never returns OTP in production", () => {
+  it("documents OTP rate limit 3/min and never returns OTP in production/staging", () => {
     expect(CUSTOMER_OTP_RATE_LIMIT.otpRequestsPerMinute).toBe(3);
     expect(CUSTOMER_OTP_RATE_LIMIT.authRoutesPerMinute).toBe(5);
     expect(CUSTOMER_OTP_RATE_LIMIT.redisKeyHint).toContain("customer-otp");
@@ -85,9 +85,15 @@ describe("ADR-032 Customer SMS OTP Authentication contract", () => {
     expect(CUSTOMER_OTP_ENV_RULES.smsProviderAdr).toBe("ADR-083");
     expect(shouldReturnDevOtp("development")).toBe(true);
     expect(shouldReturnDevOtp("production")).toBe(false);
+    expect(shouldReturnDevOtp("staging")).toBe(false);
+    expect(shouldReturnDevOtp("test")).toBe(false);
+    expect(shouldReturnDevOtp("staging", "1")).toBe(true);
     expect(shouldSendSms("production")).toBe(true);
     expect(() =>
       assertNeverReturnOtpInProduction("production", true),
+    ).toThrow(/never include OTP/i);
+    expect(() =>
+      assertNeverReturnOtpInProduction("staging", true),
     ).toThrow(/never include OTP/i);
   });
 

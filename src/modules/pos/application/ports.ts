@@ -65,3 +65,28 @@ export type AnalyticsAfterSalePort = {
     correlationId?: string;
   }): Promise<void>;
 };
+
+/**
+ * Transactional outbox enqueue (ADR-035 / ADR-096).
+ * Wired from composition; optional in unit tests.
+ */
+export type SaleOutboxPort = {
+  enqueueSaleEvents(input: {
+    createdEvent: {
+      eventName: string;
+      aggregateId: string;
+      aggregateType: string;
+      occurredAt: Date;
+      payload: Record<string, unknown>;
+    };
+    completedEvent: {
+      eventName: string;
+      aggregateId: string;
+      aggregateType: string;
+      occurredAt: Date;
+      payload: Record<string, unknown>;
+    };
+    merchantId: string;
+    storeId: string;
+  }): Promise<void>;
+};

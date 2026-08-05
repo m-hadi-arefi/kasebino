@@ -66,8 +66,9 @@ export function createStubInventoryReleasePort(): InventoryReleasePort {
 }
 
 /**
- * @deprecated Prefer `createDefaultSandboxPaymentConfirmPort` from payments (ADR-012).
- * Kept for isolated ordering unit tests that do not exercise PaymentIntent.
+ * No-op payment confirm for unit tests / pre-wiring (ADR-011).
+ * Durable sandbox: `createDefaultSandboxPaymentConfirmPort({ payments })`
+ * with a Drizzle (prod) or InMemory (test) PaymentRepository (ADR-093).
  */
 export function createStubPaymentConfirmPort(): PaymentConfirmPort {
   return {

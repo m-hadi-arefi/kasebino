@@ -17,6 +17,22 @@ import {
 import { OFFLINE_CONFLICT_POLICY } from "../mvp-policies/index.js";
 import { POS_SALES_DECISION } from "../pos-sales/index.js";
 import { assertUiuxGate } from "../uiuxpromax-gate/index.js";
+import {
+  POS_OFFLINE_COPY_FA,
+  POS_OFFLINE_IDB,
+  POS_OFFLINE_INSTALL_UX,
+  POS_OFFLINE_SERVICE_WORKER,
+  requireSyncKey,
+} from "./client.js";
+
+export {
+  POS_OFFLINE_COPY_FA,
+  POS_OFFLINE_IDB,
+  POS_OFFLINE_INSTALL_UX,
+  POS_OFFLINE_SERVICE_WORKER,
+  bannerForConnectivity,
+  requireSyncKey,
+} from "./client.js";
 
 /** Binding Decision (ADR-024). */
 export const POS_OFFLINE_DECISION = {
@@ -40,37 +56,18 @@ export const POS_OFFLINE_DECISION = {
   implementationPackage: "src/pos-offline",
 } as const;
 
-/** Sync HTTP contract (ARD-017). Handler wiring may land with POS API routes. */
+/** Sync HTTP contract (ARD-017 / ADR-105). */
 export const POS_OFFLINE_SYNC_API = {
   method: "POST" as const,
   path: "/api/v1/sales/sync",
+  /** Live POS CompleteSale path used by browser/SW flush. */
+  completeSalePath: "/api/v1/pos/sales",
   batch: true,
   idempotencyHeader: POS_SALES_DECISION.idempotencyHeader,
   /** Each item uses its draft syncKey as Idempotency-Key. */
   syncKeyEqualsIdempotencyKey: true,
   eachItemIsCompleteSaleTx: true,
   successEvent: "SaleCompleted" as const,
-} as const;
-
-/** Service worker policy — staff POS shell only. */
-export const POS_OFFLINE_SERVICE_WORKER = {
-  scriptUrl: "/sw-staff.js",
-  /** Aligns with ADR-022 staff manifest scope `/`. */
-  scope: "/" as const,
-  precache: ["/pos", "/staff/manifest.webmanifest"] as const,
-  audience: "staff" as const,
-  sharedWithStoreCustomerForbidden: true,
-  backgroundSyncTag: "mos-staff-sale-queue",
-} as const;
-
-/** IndexedDB / client persistence policy (browser adapter later). */
-export const POS_OFFLINE_IDB = {
-  dbName: "mos-staff-pos",
-  storeName: "sale_drafts",
-  draftModel: "SaleDraft" as const,
-  secretsForbidden: true,
-  jwtPlaintextForbidden: true,
-  inMemoryAdapterForTests: true,
 } as const;
 
 /** Analytics / ops metric names (warehouse emit deferred). */
@@ -183,35 +180,12 @@ export type SyncFlushResult = {
   }[];
 };
 
-/** Persian shop-floor copy (staff POS). */
-export const POS_OFFLINE_COPY_FA = {
-  online: "صندوق آنلاین آماده است.",
-  offlineQueued: "اتصال قطع است — فروش در صف آفلاین ذخیره شد.",
-  offlineEmpty: "آفلاین هستید؛ هنوز فروشی در صف نیست.",
-  syncing: "در حال همگام‌سازی صف فروش…",
-  synced: "صف آفلاین با موفقیت همگام شد.",
-  stockRejected:
-    "به‌خاطر کمبود موجودی، فروش آفلاین رد شد و برای بررسی نگه داشته شد.",
-  syncFailed: "همگام‌سازی صف ناموفق بود. دوباره تلاش کنید.",
-  duplicateApplied: "این فروش قبلاً ثبت شده است.",
-  reviewQueueCta: "بررسی صف",
-  tomanNote: "مبالغ صف به‌صورت تومان در صندوق نمایش داده می‌شود.",
-  regionLabel: "وضعیت اتصال و صف آفلاین صندوق",
-} as const;
-
-export const POS_OFFLINE_INSTALL_UX = {
-  minTouchTargetPx: 44,
-  lang: "fa" as const,
-  dir: "rtl" as const,
-  copyFa: POS_OFFLINE_COPY_FA,
-} as const;
-
 /**
- * uiuxpromax gate evidence for ADR-024 offline banners.
- * Brief: docs/execution/plans/ADR-024.md
+ * uiuxpromax gate evidence for ADR-024 / ADR-105 offline banners.
+ * Brief: docs/execution/plans/ADR-105.md
  */
 export const POS_OFFLINE_UIUX_GATE = {
-  briefPath: "docs/execution/plans/ADR-024.md",
+  briefPath: "docs/execution/plans/ADR-105.md",
   gatePassed: true,
   skillPresent: true,
   docsPresent: true,
@@ -271,32 +245,6 @@ export function assertStaffOfflineAudience(audience: string): void {
       `Staff offline queue audience must be "staff" (ADR-024); got "${audience}".`,
     );
   }
-}
-
-export function requireSyncKey(syncKey: string): string {
-  const trimmed = syncKey.trim();
-  if (!trimmed) {
-    throw new Error(
-      "Offline sale syncKey (idempotency) is required (ADR-024).",
-    );
-  }
-  return trimmed;
-}
-
-export function bannerForConnectivity(input: {
-  online: boolean;
-  queuedCount: number;
-  syncing?: boolean;
-}): string {
-  if (input.syncing) return POS_OFFLINE_COPY_FA.syncing;
-  if (input.online) {
-    return input.queuedCount > 0
-      ? POS_OFFLINE_COPY_FA.syncing
-      : POS_OFFLINE_COPY_FA.online;
-  }
-  return input.queuedCount > 0
-    ? POS_OFFLINE_COPY_FA.offlineQueued
-    : POS_OFFLINE_COPY_FA.offlineEmpty;
 }
 
 export function createInMemoryOfflineSaleQueueStore(): OfflineSaleQueueStore {

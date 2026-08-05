@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="heroTitle">
+  <title id="heroTitle">A6'Ì E:'2G H ~Ì4.H'F .1/GA1H4Ì</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#1a3a42"/>
+      <stop offset="55%" stop-color="#0f6b63"/>
+      <stop offset="100%" stop-color="#0a4540"/>
+    </linearGradient>
+    <linearGradient id="counter" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a3344"/>
+      <stop offset="100%" stop-color="#141c28"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f0d7a8" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#f0d7a8" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="tile" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="900" fill="url(#sky)"/>
+  <rect width="1440" height="900" fill="url(#tile)"/>
+  <ellipse cx="1180" cy="160" rx="220" ry="120" fill="url(#warm)"/>
+  <!-- shelf -->
+  <rect x="80" y="180" width="520" height="18" rx="4" fill="#0d3f3b"/>
+  <rect x="100" y="120" width="70" height="60" rx="6" fill="#c5d5d2" opacity="0.55"/>
+  <rect x="185" y="100" width="55" height="80" rx="6" fill="#dfe8e6" opacity="0.45"/>
+  <rect x="255" y="130" width="80" height="50" rx="6" fill="#b8cfcb" opacity="0.5"/>
+  <rect x="350" y="110" width="60" height="70" rx="6" fill="#e8f0ee" opacity="0.4"/>
+  <rect x="430" y="125" width="90" height="55" rx="6" fill="#9fbeb8" opacity="0.45"/>
+  <rect x="80" y="320" width="520" height="18" rx="4" fill="#0d3f3b"/>
+  <rect x="110" y="250" width="75" height="70" rx="6" fill="#d2dfdc" opacity="0.45"/>
+  <rect x="205" y="270" width="50" height="50" rx="6" fill="#aec4c0" opacity="0.5"/>
+  <rect x="275" y="245" width="95" height="75" rx="6" fill="#e4eeec" opacity="0.4"/>
+  <rect x="390" y="260" width="65" height="60" rx="6" fill="#bfd0cd" opacity="0.45"/>
+  <!-- window light -->
+  <rect x="980" y="80" width="360" height="420" rx="8" fill="#f7fbfa" opacity="0.08"/>
+  <rect x="1000" y="100" width="150" height="180" rx="4" fill="#f7fbfa" opacity="0.12"/>
+  <rect x="1170" y="100" width="150" height="180" rx="4" fill="#f7fbfa" opacity="0.1"/>
+  <rect x="1000" y="300" width="150" height="180" rx="4" fill="#f7fbfa" opacity="0.09"/>
+  <rect x="1170" y="300" width="150" height="180" rx="4" fill="#f7fbfa" opacity="0.07"/>
+  <!-- counter -->
+  <path d="M0 560 H1440 V900 H0 Z" fill="url(#counter)"/>
+  <rect x="0" y="548" width="1440" height="22" fill="#1f2a3a"/>
+  <rect x="0" y="548" width="1440" height="4" fill="#0f6b63" opacity="0.85"/>
+  <!-- POS phone on counter -->
+  <g transform="translate(980 470)">
+    <rect x="0" y="0" width="150" height="260" rx="22" fill="#0b1220"/>
+    <rect x="10" y="18" width="130" height="224" rx="12" fill="#f3f5f7"/>
+    <rect x="22" y="36" width="106" height="18" rx="4" fill="#0f6b63"/>
+    <rect x="22" y="68" width="106" height="12" rx="3" fill="#d5dce5"/>
+    <rect x="22" y="90" width="72" height="12" rx="3" fill="#d5dce5"/>
+    <rect x="22" y="120" width="106" height="40" rx="6" fill="#e2e8ef"/>
+    <rect x="22" y="172" width="106" height="40" rx="6" fill="#0f6b63" opacity="0.9"/>
+  </g>
+  <!-- customer silhouette suggestion -->
+  <ellipse cx="360" cy="520" rx="48" ry="14" fill="#000" opacity="0.18"/>
+  <circle cx="360" cy="430" r="34" fill="#2c3b4f"/>
+  <path d="M300 520 C300 470 420 470 420 520 Z" fill="#243246"/>
+</svg>

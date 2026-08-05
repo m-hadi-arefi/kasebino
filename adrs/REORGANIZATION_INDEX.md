@@ -161,3 +161,39 @@
 First audit pass used a stricter **product-runtime** bar and parked contract-complete ADRs in `future/`.
 User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** were moved `future/ → done/` accordingly; remaining product gaps stay in `tasks/`.
 
+## Move log (post-audit)
+
+| Date | Move | File |
+| --- | --- | --- |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-120-adr-status-truth-realignment.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-092-drizzle-kit-migrations.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-093-drizzle-repositories.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-095-nextauth-app-router-wiring.md` |
+
+
+| 2026-08-05 | `tasks/` → `done/` | `ADR-094-http-api-v1-surface.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-113-rbac-route-enforcement.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-119-security-hardening-runtime.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-096-merchant-pos-ui-complete-sale.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-097-catalog-inventory-merchant-apis-ui.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-098-crm-membership-merchant-ui.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-099-loyalty-engine-runtime.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-100-storefront-pickup-checkout.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-101-pickup-order-lifecycle-board.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-102-payments-http-psp.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-103-customer-otp-portal.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-104-store-location-maps-qr.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-105-staff-customer-pwa-completion.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-106-merchant-admin-dashboards-live.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-107-notifications-center.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-108-redis-cache-rate-limit-runtime.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-109-outbox-worker-emqx-mqtt.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-110-mongodb-analytics-runtime.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-111-minio-receipts-assets.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-112-readiness-probe-api-ready.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-114-shadcn-ui-component-library.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-121-merchant-onboarding-store-setup.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-122-marketing-landing-page.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-123-application-composition-root.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-124-realtime-mqtt-client-runtime.md` |
+| 2026-08-05 | `tasks/` → `done/` | `ADR-071-scalability-stateless.md` |

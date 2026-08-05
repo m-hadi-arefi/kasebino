@@ -115,7 +115,7 @@ export const CORS_POLICY = {
   ] as const,
   /** Production origins injected via env allowlist when app shell wires CORS. */
   productionOriginsFromEnv: "CORS_ALLOWED_ORIGINS",
-  runtimeWiring: "deferred_next_middleware_or_ard_020",
+  runtimeWiring: "adr_119_next_middleware",
   note: "Public storefront may share app origin; beacons lock to app origins (ARD-027)",
 } as const;
 
@@ -209,6 +209,7 @@ export const ENCRYPTION_AT_REST = {
 
 /**
  * CSRF / XSS stance for cookie + Server Actions surfaces.
+ * ADR-119 adds double-submit CSRF (`x-csrf-token` + `mos.csrf`) on mutating `/api/v1`.
  */
 export const CSRF_SERVER_ACTIONS = {
   nextjsServerActionProtections: true,
@@ -216,6 +217,9 @@ export const CSRF_SERVER_ACTIONS = {
   sameSite: SECURE_COOKIE_RULES.sameSite,
   reactEscaping: true,
   noUnsanitizedHtml: true,
+  doubleSubmitHeader: "x-csrf-token",
+  doubleSubmitCookie: "mos.csrf",
+  runtimeWiring: "adr_119_next_middleware",
   threatControl: THREAT_CONTROLS.csrf,
 } as const;
 

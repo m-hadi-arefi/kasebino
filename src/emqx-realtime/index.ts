@@ -28,6 +28,16 @@ import type { OutboxDispatchHandler, OutboxMessage } from "../outbox/index.js";
 import { TENANT_KEY_PROPAGATION } from "../multi-tenant-isolation/index.js";
 
 import type { EmqxPublishPort, MqttQos } from "./port.js";
+import {
+  ADMIN_TOPIC_CHANNELS,
+  MERCHANT_TOPIC_CHANNELS,
+  TOPIC_LAYOUT_CORE,
+  buildAdminTopic,
+  buildMerchantSubscribeFilter,
+  buildMerchantTopic,
+  type AdminTopicChannel,
+  type MerchantTopicChannel,
+} from "./topics.js";
 
 export type {
   EmqxBrokerPort,
@@ -37,6 +47,16 @@ export type {
   MqttQos,
 } from "./port.js";
 export { InMemoryMqttBroker } from "./in-memory-broker.js";
+export {
+  ADMIN_TOPIC_CHANNELS,
+  MERCHANT_TOPIC_CHANNELS,
+  buildAdminTopic,
+  buildMerchantSubscribeFilter,
+  buildMerchantTopic,
+  type AdminTopicChannel,
+  type MerchantTopicChannel,
+  type TopicKind,
+} from "./topics.js";
 
 /** Engine identity — MQTT realtime / event bus (compose EMQX). */
 export const EMQX_ENGINE = {
@@ -103,8 +123,11 @@ export const PLACEMENT = {
   port: "src/emqx-realtime/port.ts",
   inMemoryBroker: "src/emqx-realtime/in-memory-broker.ts",
   clientStub: "src/infrastructure/emqx/client.ts",
+  mqttPublisher: "src/infrastructure/emqx/mqtt-publisher.ts",
+  workerEntrypoint: "src/workers/outbox-worker.ts",
   techFolderConvention: "src/shared/infrastructure/mqtt",
   composeService: "emqx",
+  composeWorkerService: "worker",
   outboxConsumer: EMQX_DECISION.outboxConsumer,
   realtimeArchitectureDoc: EMQX_DECISION.architectureDoc,
   messageBrokerDoc: EMQX_DECISION.messageBrokerDoc,
@@ -113,38 +136,10 @@ export const PLACEMENT = {
 
 /** Topic prefix / layout — docs/architecture/08 + 17. */
 export const TOPIC_LAYOUT = {
-  prefix: "mos",
-  separator: "/",
-  /** mos/{env}/merchant/{merchantId}/{channel} */
-  merchantPattern: "mos/{env}/merchant/{merchantId}/{channel}",
-  /** mos/{env}/admin/{channel} */
-  adminPattern: "mos/{env}/admin/{channel}",
-  merchantIdRequired: true,
+  ...TOPIC_LAYOUT_CORE,
   alignsWithTenantPropagation: TENANT_KEY_PROPAGATION.emqxTopicsIncludeMerchantId,
 } as const;
 
-export const MERCHANT_TOPIC_CHANNELS = [
-  "sales",
-  "orders",
-  "inventory",
-  "customers",
-  "loyalty",
-  "dashboard",
-  "notifications",
-] as const;
-
-export type MerchantTopicChannel = (typeof MERCHANT_TOPIC_CHANNELS)[number];
-
-export const ADMIN_TOPIC_CHANNELS = ["merchants", "monitoring"] as const;
-
-export type AdminTopicChannel = (typeof ADMIN_TOPIC_CHANNELS)[number];
-
-export type TopicKind = "merchant" | "admin";
-
-/**
- * MVP event type → primary MQTT channel (17-message-broker-architecture).
- * Unknown types skip publish (handler succeeds so outbox is not poisoned).
- */
 export const EVENT_TOPIC_MAP = {
   SaleCreated: { kind: "merchant", channel: "sales" },
   SaleCompleted: { kind: "merchant", channel: "sales" },
@@ -249,60 +244,6 @@ export type MintMqttClientCredentialsInput = {
   now?: () => Date;
   brokerUrlHint?: string;
 };
-
-export function buildMerchantTopic(parts: {
-  env: string;
-  merchantId: string;
-  channel: MerchantTopicChannel;
-}): string {
-  const env = parts.env.trim();
-  const merchantId = parts.merchantId.trim();
-  if (!env) {
-    throw new Error("MQTT topic requires env segment (ADR-038).");
-  }
-  if (!merchantId) {
-    throw new Error(
-      "MQTT merchant topic requires merchantId (ADR-038 / ADR-048).",
-    );
-  }
-  if (!(MERCHANT_TOPIC_CHANNELS as readonly string[]).includes(parts.channel)) {
-    throw new Error(
-      `Unknown merchant MQTT channel "${parts.channel}" (ADR-038).`,
-    );
-  }
-  return `${TOPIC_LAYOUT.prefix}/${env}/merchant/${merchantId}/${parts.channel}`;
-}
-
-export function buildAdminTopic(parts: {
-  env: string;
-  channel: AdminTopicChannel;
-}): string {
-  const env = parts.env.trim();
-  if (!env) {
-    throw new Error("MQTT topic requires env segment (ADR-038).");
-  }
-  if (!(ADMIN_TOPIC_CHANNELS as readonly string[]).includes(parts.channel)) {
-    throw new Error(
-      `Unknown admin MQTT channel "${parts.channel}" (ADR-038).`,
-    );
-  }
-  return `${TOPIC_LAYOUT.prefix}/${env}/admin/${parts.channel}`;
-}
-
-/** Wildcard subscribe filter for one merchant under an env. */
-export function buildMerchantSubscribeFilter(parts: {
-  env: string;
-  merchantId: string;
-}): string {
-  const env = parts.env.trim();
-  const merchantId = parts.merchantId.trim();
-  if (!env || !merchantId) {
-    throw new Error(
-      "Merchant subscribe filter requires env + merchantId (ADR-038).",
-    );
-  }
-  return `${TOPIC_LAYOUT.prefix}/${env}/merchant/${merchantId}/#`;
-}
 
 export function resolveTopicForEvent(input: {
   eventType: string;

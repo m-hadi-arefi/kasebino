@@ -4,7 +4,8 @@
  * only object keys/refs are persisted in OLTP.
  */
 
-export type ObjectBucket = "receipts" | "media" | "qr";
+/** S3/MinIO bucket names — each must be ≥3 chars (AWS naming rules). */
+export type ObjectBucket = "receipts" | "media" | "qrcodes";
 
 export type ObjectBytes = {
   body: Uint8Array;

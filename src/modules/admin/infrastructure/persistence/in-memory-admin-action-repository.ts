@@ -37,4 +37,11 @@ export class InMemoryAdminActionRepository implements AdminActionRepository {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit);
   }
+
+  async listRecent(opts: { limit?: number } = {}): Promise<AdminAction[]> {
+    const limit = opts.limit ?? 100;
+    return [...this.byId.values()]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+  }
 }

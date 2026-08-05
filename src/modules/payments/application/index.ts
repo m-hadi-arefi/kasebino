@@ -17,6 +17,7 @@ export type {
 export {
   computePilotFeeMinor,
   createPaymentsUseCases,
+  isSandboxPaymentConfirmAllowed,
   signSandboxWebhook,
   timingSafeEqualHex,
   type ConfirmSandboxPaymentInput,

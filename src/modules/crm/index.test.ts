@@ -10,19 +10,22 @@ import {
   InMemoryStoreMembershipRepository,
   createCrmUseCases,
 } from "./index.js";
+import { InMemorySaleRepository } from "../pos/infrastructure/index.js";
 
 function createHarness() {
   const memberships = new InMemoryStoreMembershipRepository();
+  const sales = new InMemorySaleRepository();
   let n = 0;
   const useCases = createCrmUseCases({
     memberships,
+    sales,
     idFactory: () => `id-${++n}`,
     now: (() => {
       let t = 1_700_000_000_000;
       return () => new Date(t++);
     })(),
   });
-  return { memberships, useCases };
+  return { memberships, sales, useCases };
 }
 
 describe("ADR-007 Customer Membership Model", () => {
@@ -207,5 +210,152 @@ describe("ADR-007 Customer Membership Model", () => {
       merchantId: "merchant-a",
     });
     expect(rightTenant).toHaveLength(1);
+  });
+});
+
+describe("ADR-098 CRM segments + profile history", () => {
+  it("assigns new / returning / lapsed exclusively from completed sales", async () => {
+    const memberships = new InMemoryStoreMembershipRepository();
+    const sales = new InMemorySaleRepository();
+    const now = new Date("2026-08-05T12:00:00.000Z");
+    const useCases = createCrmUseCases({
+      memberships,
+      sales,
+      idFactory: (() => {
+        let n = 0;
+        return () => `crm-${++n}`;
+      })(),
+      now: () => now,
+    });
+
+    const fresh = await useCases.upsertFromPosPhoneCapture({
+      merchantId: "m1",
+      storeId: "s1",
+      phone: "09121111111",
+    });
+    const returner = await useCases.upsertFromPosPhoneCapture({
+      merchantId: "m1",
+      storeId: "s1",
+      phone: "09122222222",
+    });
+    const lapsed = await useCases.upsertFromPosPhoneCapture({
+      merchantId: "m1",
+      storeId: "s1",
+      phone: "09123333333",
+    });
+
+    const { createCompletedSaleAggregate } = await import(
+      "../pos/domain/sale.js"
+    );
+
+    await sales.save(
+      createCompletedSaleAggregate({
+        id: "sale-r1",
+        merchantId: "m1",
+        storeId: "s1",
+        membershipId: returner.membership.id,
+        customerId: returner.membership.customerId,
+        phoneNational: returner.membership.phoneNational,
+        tenderType: "cash",
+        idempotencyKey: "ik-r1",
+        lines: [
+          {
+            id: "l1",
+            productId: "p1",
+            productName: "نان",
+            quantity: 1,
+            unitPriceMinor: 10_000n,
+          },
+        ],
+        now: new Date("2026-07-01T12:00:00.000Z"),
+      }),
+    );
+    await sales.save(
+      createCompletedSaleAggregate({
+        id: "sale-r2",
+        merchantId: "m1",
+        storeId: "s1",
+        membershipId: returner.membership.id,
+        customerId: returner.membership.customerId,
+        phoneNational: returner.membership.phoneNational,
+        tenderType: "cash",
+        idempotencyKey: "ik-r2",
+        lines: [
+          {
+            id: "l2",
+            productId: "p1",
+            productName: "نان",
+            quantity: 1,
+            unitPriceMinor: 10_000n,
+          },
+        ],
+        now: new Date("2026-07-20T12:00:00.000Z"),
+      }),
+    );
+    await sales.save(
+      createCompletedSaleAggregate({
+        id: "sale-l1",
+        merchantId: "m1",
+        storeId: "s1",
+        membershipId: lapsed.membership.id,
+        customerId: lapsed.membership.customerId,
+        phoneNational: lapsed.membership.phoneNational,
+        tenderType: "cash",
+        idempotencyKey: "ik-l1",
+        lines: [
+          {
+            id: "l3",
+            productId: "p1",
+            productName: "شیر",
+            quantity: 1,
+            unitPriceMinor: 50_000n,
+          },
+        ],
+        now: new Date("2026-04-01T12:00:00.000Z"),
+      }),
+    );
+
+    const listed = await useCases.listStoreMemberships({
+      merchantId: "m1",
+      storeId: "s1",
+    });
+    const byPhone = new Map(
+      listed.items.map((i) => [i.membership.phoneNational, i.engagement.segment]),
+    );
+    expect(byPhone.get(fresh.membership.phoneNational)).toBe("new");
+    expect(byPhone.get(returner.membership.phoneNational)).toBe("returning");
+    expect(byPhone.get(lapsed.membership.phoneNational)).toBe("lapsed");
+
+    const segments = await useCases.getStoreSegments({
+      merchantId: "m1",
+      storeId: "s1",
+    });
+    expect(segments.counts).toEqual({ new: 1, returning: 1, lapsed: 1 });
+    expect(segments.totalActive).toBe(3);
+
+    const history = await useCases.listMembershipHistory({
+      membershipId: returner.membership.id,
+    });
+    expect(history.sales).toHaveLength(2);
+    expect(history.sales[0]!.id).toBe("sale-r2");
+
+    const profile = await useCases.getMembershipProfile({
+      membershipId: returner.membership.id,
+    });
+    expect(profile.engagement.purchaseCount).toBe(2);
+    expect(profile.engagement.totalSpendMinor).toBe(20_000n);
+    expect(profile.engagement.segment).toBe("returning");
+
+    await useCases.softDeleteMembership({
+      membershipId: fresh.membership.id,
+    });
+    const afterDelete = await useCases.listStoreMemberships({
+      merchantId: "m1",
+      storeId: "s1",
+    });
+    expect(afterDelete.items).toHaveLength(2);
+    expect(
+      afterDelete.items.every((i) => i.membership.id !== fresh.membership.id),
+    ).toBe(true);
   });
 });

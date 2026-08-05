@@ -250,9 +250,12 @@ describe("ADR-056 MongoDB Analytics and Telemetry Plane", () => {
     expect(MONGO_REQUIREMENTS.unicodePersianPayloadsSafe).toBe(true);
   });
 
-  it("exposes a thin MONGODB_URL client stub under infrastructure", () => {
+  it("exposes Mongo client + runtime under infrastructure (ADR-110)", () => {
     expect(PLACEMENT.clientStub).toBe("src/infrastructure/mongodb/client.ts");
-    expect(MONGO_REQUIREMENTS.noProtocolDriverInThisAdr).toBe(true);
+    expect(PLACEMENT.runtimePackage).toBe("src/infrastructure/mongodb/");
+    expect(PLACEMENT.runtimeAdr).toBe("ADR-110");
+    expect(MONGO_REQUIREMENTS.noProtocolDriverInThisAdr).toBe(false);
+    expect(MONGO_REQUIREMENTS.protocolDriverImplementedAdr110).toBe(true);
     expect(MONGO_REQUIREMENTS.adaptersOnlyNoUiCredentials).toBe(true);
 
     const cfg = createMongodbConfig(

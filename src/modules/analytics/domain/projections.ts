@@ -1,5 +1,5 @@
 /**
- * Analytics OLTP projections — domain read models (ADR-063 / ARD-016).
+ * Analytics OLTP projections — domain read models (ADR-063 / ADR-106 / ARD-016).
  * Not write-side aggregates; updated from SaleCompleted / OrderPaid /
  * CustomerReturned. Money truth stays PostgreSQL.
  */
@@ -19,11 +19,19 @@ export {
   MERCHANT_OLTP_TITLES_FA,
   isIsoDay,
   toIsoDay,
+  toTehranIsoDay,
   type MerchantOltpConsumedEvent,
 } from "../../../merchant-oltp-analytics/index.js";
 
-/** Projection repository port — Drizzle adapter follows ARD-016 migrations. */
+/** Projection repository port — Drizzle adapter (ADR-106). */
 export type AnalyticsProjectionRepository = {
+  /** Returns false when eventId already applied (idempotent). */
+  tryBeginEvent(input: {
+    eventId: string;
+    merchantId: string;
+    appliedAt: Date;
+  }): Promise<boolean>;
+
   upsertDailyRevenue(row: {
     merchantId: string;
     storeId: string | null;
@@ -31,6 +39,23 @@ export type AnalyticsProjectionRepository = {
     salesCountDelta: number;
     revenueMinorDelta: bigint;
   }): Promise<void>;
+
+  upsertCustomerStats(row: {
+    merchantId: string;
+    storeId: string | null;
+    day: string;
+    newMembershipsDelta?: number;
+    salesWithPhoneDelta?: number;
+  }): Promise<void>;
+
+  upsertRetentionPurchase(row: {
+    merchantId: string;
+    storeId: string | null;
+    membershipId: string;
+    day: string;
+    purchaseCountDelta: number;
+  }): Promise<void>;
+
   findDailyRevenue(input: {
     merchantId: string;
     storeId?: string | null;
@@ -45,4 +70,11 @@ export type AnalyticsProjectionRepository = {
       revenueMinor: bigint;
     }>
   >;
+
+  countMonthlyReturningFromProjection(input: {
+    merchantId: string;
+    storeId?: string | null;
+    fromDay: string;
+    toDay: string;
+  }): Promise<number>;
 };

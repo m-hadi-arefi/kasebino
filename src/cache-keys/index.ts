@@ -208,6 +208,30 @@ export function buildDashboardRevenueKey(
   });
 }
 
+/** Analytics customers widget. TTL 60s. */
+export function buildDashboardCustomersKey(
+  input: CacheKeyEnvParts & { range?: string },
+): string {
+  return buildCacheKey({
+    env: input.env,
+    merchantId: input.merchantId,
+    parts: [
+      "analytics",
+      "customers",
+      normalizeSegment("range", input.range ?? "default"),
+    ],
+  });
+}
+
+/** Analytics retention / North Star widget. TTL 60s. */
+export function buildDashboardRetentionKey(input: CacheKeyEnvParts): string {
+  return buildCacheKey({
+    env: input.env,
+    merchantId: input.merchantId,
+    parts: ["analytics", "retention"],
+  });
+}
+
 /** Storefront catalog page. TTL 600s. */
 export function buildStorefrontCatalogKey(
   input: CacheKeyEnvParts & { pageHash: string },

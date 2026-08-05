@@ -211,5 +211,27 @@ describe("ADR-005 Merchant Domain", () => {
       status: "draft",
       multiStoreEnabled: true,
     });
+    expect(await merchants.findByOwnerUserId("owner")).toMatchObject({
+      id: merchant.id,
+    });
+  });
+
+  it("rejects second merchant for the same owner (AUTH-06)", async () => {
+    const { useCases } = createHarness();
+    await useCases.createMerchant({
+      tradeName: "اولی",
+      slug: "owner-first",
+      ownerUserId: "same-owner",
+    });
+    await expect(
+      useCases.createMerchant({
+        tradeName: "دومی",
+        slug: "owner-second",
+        ownerUserId: "same-owner",
+      }),
+    ).rejects.toMatchObject({
+      code: "OWNER_ALREADY_HAS_MERCHANT",
+      messageFa: MERCHANT_ERROR_MESSAGES_FA.OWNER_ALREADY_HAS_MERCHANT,
+    });
   });
 });

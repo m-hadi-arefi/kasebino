@@ -260,7 +260,7 @@ export const SECURITY_HEADERS_CHECKLIST = {
     recommended: true,
     value: "same-origin",
   },
-  runtimeWiring: "deferred_next_middleware_or_ard_020",
+  runtimeWiring: "adr_119_next_middleware_and_headers",
 } as const;
 
 /**

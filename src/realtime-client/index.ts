@@ -1,22 +1,18 @@
 /**
- * ADR-039 — Realtime Client Strategy MQTT with Poll Fallback.
+ * ADR-039 / ADR-124 — Realtime Client Strategy MQTT with Poll Fallback.
  *
  * MQTT over WebSocket to EMQX preferred; invalidate TanStack Query on
  * envelopes; HTTP poll fallback on disconnect; exponential reconnect
  * backoff for Iranian mobile networks; Persian reconnect toast copy.
+ * Merchant staff hook wires pickup board / POS / notifications.
  *
  * Publish plane: `src/emqx-realtime` (ADR-038).
  * Normative prose: docs/architecture/08-real-time-architecture.md
  */
 
-import { EVENT_UX_FA } from "../event-driven/index.js";
-import {
-  CLIENT_CREDENTIALS,
-  EMQX_DECISION,
-  EMQX_UX_FA,
-} from "../emqx-realtime/index.js";
 import { DATA_FETCHING_LIBRARY } from "../data-fetching/index.js";
-import type { RealtimeUxKey } from "./client.js";
+
+import { REALTIME_CLIENT_UX_FA } from "./ux.js";
 
 export {
   computeReconnectDelayMs,
@@ -29,8 +25,10 @@ export {
 
 export {
   CHANNEL_QUERY_ENTITIES,
+  CHANNEL_UI_QUERY_PREFIXES,
   createRealtimeClient,
   DEFAULT_POLL_INTERVAL_MS,
+  envelopeMatchesStoreScope,
   extractMerchantChannelFromTopic,
   invalidatePollFallbackEntities,
   invalidateQueriesForChannel,
@@ -47,6 +45,18 @@ export {
 } from "./client.js";
 
 export {
+  isMqttClientEnabled,
+  resolveBrowserRealtimeEnv,
+  type MqttClientEnv,
+} from "./flags.js";
+
+export {
+  createMqttJsRealtimeTransport,
+  topicMatchesFilter,
+  type MqttJsRealtimeTransportOptions,
+} from "./mqtt-js-transport.js";
+
+export {
   buildMqttJsConnectOptions,
   createInMemoryRealtimeTransport,
   toMqttWebSocketUrl,
@@ -59,29 +69,47 @@ export {
 
 export {
   handleRealtimeTokenRequest,
+  parseRealtimeTokenBody,
   REALTIME_TOKEN_API,
   type MintRealtimeTokenDeps,
+  type RealtimeOwnedStoreResolution,
+  type RealtimeStoreResolver,
   type RealtimeTokenAuthorizer,
   type RealtimeTokenHandlerResult,
   type RealtimeTokenResponse,
 } from "./token.js";
 
-/** Binding Decision (ADR-039). */
+export {
+  assertPersianRealtimeClientCopy,
+  REALTIME_CLIENT_UX_FA,
+  resolveRealtimeUxMessage,
+  toastMessageForChannel,
+  type RealtimeClientUxKey,
+} from "./ux.js";
+
+// Client hooks live in `./use-realtime-store-channel` (marked "use client") —
+// do not re-export here or App Router API routes pulling this barrel fail build.
+
+/** Binding Decision (ADR-039 / ADR-124). */
 export const REALTIME_CLIENT_DECISION = {
   adr: "ADR-039",
+  runtimeAdr: "ADR-124",
   pattern: "mqtt_over_websocket_with_poll_fallback" as const,
   transportPreferred: "mqtt_over_websocket" as const,
-  broker: EMQX_DECISION.broker,
+  /** Keep aligned with EMQX_DECISION.broker without importing emqx barrel (node:crypto). */
+  broker: "emqx" as const,
   invalidateTanStackQuery: true,
   queryLibrary: DATA_FETCHING_LIBRARY.package,
   pollFallbackOnDisconnect: true,
   reconnectBackoff: true,
   customAppWebsocketStackForbidden: true,
-  shortLivedTokenApi: CLIENT_CREDENTIALS.tokenApiPathReserved,
+  shortLivedTokenApi: "/api/v1/realtime/token" as const,
   publishPlane: "src/emqx-realtime",
   publishAdr: "ADR-038",
   rationale: "resilience_on_iranian_mobile_networks",
   architectureDoc: "docs/architecture/08-real-time-architecture.md",
+  pollIntervalMs: 15_000,
+  mqttDisableEnv: "NEXT_PUBLIC_MOS_MQTT_CLIENT",
 } as const;
 
 export const REALTIME_CLIENT_PATHS = {
@@ -98,8 +126,9 @@ export const REALTIME_CLIENT_REQUIREMENTS = {
   persianReconnectToasts: true,
   tokenMintApi: true,
   topicAclVia038: true,
-  /** Real mqtt.js socket adapter may wire boards later; port + strategy land here. */
-  mqttJsAdapterOptional: true,
+  mqttJsBrowserAdapter: true,
+  storeScopedToken: true,
+  merchantSurfaceHook: true,
 } as const;
 
 /** Analytics / ops metric names (emit deferred to ADR-074). */
@@ -112,68 +141,6 @@ export const REALTIME_CLIENT_METRICS = {
   warehouseEmitDeferred: true,
   detailDeferredTo: "ADR-074",
 } as const;
-
-/**
- * Iranian First — user-visible realtime connection toasts (fa-IR + RTL).
- * Wire schemas English; presenters render these strings.
- */
-export const REALTIME_CLIENT_UX_FA = {
-  ...EVENT_UX_FA,
-  dir: "rtl" as const,
-  locale: "fa-IR" as const,
-  notificationDrawerRtl: EMQX_UX_FA.notificationDrawerRtl,
-  CONNECTED: "اتصال لحظه‌ای برقرار شد.",
-  POLL_FALLBACK:
-    "اتصال لحظه‌ای قطع است؛ به‌روزرسانی دوره‌ای فعال شد.",
-  RECONNECTING: EVENT_UX_FA.REALTIME_RECONNECTING,
-  OFFLINE: EVENT_UX_FA.REALTIME_OFFLINE,
-} as const;
-
-export type RealtimeClientUxKey = keyof Pick<
-  typeof REALTIME_CLIENT_UX_FA,
-  "CONNECTED" | "POLL_FALLBACK" | "RECONNECTING" | "OFFLINE"
->;
-
-export function resolveRealtimeUxMessage(key: RealtimeUxKey): string {
-  switch (key) {
-    case "connected":
-      return REALTIME_CLIENT_UX_FA.CONNECTED;
-    case "poll_fallback":
-      return REALTIME_CLIENT_UX_FA.POLL_FALLBACK;
-    case "reconnecting":
-    case "connecting":
-      return REALTIME_CLIENT_UX_FA.RECONNECTING;
-    case "offline":
-      return REALTIME_CLIENT_UX_FA.OFFLINE;
-    case "idle":
-    default:
-      return REALTIME_CLIENT_UX_FA.OFFLINE;
-  }
-}
-
-export function assertPersianRealtimeClientCopy(): void {
-  if (
-    REALTIME_CLIENT_UX_FA.dir !== "rtl" ||
-    REALTIME_CLIENT_UX_FA.locale !== "fa-IR"
-  ) {
-    throw new Error(
-      "Realtime client UX must be fa-IR + rtl (ADR-039 Iranian First).",
-    );
-  }
-  for (const msg of [
-    REALTIME_CLIENT_UX_FA.CONNECTED,
-    REALTIME_CLIENT_UX_FA.POLL_FALLBACK,
-    REALTIME_CLIENT_UX_FA.RECONNECTING,
-    REALTIME_CLIENT_UX_FA.OFFLINE,
-    REALTIME_CLIENT_UX_FA.NOTIFICATION_DRAWER_TITLE,
-  ]) {
-    if (!/[\u0600-\u06FF]/.test(msg)) {
-      throw new Error(
-        "Realtime client user-visible copy must include Persian script (ADR-039).",
-      );
-    }
-  }
-}
 
 export function assertMqttPreferredOverCustomWs(
   usesCustomAppWebsocketStack: boolean,

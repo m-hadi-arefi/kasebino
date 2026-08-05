@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { POS_OFFLINE_COPY_FA } from "@/pos-offline";
+import { POS_OFFLINE_COPY_FA } from "@/pos-offline/client";
 import { STAFF_PWA_COPY_FA } from "@/staff-pwa";
 
 type BeforeInstallPromptEvent = Event & {
@@ -148,7 +148,11 @@ export function StaffInstallPrompt() {
           ) : null}
           {hint ? (
             <p className="text-xs text-[var(--color-fg)]" role="status">
-              {STAFF_PWA_COPY_FA.browserHint}
+              {/iPad|iPhone|iPod/.test(
+                typeof navigator !== "undefined" ? navigator.userAgent : "",
+              )
+                ? STAFF_PWA_COPY_FA.iosHint
+                : STAFF_PWA_COPY_FA.browserHint}
             </p>
           ) : null}
         </div>

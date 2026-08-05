@@ -9,10 +9,12 @@ export const STORE_ERROR_CODES = [
   "SLUG_TAKEN",
   "INVALID_ADDRESS",
   "INVALID_GEO",
+  "GEO_REQUIRED_FOR_ACTIVE",
   "INVALID_HOURS",
   "INVALID_PRIMARY_COLOR",
   "STORE_NOT_FOUND",
   "NO_CHANGES",
+  "INVALID_ACTIVATE_TRANSITION",
 ] as const;
 
 export type StoreErrorCode = (typeof STORE_ERROR_CODES)[number];
@@ -28,12 +30,16 @@ export const STORE_ERROR_MESSAGES_FA = {
     "آدرس فروشگاه کامل نیست. خیابان، شهر و استان را وارد کنید.",
   INVALID_GEO:
     "موقعیت جغرافیایی معتبر نیست. عرض و طول جغرافیایی را بررسی کنید.",
+  GEO_REQUIRED_FOR_ACTIVE:
+    "برای فعال‌سازی فروشگاه، آدرس کامل و موقعیت جغرافیایی الزامی است.",
   INVALID_HOURS:
     "ساعات کاری معتبر نیست. زمان را به صورت ساعت:دقیقه وارد کنید.",
   INVALID_PRIMARY_COLOR:
     "رنگ برند معتبر نیست. از کد رنگ هگزادسیمال استفاده کنید.",
   STORE_NOT_FOUND: "فروشگاه یافت نشد.",
   NO_CHANGES: "تغییری برای ذخیره وجود ندارد.",
+  INVALID_ACTIVATE_TRANSITION:
+    "این فروشگاه در وضعیت فعلی قابل فعال‌سازی نیست.",
 } as const satisfies Record<StoreErrorCode, string>;
 
 export class StoreDomainError extends Error {

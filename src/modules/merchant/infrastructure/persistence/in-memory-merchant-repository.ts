@@ -27,6 +27,16 @@ export class InMemoryMerchantRepository implements MerchantRepository {
     return this.byId.get(id) ?? null;
   }
 
+  async findByOwnerUserId(ownerUserId: string): Promise<Merchant | null> {
+    const owner = ownerUserId.trim();
+    for (const merchant of this.byId.values()) {
+      if (merchant.ownerUserId === owner) {
+        return merchant;
+      }
+    }
+    return null;
+  }
+
   async update(merchant: Merchant): Promise<void> {
     const previous = this.byId.get(merchant.id);
     if (previous && previous.slug !== merchant.slug) {

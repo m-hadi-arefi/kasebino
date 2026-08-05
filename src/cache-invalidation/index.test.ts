@@ -53,6 +53,9 @@ describe("ADR-054 Cache Invalidation via Domain Events", () => {
     expect(CACHE_INVALIDATION_MVP_EVENTS).toEqual([
       "SaleCompleted",
       "ProductUpdated",
+      "ProductCreated",
+      "ProductDeleted",
+      "InventoryChanged",
       "StoreUpdated",
     ]);
     expect(CACHE_INVALIDATION_UNICODE.keysRemainIdBased).toBe(true);

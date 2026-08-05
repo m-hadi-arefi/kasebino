@@ -8,6 +8,8 @@ import type { StoreBranding } from "./branding.js";
 import type { StoreHours } from "./hours.js";
 import type { StoreStatus } from "./store-status.js";
 
+export type { StoreStatus };
+
 export type Store = {
   readonly id: string;
   readonly merchantId: string;
@@ -103,4 +105,32 @@ export function applyStoreHours(
   store.hours = { ...hours };
   store.updatedAt = at;
   return ["hours"];
+}
+
+export function applyStoreAddress(
+  store: Store,
+  address: StoreAddress,
+  at: Date = new Date(),
+): string[] {
+  const prev = JSON.stringify(store.address);
+  const next = JSON.stringify(address);
+  if (prev === next) {
+    return [];
+  }
+  store.address = { ...address };
+  store.updatedAt = at;
+  return ["address", "address.latitude", "address.longitude"];
+}
+
+export function applyStoreStatus(
+  store: Store,
+  status: StoreStatus,
+  at: Date = new Date(),
+): string[] {
+  if (store.status === status) {
+    return [];
+  }
+  store.status = status;
+  store.updatedAt = at;
+  return ["status"];
 }

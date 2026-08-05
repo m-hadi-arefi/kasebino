@@ -78,6 +78,8 @@ export function orderReadyForPickupEvent(input: {
   orderId: string;
   merchantId: string;
   storeId: string;
+  membershipId?: string | null;
+  customerId?: string | null;
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -89,6 +91,8 @@ export function orderReadyForPickupEvent(input: {
       merchantId: input.merchantId,
       storeId: input.storeId,
       status: "ready_for_pickup" as const,
+      membershipId: input.membershipId ?? null,
+      customerId: input.customerId ?? null,
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),
   });

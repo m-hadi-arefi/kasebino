@@ -3,7 +3,7 @@
  * Production adapters use mqtt.js over WebSocket; tests use in-memory.
  */
 
-import type { InMemoryMqttBroker } from "../emqx-realtime/index.js";
+import type { InMemoryMqttBroker } from "../emqx-realtime/in-memory-broker.js";
 
 export type RealtimeMqttMessage = {
   topic: string;

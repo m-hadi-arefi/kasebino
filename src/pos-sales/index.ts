@@ -54,11 +54,13 @@ export const POS_SALES_DECISION = {
   analyticsIngestIsolationAdr: "ADR-065",
   loyaltyEarnPort: "LoyaltyEarnPort",
   loyaltyModule: "loyalty",
-  /** Receipt binaries → MinIO (ADR-040 `src/minio-storage`); CompleteSale wiring later. */
+  /** Receipt binaries → MinIO (ADR-040 / ADR-111); sale id is receiptRef now. */
   receiptStoragePackage: "src/minio-storage/",
-  receiptStorageAdr: "ADR-040",
-  receiptStorageDeferred: false,
-  outboxDeferred: true,
+  receiptStorageAdr: "ADR-111",
+  receiptStorageDeferred: true,
+  receiptRefIsSaleId: true,
+  /** ADR-096 — CompleteSale enqueues SaleCreated / SaleCompleted. */
+  outboxDeferred: false,
   inventoryDecrementSameTx: true,
   events: POS_SALE_EVENTS,
   primaryCompletionEvent: "SaleCompleted" as const,

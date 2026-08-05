@@ -14,6 +14,7 @@ export const CATALOG_ERROR_CODES = [
   "CATEGORY_NOT_FOUND",
   "INVALID_CATEGORY_NAME",
   "PRODUCT_ALREADY_DELETED",
+  "CATEGORY_ALREADY_DELETED",
 ] as const;
 
 export type CatalogErrorCode = (typeof CATALOG_ERROR_CODES)[number];
@@ -31,6 +32,7 @@ export const CATALOG_ERROR_MESSAGES_FA = {
   INVALID_CATEGORY_NAME:
     "نام دسته‌بندی معتبر نیست. لطفاً نام دسته را وارد کنید.",
   PRODUCT_ALREADY_DELETED: "این کالا قبلاً حذف شده است.",
+  CATEGORY_ALREADY_DELETED: "این دسته‌بندی قبلاً حذف شده است.",
 } as const satisfies Record<CatalogErrorCode, string>;
 
 export class CatalogDomainError extends Error {

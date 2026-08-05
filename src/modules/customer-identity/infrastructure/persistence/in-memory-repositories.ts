@@ -43,6 +43,11 @@ export class InMemoryCustomerIdentityRepository
   implements CustomerIdentityRepository
 {
   private readonly byPhone = new Map<string, CustomerIdentity>();
+  private readonly byId = new Map<string, CustomerIdentity>();
+
+  async findById(id: string): Promise<CustomerIdentity | null> {
+    return this.byId.get(id) ?? null;
+  }
 
   async findByPhoneE164(
     phoneE164: string,
@@ -52,5 +57,6 @@ export class InMemoryCustomerIdentityRepository
 
   async save(identity: CustomerIdentity): Promise<void> {
     this.byPhone.set(identity.phoneE164, identity);
+    this.byId.set(identity.id, identity);
   }
 }

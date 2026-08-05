@@ -155,6 +155,14 @@ export const OUTBOX_CONSUMERS = {
     architecturePackage: "src/notifications-architecture/" as const,
     detailAdr: "ADR-090" as const,
   },
+  minio_receipts: {
+    channel: "minio_s3" as const,
+    purpose: "sale_receipt_html_render",
+    onCriticalPath: false,
+    spineFeed: "minio_receipts" as const,
+    implementation: "src/infrastructure/minio/" as const,
+    detailAdr: "ADR-111" as const,
+  },
 } as const;
 
 export type OutboxConsumerName = keyof typeof OUTBOX_CONSUMERS;

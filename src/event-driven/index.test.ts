@@ -135,6 +135,7 @@ describe("ADR-036 Event-Driven Architecture", () => {
       [
         "cache_invalidation",
         "emqx_realtime",
+        "minio_receipts",
         "mongodb_warehouse",
         "notifications",
       ].sort(),

@@ -53,16 +53,23 @@
   --density-pos-tap-min: 2.75rem; /* 44px */
   --density-analytical-tap-min: 2.5rem;
 
-  /* shadcn-compatible aliases */
+  /* shadcn-compatible aliases (ADR-114) */
   --background: var(--color-bg);
   --foreground: var(--color-fg);
   --card: var(--color-surface);
   --card-foreground: var(--color-fg);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-fg);
   --primary: var(--color-primary);
   --primary-foreground: var(--color-primary-fg);
+  --secondary: #e2e8ef;
+  --secondary-foreground: var(--color-fg);
   --muted: #e8edf2;
   --muted-foreground: var(--color-muted);
+  --accent: #dce8e6;
+  --accent-foreground: var(--color-fg);
   --destructive: var(--color-danger);
+  --destructive-foreground: #fef7f6;
   --border: var(--color-border);
   --input: var(--color-border);
   --ring: var(--color-primary);
@@ -85,8 +92,16 @@
   --color-foreground: var(--mos-fg);
   --color-card: var(--mos-surface);
   --color-card-foreground: var(--mos-fg);
+  --color-popover: var(--mos-surface);
+  --color-popover-foreground: var(--mos-fg);
   --color-primary-foreground: var(--mos-primary-fg);
+  --color-secondary: #e2e8ef;
+  --color-secondary-foreground: var(--mos-fg);
+  --color-accent: #dce8e6;
+  --color-accent-foreground: var(--mos-fg);
+  --color-muted-foreground: var(--mos-muted);
   --color-destructive: var(--mos-danger);
+  --color-destructive-foreground: #fef7f6;
   --color-ring: var(--mos-primary);
   --color-input: var(--mos-border);
 

@@ -30,12 +30,13 @@ function loadPackageScripts(): Record<string, string> {
 }
 
 describe("ADR-069 CI/CD Strategy", () => {
-  it("locks quality gates: lint, typecheck, test, build, migration review", () => {
+  it("locks quality gates: lint, typecheck, test, build, schema drift, migration review", () => {
     expect(CI_QUALITY_GATES).toEqual([
       "lint",
       "typecheck",
       "test",
       "build",
+      "schema_drift_check",
       "migration_review",
     ]);
     expect(isCiQualityGate("build")).toBe(true);

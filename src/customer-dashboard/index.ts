@@ -56,13 +56,18 @@ export const CUSTOMER_DASHBOARD_SURFACES = {
 
 export type CustomerDashboardSurfaceId = keyof typeof CUSTOMER_DASHBOARD_SURFACES;
 
-/** ARD-035 API contracts — handlers deferred. */
+/** ARD-035 / ADR-103 API contracts — storefront-scoped portal. */
 export const CUSTOMER_DASHBOARD_API_PATHS = {
-  me: "/api/v1/customer/me",
-  wallet: "/api/v1/customer/stores/:storeId/wallet",
-  history: "/api/v1/customer/stores/:storeId/history",
-  rewards: "/api/v1/customer/stores/:storeId/rewards",
-  receipt: "/api/v1/customer/stores/:storeId/receipts/:id",
+  me: "/api/v1/storefront/:slug/me",
+  wallet: "/api/v1/storefront/:slug/wallet",
+  meWallet: "/api/v1/storefront/:slug/me/wallet",
+  orders: "/api/v1/storefront/:slug/me/orders",
+  history: "/api/v1/storefront/:slug/me/history",
+  rewards: "/api/v1/storefront/:slug/me/rewards",
+  receipts: "/api/v1/storefront/:slug/me/receipts",
+  logout: "/api/v1/customer/auth/logout",
+  otpRequest: "/api/v1/auth/customer/otp/request",
+  otpVerify: "/api/v1/auth/customer/otp/verify",
 } as const;
 
 /** App Router paths relative to repo root. */
@@ -70,6 +75,9 @@ export const CUSTOMER_DASHBOARD_APP_PATHS = {
   homePage: "app/(storefront)/s/[storeSlug]/dashboard/page.tsx",
   ordersPage: "app/(storefront)/s/[storeSlug]/dashboard/orders/page.tsx",
   walletPage: "app/(storefront)/s/[storeSlug]/dashboard/wallet/page.tsx",
+  rewardsPage: "app/(storefront)/s/[storeSlug]/dashboard/rewards/page.tsx",
+  receiptsPage: "app/(storefront)/s/[storeSlug]/dashboard/receipts/page.tsx",
+  loginPage: "app/(storefront)/s/[storeSlug]/login/page.tsx",
 } as const;
 
 /** Cache notes for wallet/history read models (ARD-035). */
@@ -101,6 +109,9 @@ export const CUSTOMER_DASHBOARD_COPY_FA = {
   navHome: "پنل",
   navOrders: "سفارش‌ها",
   navWallet: "کیف امتیاز",
+  navRewards: "جایزه‌ها",
+  navReceipts: "رسیدها",
+  navNotifications: "اعلان‌ها",
   navBackStorefront: "بازگشت به ویترین",
   authRequired: "برای مشاهدهٔ پنل وارد شوید.",
   authHint: "ورود با پیامک برای اعضای همین فروشگاه",
@@ -108,8 +119,12 @@ export const CUSTOMER_DASHBOARD_COPY_FA = {
   walletEmpty: LOYALTY_COPY_FA.balanceEmpty,
   rewardsEmpty: "هنوز جایزه‌ای فعال نیست.",
   receiptsEmpty: "رسیدی برای نمایش نیست.",
+  receiptsDownloadLater: "دانلود رسید به‌زودی در دسترس است.",
+  historyEmpty: "هنوز خریدی ثبت نشده.",
   loading: "در حال بارگذاری…",
   errorRetry: "مشکلی پیش آمد. دوباره تلاش کنید.",
+  logout: "خروج",
+  logoutDone: "از حساب خارج شدید.",
   priceUnit: "تومان",
   moneyHint: "مبالغ به تومان",
   jalaliHint: "تاریخ‌ها به تقویم شمسی (تهران)",
@@ -117,6 +132,9 @@ export const CUSTOMER_DASHBOARD_COPY_FA = {
   pointsUnit: LOYALTY_COPY_FA.pointsUnit,
   noCrossStore: "اطلاعات فروشگاه دیگر در این پنل دیده نمی‌شود.",
   pickupOnlyHint: "سفارش‌های آنلاین فقط به‌صورت حضوری (پیکاپ) هستند.",
+  phoneLabel: "شماره موبایل",
+  joinedAtLabel: "عضویت از",
+  profileSection: "عضویت من",
 } as const;
 
 export type CustomerDashboardMembershipContext = {
@@ -127,11 +145,11 @@ export type CustomerDashboardMembershipContext = {
 };
 
 /**
- * uiuxpromax gate evidence for ADR-087 customer dashboard stubs.
- * Brief: docs/execution/plans/ADR-087.md
+ * uiuxpromax gate evidence for ADR-103 customer OTP portal.
+ * Brief: docs/execution/plans/ADR-103.md
  */
 export const CUSTOMER_DASHBOARD_UIUX_GATE = {
-  briefPath: "docs/execution/plans/ADR-087.md",
+  briefPath: "docs/execution/plans/ADR-103.md",
   gatePassed: true,
   skillPresent: true,
   docsPresent: true,
@@ -168,6 +186,14 @@ export function customerDashboardOrdersPath(storeSlug: string): string {
 
 export function customerDashboardWalletPath(storeSlug: string): string {
   return `${customerDashboardHomePath(storeSlug)}/wallet`;
+}
+
+export function customerDashboardRewardsPath(storeSlug: string): string {
+  return `${customerDashboardHomePath(storeSlug)}/rewards`;
+}
+
+export function customerDashboardReceiptsPath(storeSlug: string): string {
+  return `${customerDashboardHomePath(storeSlug)}/receipts`;
 }
 
 export function assertCustomerDashboardAuthRequired(authenticated: boolean): void {

@@ -1,6 +1,6 @@
 # MerchantOS production image (ADR-067).
 # Multi-stage Next.js standalone; non-root; healthcheck; secrets via env only.
-# Local Compose `app` profile stays bind-mount/dev (ADR-066).
+# Compose `app` profile builds and runs this image (production, not `next dev`).
 
 FROM node:20-alpine AS deps
 WORKDIR /app
@@ -13,6 +13,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# Build-time placeholders so Next collectPageData does not need live deps.
+ENV AUTH_SECRET=build-time-placeholder-not-for-runtime
+ENV DATABASE_URL=postgres://merchantos:merchantos@127.0.0.1:5432/merchantos
 RUN npm run build
 
 FROM node:20-alpine AS runner

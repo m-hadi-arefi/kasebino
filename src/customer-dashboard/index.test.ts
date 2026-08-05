@@ -60,14 +60,19 @@ describe("ADR-087 Customer Dashboard Architecture", () => {
     ).toThrow(/Cross-store/i);
   });
 
-  it("documents ARD-035 API paths and analytics events", () => {
-    expect(CUSTOMER_DASHBOARD_API_PATHS.me).toBe("/api/v1/customer/me");
-    expect(CUSTOMER_DASHBOARD_API_PATHS.wallet).toContain(
-      "/api/v1/customer/stores/:storeId/wallet",
+  it("documents ADR-103 storefront me API paths and analytics events", () => {
+    expect(CUSTOMER_DASHBOARD_API_PATHS.me).toBe(
+      "/api/v1/storefront/:slug/me",
     );
-    expect(CUSTOMER_DASHBOARD_API_PATHS.history).toContain("/history");
-    expect(CUSTOMER_DASHBOARD_API_PATHS.rewards).toContain("/rewards");
-    expect(CUSTOMER_DASHBOARD_API_PATHS.receipt).toContain("/receipts/");
+    expect(CUSTOMER_DASHBOARD_API_PATHS.wallet).toContain(
+      "/api/v1/storefront/:slug/wallet",
+    );
+    expect(CUSTOMER_DASHBOARD_API_PATHS.history).toContain("/me/history");
+    expect(CUSTOMER_DASHBOARD_API_PATHS.rewards).toContain("/me/rewards");
+    expect(CUSTOMER_DASHBOARD_API_PATHS.receipts).toContain("/me/receipts");
+    expect(CUSTOMER_DASHBOARD_API_PATHS.logout).toBe(
+      "/api/v1/customer/auth/logout",
+    );
     expect(CUSTOMER_DASHBOARD_EVENTS.walletViewed).toBe("LoyaltyWalletViewed");
     expect(CUSTOMER_DASHBOARD_EVENTS.receiptViewed).toBe("ReceiptViewed");
   });
@@ -114,42 +119,59 @@ describe("ADR-087 Customer Dashboard Architecture", () => {
     );
   });
 
-  it("scaffolds Persian RTL dashboard, orders, and wallet routes", () => {
+  it("scaffolds Persian RTL portal routes including rewards and receipts", () => {
     const root = process.cwd();
     for (const rel of [
       CUSTOMER_DASHBOARD_APP_PATHS.homePage,
       CUSTOMER_DASHBOARD_APP_PATHS.ordersPage,
       CUSTOMER_DASHBOARD_APP_PATHS.walletPage,
+      CUSTOMER_DASHBOARD_APP_PATHS.rewardsPage,
+      CUSTOMER_DASHBOARD_APP_PATHS.receiptsPage,
+      CUSTOMER_DASHBOARD_APP_PATHS.loginPage,
     ]) {
       expect(existsSync(join(root, rel))).toBe(true);
     }
 
-    const home = readFileSync(
-      join(root, CUSTOMER_DASHBOARD_APP_PATHS.homePage),
+    const homeClient = readFileSync(
+      join(
+        root,
+        "app/(storefront)/s/[storeSlug]/dashboard/portal-home-client.tsx",
+      ),
       "utf8",
     );
-    const orders = readFileSync(
-      join(root, CUSTOMER_DASHBOARD_APP_PATHS.ordersPage),
+    const ordersClient = readFileSync(
+      join(
+        root,
+        "app/(storefront)/s/[storeSlug]/dashboard/orders/orders-client.tsx",
+      ),
       "utf8",
     );
     const wallet = readFileSync(
       join(root, CUSTOMER_DASHBOARD_APP_PATHS.walletPage),
       "utf8",
     );
+    const login = readFileSync(
+      join(
+        root,
+        "app/(storefront)/s/[storeSlug]/login/customer-otp-login-form.tsx",
+      ),
+      "utf8",
+    );
 
-    expect(home).toMatch(/پنل من|داشبورد/);
-    expect(home).toMatch(/وارد شوید|ورود/);
-    expect(home).toMatch(/تومان/);
-    expect(home).toMatch(/شمسی|جلالی|تهران/);
-    expect(home).toMatch(/orders|سفارش/);
-    expect(home).toMatch(/wallet|امتیاز/);
-    expect(home).not.toMatch(/delivery|courier/i);
-    expect(orders).toMatch(/سفارش/);
-    expect(orders).toMatch(/هنوز سفارشی|سفارشی ندارید/);
-    expect(orders).toMatch(/پیکاپ|حضوری/);
+    expect(homeClient).toMatch(/پنل من|homeTitle/);
+    expect(homeClient).toMatch(/logout|خروج/);
+    expect(homeClient).toMatch(/تومان|priceUnit|moneyHint/);
+    expect(homeClient).toMatch(/شمسی|جلالی|تهران|jalaliHint/);
+    expect(homeClient).toMatch(/orders|سفارش|navOrders/);
+    expect(homeClient).toMatch(/wallet|امتیاز|navWallet/);
+    expect(homeClient).not.toMatch(/delivery|courier/i);
+    expect(ordersClient).toMatch(/سفارش|ordersTitle/);
+    expect(ordersClient).toMatch(/ordersEmpty|هنوز سفارشی|سفارشی ندارید/);
+    expect(ordersClient).toMatch(/پیکاپ|حضوری|pickupOnlyHint/);
     expect(wallet).toMatch(/امتیاز|کیف/);
-    expect(wallet).toMatch(/تومان|امتیاز/);
-    expect(wallet).toMatch(/شمسی|جلالی|تهران/);
+    expect(wallet).toMatch(/تومان|امتیاز|شمسی|جلالی|تهران/);
+    expect(login).toMatch(/consentCheckboxAccepted|consentLabel/);
+    expect(login).toMatch(/auth\/customer\/otp/);
   });
 
   it("passes uiuxpromax gate with Persian RTL mobile customer brief", () => {
@@ -157,6 +179,9 @@ describe("ADR-087 Customer Dashboard Architecture", () => {
     expect(CUSTOMER_DASHBOARD_UIUX_GATE.brief.rtl).toBe(true);
     expect(CUSTOMER_DASHBOARD_UIUX_GATE.brief.mobile390).toBe(true);
     expect(CUSTOMER_DASHBOARD_UIUX_GATE.brief.iranianRetailContext).toBe(true);
+    expect(CUSTOMER_DASHBOARD_UIUX_GATE.briefPath).toBe(
+      "docs/execution/plans/ADR-103.md",
+    );
     expect(() => assertCustomerDashboardUiuxGate()).not.toThrow();
     expect(CUSTOMER_DASHBOARD.decision.adr).toBe("ADR-087");
   });

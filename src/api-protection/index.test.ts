@@ -157,6 +157,7 @@ describe("ADR-077 API Protection and Data Protection", () => {
   it("locks CORS to allowlist (no wildcard)", () => {
     expect(CORS_POLICY.locked).toBe(true);
     expect(CORS_POLICY.allowWildcard).toBe(false);
+    expect(CORS_POLICY.runtimeWiring).toMatch(/adr_119/);
 
     expect(() =>
       assertCorsOriginAllowed({
@@ -187,6 +188,8 @@ describe("ADR-077 API Protection and Data Protection", () => {
   it("records CSRF / Server Actions stance with SameSite cookies", () => {
     expect(CSRF_SERVER_ACTIONS.nextjsServerActionProtections).toBe(true);
     expect(CSRF_SERVER_ACTIONS.sameSite).toBe(SECURE_COOKIE_RULES.sameSite);
+    expect(CSRF_SERVER_ACTIONS.runtimeWiring).toMatch(/adr_119/);
+    expect(CSRF_SERVER_ACTIONS.doubleSubmitHeader).toBe("x-csrf-token");
 
     expect(() =>
       assertCsrfServerActionsStance({

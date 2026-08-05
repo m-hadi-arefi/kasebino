@@ -7,7 +7,10 @@ import type {
   ListNotificationsFilter,
   NotificationRepository,
 } from "../../domain/repositories.js";
-import type { NotificationChannel } from "../../../../notifications-architecture/index.js";
+import type {
+  NotificationAudience,
+  NotificationChannel,
+} from "../../../../notifications-architecture/index.js";
 
 export class InMemoryNotificationRepository implements NotificationRepository {
   private readonly byId = new Map<string, Notification>();
@@ -53,7 +56,26 @@ export class InMemoryNotificationRepository implements NotificationRepository {
         if (filter.channel !== undefined && n.channel !== filter.channel) {
           return false;
         }
-        if (filter.userId !== undefined) {
+        if (filter.audience !== undefined && n.audience !== filter.audience) {
+          return false;
+        }
+        if (filter.storeId !== undefined) {
+          if (
+            n.storeId !== null &&
+            filter.storeId !== null &&
+            n.storeId !== filter.storeId
+          ) {
+            return false;
+          }
+        }
+        if (filter.recipientUserIds !== undefined) {
+          if (
+            n.userId !== null &&
+            !filter.recipientUserIds.includes(n.userId)
+          ) {
+            return false;
+          }
+        } else if (filter.userId !== undefined) {
           // Include broadcast (null userId) + exact recipient matches.
           if (n.userId !== null && n.userId !== filter.userId) return false;
         }
@@ -67,6 +89,11 @@ export class InMemoryNotificationRepository implements NotificationRepository {
   async countUnread(
     merchantId: string,
     userId?: string | null,
+    audience?: NotificationAudience,
+    options?: {
+      recipientUserIds?: string[];
+      storeId?: string | null;
+    },
   ): Promise<number> {
     const rows = await this.list({
       merchantId,
@@ -74,6 +101,11 @@ export class InMemoryNotificationRepository implements NotificationRepository {
       channel: "in_app",
       limit: 10_000,
       ...(userId !== undefined ? { userId } : {}),
+      ...(audience !== undefined ? { audience } : {}),
+      ...(options?.recipientUserIds !== undefined
+        ? { recipientUserIds: options.recipientUserIds }
+        : {}),
+      ...(options?.storeId !== undefined ? { storeId: options.storeId } : {}),
     });
     return rows.length;
   }

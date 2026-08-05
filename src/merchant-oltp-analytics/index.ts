@@ -201,8 +201,29 @@ export function isIsoDay(value: string): value is IsoDay {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+/**
+ * Asia/Tehran calendar day for Jalali boundary alignment (ADR-106).
+ * Day keys remain ISO YYYY-MM-DD; presentation uses Jalali.
+ */
+export function toTehranIsoDay(date: Date): IsoDay {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  if (!year || !month || !day) {
+    throw new Error("Unable to format Asia/Tehran ISO day (ADR-106).");
+  }
+  return `${year}-${month}-${day}`;
+}
+
+/** Prefer Tehran day bounds for merchant dashboards (ADR-106). */
 export function toIsoDay(date: Date): IsoDay {
-  return date.toISOString().slice(0, 10);
+  return toTehranIsoDay(date);
 }
 
 /** Rolling 30-day North Star window (UTC day keys; presentation Jalali). */

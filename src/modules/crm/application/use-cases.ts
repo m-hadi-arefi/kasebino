@@ -7,6 +7,8 @@ import {
   isDigitalMembershipSource,
   type MembershipSource,
 } from "../../../crm-membership/index.js";
+import type { Sale } from "../../pos/domain/sale.js";
+import type { SaleRepository } from "../../pos/domain/repositories.js";
 import { normalizeIranianMobile } from "../../../shared/domain/iranian-phone.js";
 import { createMembershipConsent } from "../domain/consent.js";
 import {
@@ -14,6 +16,11 @@ import {
   membershipUpdatedEvent,
 } from "../domain/events.js";
 import type { StoreMembershipRepository } from "../domain/repositories.js";
+import {
+  computeEngagementStats,
+  type CrmSegment,
+  type MembershipEngagementStats,
+} from "../domain/segments.js";
 import {
   applyMembershipConsent,
   createStoreMembershipAggregate,
@@ -26,6 +33,8 @@ export { DIGITAL_CONSENT_CHECKBOX_LABEL_FA, POS_PHONE_CONSENT_NOTICE_FA };
 
 export type CrmUseCaseDeps = {
   memberships: StoreMembershipRepository;
+  /** Required for profile / history / segments (ADR-098). */
+  sales: SaleRepository;
   now?: () => Date;
   idFactory?: () => string;
   /** Stable customer id from phone — default: new UUID per first sighting. */
@@ -90,6 +99,27 @@ export type SoftDeleteMembershipResult = {
   event: ReturnType<typeof membershipUpdatedEvent>;
 };
 
+export type MembershipListItem = {
+  membership: StoreMembership;
+  engagement: MembershipEngagementStats;
+};
+
+export type MembershipProfileResult = {
+  membership: StoreMembership;
+  engagement: MembershipEngagementStats;
+};
+
+export type MembershipHistoryResult = {
+  membership: StoreMembership;
+  sales: Sale[];
+};
+
+export type StoreSegmentsResult = {
+  storeId: string;
+  counts: Record<CrmSegment, number>;
+  totalActive: number;
+};
+
 function requireTenantIds(merchantId: string, storeId: string): {
   merchantId: string;
   storeId: string;
@@ -119,6 +149,29 @@ export function createCrmUseCases(deps: CrmUseCaseDeps) {
   const now = deps.now ?? (() => new Date());
   const idFactory = deps.idFactory ?? (() => randomUUID());
   const customerIds = new Map<string, string>();
+
+  function toSaleRefs(sales: Sale[]) {
+    return sales
+      .filter((s) => s.completedAt !== null)
+      .map((s) => ({
+        completedAt: s.completedAt!,
+        totalAmountMinor: s.totalAmountMinor,
+      }));
+  }
+
+  async function salesByMembershipMap(
+    storeId: string,
+  ): Promise<Map<string, Sale[]>> {
+    const storeSales = await deps.sales.listCompletedByStoreId(storeId);
+    const map = new Map<string, Sale[]>();
+    for (const sale of storeSales) {
+      if (!sale.membershipId) continue;
+      const list = map.get(sale.membershipId) ?? [];
+      list.push(sale);
+      map.set(sale.membershipId, list);
+    }
+    return map;
+  }
 
   async function resolveCustomerId(phoneNational: string): Promise<string> {
     if (deps.customerIdForPhone) {
@@ -316,10 +369,103 @@ export function createCrmUseCases(deps: CrmUseCaseDeps) {
     return { membership, event };
   }
 
+  /**
+   * Active memberships for a store with on-read engagement + segment.
+   * Soft-deleted excluded via repository default.
+   */
+  async function listStoreMemberships(input: {
+    merchantId: string;
+    storeId: string;
+    segment?: CrmSegment;
+  }): Promise<{ items: MembershipListItem[] }> {
+    const { merchantId, storeId } = requireTenantIds(
+      input.merchantId,
+      input.storeId,
+    );
+    const at = now();
+    const memberships = await deps.memberships.listByStoreId(storeId, {
+      merchantId,
+    });
+    const salesMap = await salesByMembershipMap(storeId);
+    const items: MembershipListItem[] = memberships.map((membership) => {
+      const sales = salesMap.get(membership.id) ?? [];
+      return {
+        membership,
+        engagement: computeEngagementStats({
+          completedSales: toSaleRefs(sales),
+          now: at,
+        }),
+      };
+    });
+
+    if (input.segment !== undefined) {
+      return {
+        items: items.filter((i) => i.engagement.segment === input.segment),
+      };
+    }
+    return { items };
+  }
+
+  async function getMembershipProfile(input: {
+    membershipId: string;
+  }): Promise<MembershipProfileResult> {
+    const membership = await deps.memberships.findById(input.membershipId);
+    if (!membership || membership.deletedAt !== null) {
+      throw new CrmDomainError("MEMBERSHIP_NOT_FOUND");
+    }
+    const sales = await deps.sales.listCompletedByMembershipId(membership.id);
+    return {
+      membership,
+      engagement: computeEngagementStats({
+        completedSales: toSaleRefs(sales),
+        now: now(),
+      }),
+    };
+  }
+
+  async function listMembershipHistory(input: {
+    membershipId: string;
+  }): Promise<MembershipHistoryResult> {
+    const membership = await deps.memberships.findById(input.membershipId);
+    if (!membership || membership.deletedAt !== null) {
+      throw new CrmDomainError("MEMBERSHIP_NOT_FOUND");
+    }
+    const sales = await deps.sales.listCompletedByMembershipId(membership.id);
+    return { membership, sales };
+  }
+
+  async function getStoreSegments(input: {
+    merchantId: string;
+    storeId: string;
+  }): Promise<StoreSegmentsResult> {
+    const { merchantId, storeId } = requireTenantIds(
+      input.merchantId,
+      input.storeId,
+    );
+    const { items } = await listStoreMemberships({ merchantId, storeId });
+    const counts: Record<CrmSegment, number> = {
+      new: 0,
+      returning: 0,
+      lapsed: 0,
+    };
+    for (const item of items) {
+      counts[item.engagement.segment] += 1;
+    }
+    return {
+      storeId,
+      counts,
+      totalActive: items.length,
+    };
+  }
+
   return {
     upsertFromPosPhoneCapture,
     joinWithDigitalConsent,
     softDeleteMembership,
+    listStoreMemberships,
+    getMembershipProfile,
+    listMembershipHistory,
+    getStoreSegments,
   };
 }
 

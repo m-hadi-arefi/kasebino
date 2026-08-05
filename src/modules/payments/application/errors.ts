@@ -18,6 +18,7 @@ export const PAYMENTS_ERROR_CODES = [
   "WEBHOOK_SIGNATURE_INVALID",
   "PROVIDER_NOT_AVAILABLE",
   "FEES_INACTIVE",
+  "SANDBOX_CONFIRM_FORBIDDEN",
 ] as const;
 
 
@@ -42,6 +43,8 @@ export const PAYMENTS_ERROR_MESSAGES_FA = {
     "درگاه پرداخت واقعی هنوز فعال نیست. از درگاه آزمایشی استفاده کنید.",
   FEES_INACTIVE:
     "در پایلوت کرمان کارمزد فعال نیست و مبلغ کارمزد صفر است.",
+  SANDBOX_CONFIRM_FORBIDDEN:
+    "تأیید آزمایشی پرداخت فقط در محیط محلی/توسعه فعال است.",
 } as const satisfies Record<PaymentsErrorCode, string>;
 
 

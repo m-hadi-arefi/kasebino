@@ -377,6 +377,18 @@ export function assertPermission(
   authorize(ctx, { permission, ...scope });
 }
 
+/**
+ * Application-layer AuthZ gate (ADR-113) — deny by default unless permission+scope pass.
+ * Equivalent to `authorize` / `assertPermission`; preferred name at use-case boundaries.
+ */
+export function requirePermission(
+  ctx: AuthContext,
+  permission: Permission,
+  scope?: Omit<AuthorizeInput, "permission">,
+): void {
+  assertPermission(ctx, permission, scope);
+}
+
 export function assertDenyCrossTenant(
   ctx: AuthContext,
   resourceMerchantId: string,

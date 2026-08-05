@@ -7,3 +7,5 @@
 5. Breaking migrations only with expand/contract pattern
 
 Stateless JWT avoids sticky sessions.
+
+**Binding contract:** `src/scalability-stateless/` (ADR-071 / NFR-02). Full zero-downtime deploy ADR → ADR-070.

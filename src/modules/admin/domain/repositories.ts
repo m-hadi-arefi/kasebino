@@ -19,4 +19,6 @@ export type AdminActionRepository = {
     adminUserId: string,
     opts?: { limit?: number },
   ): Promise<AdminAction[]>;
+  /** Platform audit viewer (ADR-106) — newest first. */
+  listRecent(opts?: { limit?: number }): Promise<AdminAction[]>;
 };

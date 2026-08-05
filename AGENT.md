@@ -8,7 +8,7 @@ Build **MerchantOS** — an **Iranian-native** Customer Retention Operating Syst
 
 Retention starts at POS: capture customer phone during checkout, then power CRM, loyalty, analytics, and storefront.
 
-**This repository is an ADR-driven engineering system.** The platform is built by executing the **ard-to-code** skill from **ADR-001 through the final ADR** until `adrs/STATUS.md` is fully `completed`.
+**This repository is an ADR-driven engineering system.** The platform is built by executing the **ard-to-code** skill against unfinished ADRs in **`adrs/tasks/`** until that queue is drained (files moved to `adrs/done/`). Folder layout: [`adrs/done/`](./adrs/done/) (architecture contracts landed) · [`adrs/future/`](./adrs/future/) (not started / Proposed vendor) · [`adrs/tasks/`](./adrs/tasks/) (product-runtime wiring). See [`AUDIT_REPORT.md`](./AUDIT_REPORT.md).
 
 ## Non-negotiable laws
 
@@ -60,6 +60,7 @@ Binding rule: [`docs/rules/iranian-first-development.md`](./docs/rules/iranian-f
 ```
 PRD.md                          ← product truth
 adrs/                           ← architecture decision truth (ADR-001…)
+  done/ | future/ | tasks/      ← contract landed | deferred | runtime work queue
 AGENT.md                        ← how to operate the repo (this file)
 docs/architecture/adr-roadmap.md
 docs/architecture/adr-dependency-map.md
@@ -97,13 +98,26 @@ If ADR and PRD conflict, stop and resolve with a new/superseding ADR — do not 
 2. Place on roadmap / respect dependency map  
 3. Implement via ard-to-code when prerequisites complete  
 4. Validate  
-5. Mark implementation `completed` in `adrs/STATUS.md`  
+5. Move finished task ADRs `adrs/tasks/` → `adrs/done/` and update `adrs/STATUS.md`  
 
 ### ADR Lifecycle
 
 `Proposed` → `Accepted` → (optional `Deprecated` / `Superseded`)  
 
 Implementation tracking (orthogonal): `todo` → `in_progress` → `completed` | `blocked`.
+
+Folder tracking (physical): `adrs/tasks/` (work queue) → `adrs/done/` (architecture-contract landed) · `adrs/future/` (deferred / Proposed vendor).
+
+### Two-axis STATUS truth (ADR-120)
+
+| Axis | Values | Meaning |
+| --- | --- | --- |
+| Decision | Proposed / Accepted / … | Governance bind |
+| Runtime completeness | `contract` / `partial` / `complete` | Product wiring depth |
+
+- **`adrs/done/` + ADR impl `complete`** means **architecture-contract landed** (domain/contracts/tests) — **not** product-runtime complete and **not** ARD `completed`.
+- **Product-runtime `complete`** requires evidence of **API + migration + tests** for that surface (ADR-120). Never mark runtime-complete without that evidence.
+- **`docs/ards/STATUS.md`** remains the **delivery SoT** for HTTP/UI/infra rollout.
 
 ### ADR Status Rules
 
@@ -115,18 +129,21 @@ Implementation tracking (orthogonal): `todo` → `in_progress` → `completed` |
 
 - Follow `docs/architecture/adr-dependency-map.md`.  
 - Do not implement an ADR whose prerequisites are incomplete (unless roadmap allows mock).  
-- Parallelize only within parallel sets on the roadmap.  
+- Parallelize only within parallel sets on the roadmap.
+- Product-runtime work selects from **`adrs/tasks/`** only (ard-to-code).  
 
 ### ADR Completion Rules
 
-An ADR implementation is complete only when:
+An ADR **architecture-contract** implementation is complete only when:
 
 - Decision realized in code/docs  
 - Tests/validations pass  
 - Related ARD checklists updated  
-- STATUS board updated  
+- STATUS board updated; file under `adrs/done/`  
 - No known contradiction with higher-priority Accepted ADRs  
 - Iranian First checks 1–6 above answered; checklist passed for any user-facing scope  
+
+An ADR is **product-runtime complete** only when the above hold **and** API + migration + tests evidence exists for the ADR’s product surface (never mark runtime-complete on contracts alone).  
 
 
 ### ADR Ownership Rules
@@ -161,8 +178,8 @@ Default dependency order is documented in `docs/ards/README.md`.
 
 ### ard-to-code loop (ADR-driven)
 
-1. Read `adr-roadmap.md` + `adrs/STATUS.md`  
-2. Select first incomplete ADR with deps satisfied  
+1. List `adrs/tasks/` + read `adrs/STATUS.md` (+ Critical path in `AUDIT_REPORT.md`)  
+2. Select first incomplete ADR in **`adrs/tasks/`** with deps in `adrs/done/` (or satisfied)  
 3. Read `docs/rules/iranian-first-development.md` + ADR Iranian UX section  
 4. Read ADR + dependency ADRs + related ARD localization/RTL sections  
 5. Read architecture + AGENT.md + rules  
@@ -170,8 +187,8 @@ Default dependency order is documented in `docs/ards/README.md`.
 7. Write plan `docs/execution/plans/ADR-XXX.md` (include localization tasks)  
 8. Implement only that ADR  
 9. Test / lint / typecheck / quality gates + Iranian checklist  
-10. Mark ADR completed  
-11. Repeat until all ADRs completed or blocked  
+10. Move ADR `tasks/` → `done/`; update STATUS (do **not** claim product-runtime complete without api+migration+tests)  
+11. Repeat until `adrs/tasks/` empty or blocked  
 
 ## Store-First Strategy
 
@@ -352,10 +369,21 @@ Never release with failing validation gates.
 
 ## Definition of done
 
+### Architecture-contract landed (ADR folder `adrs/done/`, ADR impl `complete`)
+
+- Decision realized as contracts / domain modules / tests  
+- Validations green for that package  
+- STATUS reflects contract completeness — **not** ARD delivery or production readiness  
+- Iranian First answered for any UX in that ADR’s scope  
+
+### Product-runtime complete (ADR-120; typically closes related ARDs)
+
 From PRD §17 — feature/ARD done iff:
 
 - Domain logic in correct layer  
 - Tests implemented  
+- **HTTP/API surface wired** where the ADR requires product access  
+- **Drizzle Kit migrations generated and applied** when PG touched  
 - API documented  
 - Domain events published where applicable  
 - Cache invalidation handled  
@@ -372,6 +400,7 @@ From PRD §17 — feature/ARD done iff:
 - **Mongo analytics/audit/tracking requirements reviewed** when telemetry touched  
 - **No alternative SQL ORM introduced**; Mongo is not OLTP SoT  
 - **`docs/checklists/iranian-feature-checklist.md` passed** when UX in scope  
+- Evidence of **api + migration + tests** recorded before any “runtime complete” claim  
 
 ## Coding standards
 
@@ -407,7 +436,7 @@ Follow `docs/rules/testing-rules.md` and `docs/testing/`.
 ## How to start autonomous build
 
 ```
-Run the ard-to-code skill and continue until all ADRs in adrs/STATUS.md are completed
+Run the ard-to-code skill and continue until `adrs/tasks/` is empty (or blocked)
 (or blocked on Proposed vendor ADRs requiring human acceptance).
 ```
 

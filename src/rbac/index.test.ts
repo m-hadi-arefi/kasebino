@@ -24,6 +24,7 @@ import {
   normalizeRole,
   normalizeRoles,
   permissionsForRoles,
+  requirePermission,
   AuthorizationError,
   type AuthContext,
 } from "./index.js";
@@ -241,5 +242,36 @@ describe("ADR-034 Authorization RBAC Model", () => {
         { permission: "merchant.read", resourceMerchantId: "m-1" },
       ),
     ).toThrow(/وارد شوید/);
+  });
+
+  it("requirePermission denies by default and allows matching scope (ADR-113)", () => {
+    const owner = staffCtx({ roles: ["merchant_owner"] });
+    expect(() =>
+      requirePermission(owner, "merchant.write", {
+        resourceMerchantId: "m-1",
+      }),
+    ).not.toThrow();
+
+    const employee = staffCtx({
+      roles: ["store_employee"],
+      storeIds: ["s-1"],
+    });
+    expect(() =>
+      requirePermission(employee, "merchant.write", {
+        resourceMerchantId: "m-1",
+      }),
+    ).toThrow(AuthorizationError);
+    try {
+      requirePermission(employee, "merchant.write", {
+        resourceMerchantId: "m-1",
+      });
+      expect.unreachable("store_employee lacks merchant.write");
+    } catch (error) {
+      expect(isAuthorizationError(error)).toBe(true);
+      if (isAuthorizationError(error)) {
+        expect(error.code).toBe("FORBIDDEN");
+        expect(/[\u0600-\u06FF]/.test(error.messageFa)).toBe(true);
+      }
+    }
   });
 });

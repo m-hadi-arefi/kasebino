@@ -57,11 +57,11 @@ describe("ADR-081 QR Acquisition Architecture", () => {
     expect(after).toBe(before);
   });
 
-  it("places printable QR assets in MinIO qr bucket (StoreQrRef)", () => {
+  it("places printable QR assets in MinIO qrcodes bucket (StoreQrRef)", () => {
     expect(QR_MINIO_STORAGE.bucket).toBe(MINIO_BUCKETS.qr);
-    expect(QR_MINIO_STORAGE.bucket).toBe("qr");
+    expect(QR_MINIO_STORAGE.bucket).toBe("qrcodes");
     expect(QR_MINIO_STORAGE.allowedContentTypes).toEqual(
-      OBJECT_LIMITS.qr.allowedContentTypes,
+      OBJECT_LIMITS.qrcodes.allowedContentTypes,
     );
     expect(QR_MINIO_STORAGE.storeField).toBe("qrAssetRef");
 
@@ -70,14 +70,14 @@ describe("ADR-081 QR Acquisition Architecture", () => {
       storeId: "s1",
       filename: "store-qr.png",
     });
-    expect(objectKey).toBe("m/m1/s/s1/qr/store-qr.png");
+    expect(objectKey).toBe("m/m1/s/s1/qrcodes/store-qr.png");
 
     const ref = createStoreQrRef({
       objectKey,
       contentType: "image/png",
       byteSize: 2048,
     });
-    expect(ref.bucket).toBe("qr");
+    expect(ref.bucket).toBe("qrcodes");
     expect(ref.objectKey).toBe(objectKey);
 
     expect(() =>
@@ -145,7 +145,7 @@ describe("ADR-081 QR Acquisition Architecture", () => {
       "/api/v1/stores/:id/qr/regenerate",
     );
     expect(QR_ACQUISITION.decision.adr).toBe("ADR-081");
-    expect(QR_ACQUISITION.minio.bucket).toBe("qr");
+    expect(QR_ACQUISITION.minio.bucket).toBe("qrcodes");
     expect(QR_ACQUISITION.events.attributionSource).toBe("qr");
   });
 });

@@ -176,10 +176,11 @@ export const UNICODE_PAYLOAD_SAFETY = {
   merchantTimeBucketsJalaliTehran: true,
 } as const;
 
-/** Where Mongo access lives — contract + thin stub; modules later. */
+/** Where Mongo access lives — contract + live adapters (ADR-110). */
 export const PLACEMENT = {
   architectureContract: "src/mongodb-analytics/",
   clientStub: "src/infrastructure/mongodb/client.ts",
+  runtimePackage: "src/infrastructure/mongodb/",
   techFolderConvention: "src/infrastructure/mongodb/",
   analyticsModulesLater: "src/modules/analytics/",
   auditModulesLater: "src/modules/audit/",
@@ -204,6 +205,7 @@ export const PLACEMENT = {
   failureIsolationAdr: "ADR-065",
   failureIsolationPackage: "src/analytics-ingest-isolation/",
   boundariesPackage: "src/analytics-boundaries/",
+  runtimeAdr: "ADR-110",
 } as const;
 
 export const MONGO_REQUIREMENTS = {
@@ -215,7 +217,9 @@ export const MONGO_REQUIREMENTS = {
   tenantFiltersRequired: true,
   platformAdminGates: true,
   adaptersOnlyNoUiCredentials: true,
-  noProtocolDriverInThisAdr: true,
+  /** ADR-110 lands official `mongodb` driver + adapters. */
+  noProtocolDriverInThisAdr: false,
+  protocolDriverImplementedAdr110: true,
   warehouseIngestDefer057: false,
   warehouseIngestImplemented057: true,
   failureIsolationDefer065: false,

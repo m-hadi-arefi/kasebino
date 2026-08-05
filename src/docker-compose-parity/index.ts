@@ -9,6 +9,7 @@ import { PRODUCT_ARCHITECTURE } from "../product-architecture/index.js";
 /** Compose service names (ADR-066 Decision + infrastructure architecture). */
 export const COMPOSE_SERVICES = [
   "app",
+  "worker",
   "postgres",
   "redis",
   "emqx",
@@ -21,6 +22,8 @@ export type ComposeService = (typeof COMPOSE_SERVICES)[number];
 /** Host→container port expectations from docs/architecture/12-infrastructure-architecture.md */
 export const COMPOSE_SERVICE_PORTS = {
   app: [3000],
+  /** No host port — internal long-running outbox process (ADR-109). */
+  worker: [] as const,
   postgres: [5432],
   mongo: [27017],
   redis: [6379],
@@ -48,6 +51,7 @@ export const COMPOSE_DATA_PLANES = {
   emqx: { plane: "realtime", role: "mqtt_event_bus" },
   minio: { plane: "object_storage", role: "s3_compatible_files" },
   app: { plane: "application", role: "nextjs_modular_monolith" },
+  worker: { plane: "application", role: "outbox_worker_process" },
 } as const satisfies Record<
   ComposeService,
   {
@@ -71,6 +75,14 @@ export const COMPOSE_APP_PROFILE = {
   service: "app",
   profile: "app",
   optional: true,
+} as const;
+
+/** Outbox worker optional profile (ADR-109). */
+export const COMPOSE_WORKER_PROFILE = {
+  service: "worker",
+  profile: "worker",
+  optional: true,
+  dependsOn: ["postgres", "emqx"] as const,
 } as const;
 
 /**
@@ -178,6 +190,7 @@ export const DOCKER_COMPOSE_PARITY = {
   planes: COMPOSE_DATA_PLANES,
   namedVolumes: COMPOSE_NAMED_VOLUMES,
   appProfile: COMPOSE_APP_PROFILE,
+  workerProfile: COMPOSE_WORKER_PROFILE,
   postgresUtf8: POSTGRES_UTF8_REQUIREMENTS,
   files: COMPOSE_FILES,
   envExampleKeys: ENV_EXAMPLE_REQUIRED_KEYS,

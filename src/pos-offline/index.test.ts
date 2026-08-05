@@ -59,6 +59,7 @@ describe("ADR-024 Offline-First Staff POS Strategy", () => {
   it("documents sync API, staff SW/IDB, and sync metrics", () => {
     expect(POS_OFFLINE_SYNC_API.method).toBe("POST");
     expect(POS_OFFLINE_SYNC_API.path).toBe("/api/v1/sales/sync");
+    expect(POS_OFFLINE_SYNC_API.completeSalePath).toBe("/api/v1/pos/sales");
     expect(POS_OFFLINE_SYNC_API.syncKeyEqualsIdempotencyKey).toBe(true);
     expect(POS_OFFLINE_SYNC_API.successEvent).toBe("SaleCompleted");
     expect(POS_OFFLINE_SERVICE_WORKER.scriptUrl).toBe("/sw-staff.js");

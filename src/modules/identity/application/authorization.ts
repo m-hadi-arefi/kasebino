@@ -12,6 +12,7 @@ import {
   hasPermission,
   isAuthorizationError,
   normalizeRoles,
+  requirePermission,
   type AuthContext,
   type AuthorizeInput,
   type CanonicalRole,
@@ -62,6 +63,19 @@ export function authorizeFromJwtClaims(
   return ctx;
 }
 
+/**
+ * Deny-by-default permission gate from JWT claims (ADR-113).
+ */
+export function requirePermissionFromJwtClaims(
+  claims: JwtAuthClaimsInput,
+  permission: Permission,
+  scope?: Omit<AuthorizeInput, "permission">,
+): IdentityAuthContext {
+  const ctx = authContextFromJwtClaims(claims);
+  requirePermission(ctx, permission, scope);
+  return ctx;
+}
+
 export function assertStaffPermissionFromJwt(
   claims: JwtAuthClaimsInput,
   permission: Permission,
@@ -102,6 +116,7 @@ export {
   hasPermission,
   isAuthorizationError,
   normalizeRoles,
+  requirePermission,
   type AuthContext,
   type AuthorizeInput,
   type CanonicalRole,

@@ -44,7 +44,7 @@ describe("ADR-014 Analytics Domain Boundaries", () => {
     ]);
     expect(MERCHANT_OLTP_ANALYTICS.store).toBe("postgresql");
     expect(MERCHANT_OLTP_ANALYTICS.apiPaths.overview).toBe(
-      "/api/v1/analytics/overview",
+      "/api/v1/analytics/merchant/overview",
     );
     expect(MONGO_ANALYTICS_PLANE.capabilities).toContain("event_warehouse");
     expect(MONGO_ANALYTICS_PLANE.capabilities).toContain("clickstream");

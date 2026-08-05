@@ -8,6 +8,8 @@ export {
 export {
   createLoyaltyEarnPort,
   createLoyaltyUseCases,
+  enqueueLoyaltyDomainEvent,
+  runLoyaltyPointsExpiryJob,
   type ConfigurePointRuleInput,
   type EarnForOrderInput,
   type EarnForSaleInput,

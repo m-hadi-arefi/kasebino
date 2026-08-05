@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdminProviders } from "../admin-providers";
+import { AdminAuditClient } from "./admin-audit-client";
+
 export const metadata: Metadata = {
   title: "گزارش حسابرسی | مدیریت پلتفرم",
   description: "مرور اقدامات حساس برای انطباق",
@@ -31,18 +34,11 @@ export default function AdminAuditPage() {
         <p className="font-medium text-[var(--color-fg)]">
           این بخش فقط برای مدیران پلتفرم است. دسترسی کارکنان فروشگاه مجاز نیست.
         </p>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          هنوز رویداد حسابرسی برای نمایش نیست.
-        </p>
       </section>
 
-      <section
-        aria-label="فیلترهای حسابرسی"
-        className="flex flex-col gap-2 text-sm text-[var(--color-muted)]"
-      >
-        <p>فیلترها (به‌زودی): فروشنده · بازیگر · اقدام · بازهٔ شمسی</p>
-        <p>شماره موبایل در جزئیات حسابرسی حذف یا پوشانده می‌شود.</p>
-      </section>
+      <AdminProviders>
+        <AdminAuditClient />
+      </AdminProviders>
 
       <nav aria-label="ناوبری حسابرسی" className="flex flex-wrap gap-3">
         <Link

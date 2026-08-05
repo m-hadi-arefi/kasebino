@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 640" role="img">
+  <rect width="360" height="640" rx="36" fill="#142033"/>
+  <rect x="14" y="14" width="332" height="612" rx="28" fill="#f3f5f7"/>
+  <rect x="132" y="28" width="96" height="10" rx="5" fill="#d5dce5"/>
+  <text x="320" y="86" fill="#142033" font-family="Tahoma, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="end" direction="rtl" unicode-bidi="embed">'E*Ì'2 EF</text>
+  <circle cx="180" cy="220" r="78" fill="#dce8e6"/>
+  <circle cx="180" cy="220" r="58" fill="#0f6b63"/>
+  <text x="180" y="228" fill="#f7fbfa" font-family="Tahoma, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">ñlòôð</text>
+  <text x="180" y="330" fill="#5b677a" font-family="Tahoma, Arial, sans-serif" font-size="15" text-anchor="middle" direction="rtl" unicode-bidi="embed">'E*Ì'2 B'(D '3*A'/G</text>
+  <rect x="40" y="370" width="280" height="70" rx="12" fill="#ffffff" stroke="#d5dce5"/>
+  <rect x="56" y="392" width="160" height="12" rx="4" fill="#142033" opacity="0.8"/>
+  <rect x="56" y="414" width="100" height="10" rx="4" fill="#0f6b63"/>
+  <rect x="40" y="456" width="280" height="70" rx="12" fill="#ffffff" stroke="#d5dce5"/>
+  <rect x="56" y="478" width="140" height="12" rx="4" fill="#142033" opacity="0.8"/>
+  <rect x="56" y="500" width="90" height="10" rx="4" fill="#1f7a45"/>
+  <rect x="40" y="546" width="280" height="52" rx="12" fill="#0f6b63"/>
+  <text x="180" y="578" fill="#f7fbfa" font-family="Tahoma, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" direction="rtl" unicode-bidi="embed">E4'G/G ~'/'4G'</text>
+</svg>

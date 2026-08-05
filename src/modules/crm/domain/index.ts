@@ -18,3 +18,16 @@ export {
   membershipUpdatedEvent,
 } from "./events.js";
 export type { StoreMembershipRepository } from "./repositories.js";
+export type {
+  CompletedSaleRef,
+  CrmSegment,
+  MembershipEngagementStats,
+} from "./segments.js";
+export {
+  CRM_SEGMENTS,
+  CRM_SEGMENT_POLICY,
+  computeEngagementStats,
+  computeMembershipSegment,
+  daysSince,
+  isCrmSegment,
+} from "./segments.js";

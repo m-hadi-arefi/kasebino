@@ -61,7 +61,7 @@ async function seedMerchant(
   const created = await merchantUseCases.createMerchant({
     tradeName: opts?.tradeName ?? "قصابی رضایی",
     slug: `rezaei-meat-${merchantSeed}`,
-    ownerUserId: "owner-1",
+    ownerUserId: `owner-${merchantSeed}`,
   });
   if (opts?.activate) {
     await merchantUseCases.activateMerchant({

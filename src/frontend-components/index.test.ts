@@ -71,7 +71,7 @@ describe("ADR-018 Frontend Component Architecture", () => {
     expect(() => assertDomainComponentFolder("warehouse")).toThrow(/Unknown/);
   });
 
-  it("scaffolds empty component directories on disk", () => {
+  it("scaffolds component directories on disk (primitives may be populated)", () => {
     const root = process.cwd();
     expect(existsSync(join(root, COMPONENT_PATHS.root))).toBe(true);
     expect(existsSync(join(root, COMPONENT_PATHS.primitives))).toBe(true);
@@ -84,11 +84,12 @@ describe("ADR-018 Frontend Component Architecture", () => {
     expect(domainChildren).not.toEqual(
       expect.arrayContaining(["delivery", "courier", "shipping"]),
     );
-    // Primitives reserved for ADR-019 — empty aside from .gitkeep
+    // ADR-114 populates shadcn primitives under ui/; directory must remain present.
     const uiEntries = readdirSync(join(root, COMPONENT_PATHS.primitives));
-    expect(uiEntries.every((n) => n === ".gitkeep" || n.startsWith("."))).toBe(
-      true,
-    );
+    expect(uiEntries.length).toBeGreaterThan(0);
+    expect(
+      uiEntries.every((n) => n === ".gitkeep" || n.startsWith(".") || n.endsWith(".tsx")),
+    ).toBe(true);
   });
 
   it("forbids business logic and domain/infra imports in presentational primitives", () => {

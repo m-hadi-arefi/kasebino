@@ -235,4 +235,54 @@ describe("ADR-006 Store Domain", () => {
     expect(forA).toHaveLength(2);
     expect(forA.map((s) => s.slug).sort()).toEqual(["store-a1", "store-a2"]);
   });
+
+  it("updates address and rejects activate without valid geo (LOC-01)", async () => {
+    const { useCases, stores } = createHarness();
+    const created = await useCases.createStore({
+      merchantId: "m1",
+      slug: "geo-shop",
+      displayName: "ژئو",
+      address: kermanAddress(),
+    });
+
+    const updated = await useCases.updateAddress({
+      storeId: created.store.id,
+      address: kermanAddress({
+        line1: "بلوار جمهوری",
+        latitude: 30.29,
+        longitude: 57.09,
+      }),
+    });
+    expect(updated.store.address.line1).toMatch(/جمهوری/);
+    expect(updated.event.payload.changedFields).toContain("address");
+
+    await expect(
+      useCases.updateAddress({
+        storeId: created.store.id,
+        address: kermanAddress({ latitude: 999 }),
+      }),
+    ).rejects.toMatchObject({
+      code: "INVALID_GEO",
+      messageFa: STORE_ERROR_MESSAGES_FA.INVALID_GEO,
+    });
+
+    const inactive = await stores.findById(created.store.id);
+    expect(inactive).not.toBeNull();
+    inactive!.status = "inactive";
+    inactive!.address = {
+      ...inactive!.address,
+      latitude: 999,
+    };
+    await stores.update(inactive!);
+
+    await expect(
+      useCases.activateStore({ storeId: created.store.id }),
+    ).rejects.toMatchObject({
+      code: "GEO_REQUIRED_FOR_ACTIVE",
+      messageFa: STORE_ERROR_MESSAGES_FA.GEO_REQUIRED_FOR_ACTIVE,
+    });
+    expect(STORE_ERROR_MESSAGES_FA.GEO_REQUIRED_FOR_ACTIVE).toMatch(
+      /[\u0600-\u06FF]/,
+    );
+  });
 });

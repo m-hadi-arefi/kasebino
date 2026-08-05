@@ -37,6 +37,10 @@ export const sales = pgTable(
     /** completed | canceled */
     status: varchar("status", { length: 32 }).notNull(),
     idempotencyKey: varchar("idempotency_key", { length: 128 }).notNull(),
+    /** MinIO receipts bucket object key (ADR-111); null until rendered. */
+    receiptObjectKey: varchar("receipt_object_key", { length: 512 }),
+    /** Content-Type of stored receipt (e.g. text/html). */
+    receiptContentType: varchar("receipt_content_type", { length: 128 }),
     completedAt: timestamp("completed_at", {
       withTimezone: true,
       mode: "date",

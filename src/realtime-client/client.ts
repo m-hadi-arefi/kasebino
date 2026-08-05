@@ -1,7 +1,7 @@
 /**
- * Realtime client orchestrator (ADR-039).
+ * Realtime client orchestrator (ADR-039 / ADR-124).
  * MQTT preferred → invalidate TanStack Query; poll fallback on disconnect;
- * reconnect with exponential backoff.
+ * reconnect with exponential backoff; store-scoped envelope filtering.
  */
 
 import type { QueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import {
   buildMerchantTopic,
   type MerchantTopicChannel,
   MERCHANT_TOPIC_CHANNELS,
-} from "../emqx-realtime/index.js";
+} from "../emqx-realtime/topics.js";
 import {
   buildScopedQueryKey,
   type QueryScope,
@@ -49,7 +49,7 @@ export type PollFallbackEntity = (typeof POLL_FALLBACK_ENTITIES)[number];
 export const DEFAULT_POLL_INTERVAL_MS = 15_000;
 
 /**
- * Topic channel → TanStack Query entity names to invalidate.
+ * Topic channel → TanStack Query entity names to invalidate (scoped keys).
  */
 export const CHANNEL_QUERY_ENTITIES: Record<
   MerchantTopicChannel,
@@ -58,6 +58,23 @@ export const CHANNEL_QUERY_ENTITIES: Record<
   sales: ["sales"],
   orders: ["orders"],
   inventory: ["inventory", "products"],
+  customers: ["customers"],
+  loyalty: ["loyalty"],
+  dashboard: ["dashboard"],
+  notifications: ["notifications"],
+};
+
+/**
+ * Merchant UI query-key prefixes (ADR-124) — board/POS/notifications today.
+ * Partial-match invalidateQueries({ queryKey: [prefix] }).
+ */
+export const CHANNEL_UI_QUERY_PREFIXES: Record<
+  MerchantTopicChannel,
+  readonly string[]
+> = {
+  sales: ["pos", "sales"],
+  orders: ["orders"],
+  inventory: ["inventory", "products", "pos"],
   customers: ["customers"],
   loyalty: ["loyalty"],
   dashboard: ["dashboard"],
@@ -80,6 +97,24 @@ export function extractMerchantChannelFromTopic(
     return channel as MerchantTopicChannel;
   }
   return null;
+}
+
+/**
+ * When client is store-scoped, ignore envelopes for other stores.
+ * Merchant-wide envelopes (null/missing storeId) still apply.
+ */
+export function envelopeMatchesStoreScope(
+  scope: QueryScope,
+  payload: string,
+): boolean {
+  if (!scope.storeId) return true;
+  try {
+    const parsed = JSON.parse(payload) as { storeId?: string | null };
+    if (parsed.storeId == null || parsed.storeId === "") return true;
+    return parsed.storeId === scope.storeId;
+  } catch {
+    return true;
+  }
 }
 
 export type QueryInvalidator = Pick<QueryClient, "invalidateQueries">;
@@ -105,7 +140,16 @@ export type RealtimeClientOptions = {
   backoff?: ReconnectBackoffConfig;
   schedule?: RealtimeScheduler;
   random?: () => number;
-  onStateChange?: (state: RealtimeConnectionState) => void;
+  /**
+   * When false, skip MQTT and run poll fallback only
+   * (`NEXT_PUBLIC_MOS_MQTT_CLIENT=0` — ADR-124).
+   */
+  mqttEnabled?: boolean;
+  onStateChange?: (
+    state: RealtimeConnectionState,
+    uxKey: RealtimeUxKey,
+  ) => void;
+  onChannelMessage?: (channel: MerchantTopicChannel) => void;
 };
 
 export type RealtimeClient = {
@@ -145,6 +189,9 @@ export async function invalidateQueriesForChannel(
     const queryKey = buildScopedQueryKey(scope, entity);
     await queryClient.invalidateQueries({ queryKey });
   }
+  for (const prefix of CHANNEL_UI_QUERY_PREFIXES[channel]) {
+    await queryClient.invalidateQueries({ queryKey: [prefix] });
+  }
 }
 
 export async function invalidatePollFallbackEntities(
@@ -154,7 +201,10 @@ export async function invalidatePollFallbackEntities(
   for (const entity of POLL_FALLBACK_ENTITIES) {
     const queryKey = buildScopedQueryKey(scope, entity);
     await queryClient.invalidateQueries({ queryKey });
+    await queryClient.invalidateQueries({ queryKey: [entity] });
   }
+  await queryClient.invalidateQueries({ queryKey: ["pos"] });
+  await queryClient.invalidateQueries({ queryKey: ["notifications"] });
 }
 
 /**
@@ -167,6 +217,7 @@ export function createRealtimeClient(
   const backoffCfg = options.backoff ?? DEFAULT_RECONNECT_BACKOFF;
   const schedule = options.schedule ?? defaultSchedule;
   const random = options.random ?? Math.random;
+  const mqttEnabled = options.mqttEnabled !== false;
 
   let state: RealtimeConnectionState = "idle";
   let uxKey: RealtimeUxKey = "idle";
@@ -184,7 +235,7 @@ export function createRealtimeClient(
   ): void => {
     state = next;
     uxKey = nextUx;
-    options.onStateChange?.(next);
+    options.onStateChange?.(next, nextUx);
   };
 
   const clearPoll = (): void => {
@@ -199,7 +250,9 @@ export function createRealtimeClient(
 
   const startPollFallback = (): void => {
     if (pollTimer || stopped) return;
-    setState("poll_fallback", "poll_fallback");
+    if (state !== "poll_fallback") {
+      setState("poll_fallback", uxKey === "reconnecting" ? "reconnecting" : "poll_fallback");
+    }
     const tick = (): void => {
       if (stopped) return;
       void invalidatePollFallbackEntities(
@@ -217,7 +270,7 @@ export function createRealtimeClient(
   };
 
   const scheduleReconnect = (): void => {
-    if (stopped) return;
+    if (stopped || !mqttEnabled) return;
     clearReconnect();
     /**
      * Stay in poll_fallback while MQTT reconnect is pending —
@@ -239,11 +292,15 @@ export function createRealtimeClient(
   }): Promise<void> => {
     const channel = extractMerchantChannelFromTopic(message.topic);
     if (!channel) return;
+    if (!envelopeMatchesStoreScope(options.scope, message.payload)) {
+      return;
+    }
     await invalidateQueriesForChannel(
       options.queryClient,
       options.scope,
       channel,
     );
+    options.onChannelMessage?.(channel);
   };
 
   const connectMqtt = async (): Promise<void> => {
@@ -258,6 +315,15 @@ export function createRealtimeClient(
       if (token.merchantId !== options.scope.merchantId) {
         throw new Error(
           "Realtime token merchantId must match client scope (ADR-039 ACL).",
+        );
+      }
+      if (
+        options.scope.storeId &&
+        token.storeId &&
+        token.storeId !== options.scope.storeId
+      ) {
+        throw new Error(
+          "Realtime token storeId must match client scope (ADR-124).",
         );
       }
 
@@ -320,6 +386,13 @@ export function createRealtimeClient(
       if (started) return;
       started = true;
       stopped = false;
+
+      if (!mqttEnabled) {
+        setState("poll_fallback", "poll_fallback");
+        startPollFallback();
+        return;
+      }
+
       unsubDisconnect = options.transport.onUnexpectedDisconnect(
         onUnexpectedDisconnect,
       );
@@ -335,7 +408,9 @@ export function createRealtimeClient(
       unsubMessage = null;
       unsubDisconnect?.();
       unsubDisconnect = null;
-      await options.transport.disconnect();
+      if (mqttEnabled) {
+        await options.transport.disconnect();
+      }
       setState("stopped", "idle");
     },
 

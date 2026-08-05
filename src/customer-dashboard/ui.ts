@@ -1,0 +1,38 @@
+export {
+  CUSTOMER_DASHBOARD,
+  CUSTOMER_DASHBOARD_API_PATHS,
+  CUSTOMER_DASHBOARD_APP_PATHS,
+  CUSTOMER_DASHBOARD_CACHE,
+  CUSTOMER_DASHBOARD_COPY_FA,
+  CUSTOMER_DASHBOARD_DECISION,
+  CUSTOMER_DASHBOARD_EVENTS,
+  CUSTOMER_DASHBOARD_SURFACES,
+  CUSTOMER_DASHBOARD_UIUX_GATE,
+  assertCustomerAudienceOnly,
+  assertCustomerDashboardAuthRequired,
+  assertCustomerDashboardRole,
+  assertCustomerDashboardUiuxGate,
+  assertMembershipScopedToStore,
+  assertNoDeliveryOnCustomerDashboard,
+  assertNoMerchantChromeOnCustomerDashboard,
+  customerDashboardHomePath,
+  customerDashboardOrdersPath,
+  customerDashboardReceiptsPath,
+  customerDashboardRewardsPath,
+  customerDashboardWalletPath,
+} from "./index.js";
+export {
+  formatPortalJalali,
+  orderStatusLabelFa,
+  ORDER_STATUS_LABEL_FA,
+} from "./format.js";
+export {
+  fetchPortalMe,
+  fetchPortalOrders,
+  fetchPortalReceipts,
+  fetchPortalRewards,
+  logoutCustomer,
+  type PortalMeDto,
+  type PortalOrderDto,
+  type PortalReceiptDto,
+} from "./api.js";

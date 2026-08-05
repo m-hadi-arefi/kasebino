@@ -46,7 +46,7 @@ export const MODULE_BOUNDARY_RULES = {
  */
 export const OUTBOX_SPINE = {
   pattern: "transactional_outbox",
-  feeds: ["emqx_realtime", "mongodb_warehouse", "cache_invalidation", "notifications"] as const,
+  feeds: ["emqx_realtime", "mongodb_warehouse", "cache_invalidation", "notifications", "minio_receipts"] as const,
   analyticsOnCheckoutCriticalPath: false,
 } as const;
 

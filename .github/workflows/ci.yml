@@ -39,8 +39,12 @@ jobs:
           # Next may read NODE_ENV during build; no secrets required for compile.
           NODE_ENV: production
 
+      - name: Schema drift check (Drizzle Kit)
+        run: npm run db:check
+
       - name: Migration review reminder
         run: |
-          echo "ADR-069: review Drizzle migrations for locks, NOT NULL backfills,"
-          echo "index strategy, and expand/contract before merge (apply job = ADR-070)."
+          echo "ADR-069/ADR-092: review Drizzle migrations for locks, NOT NULL backfills,"
+          echo "index strategy, expand/contract, and Persian UTF-8 safety before merge."
+          echo "Schema drift is gated by npm run db:check (fails if schema ≠ migrations)."
           echo "Migrations dir: src/infrastructure/database/migrations"

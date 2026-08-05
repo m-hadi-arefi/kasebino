@@ -29,7 +29,10 @@
  * ADR-012: `payments` stub (migrations → ARD-012).
  * ADR-013: `admin_users` + `admin_actions` stubs (migrations → ARD-018).
  * ADR-035: `outbox_events` + `processed_events` stubs (migrations → ARD-001).
+ * ADR-109: `outbox_dead_letters` durable DLQ after max retries.
  * ADR-090: `notifications` stub (migrations → ARD-014).
+ * ADR-092: identity tables (`auth_users`, OTP challenges, `customer_identities`) + baseline Kit migration.
+ * ADR-106: analytics projection tables for merchant AN-01..04 dashboards.
  */
 
 export { merchantSettings, merchants } from "./merchants.js";
@@ -43,4 +46,20 @@ export { orderLines, orders } from "./orders.js";
 export { payments } from "./payments.js";
 export { notifications } from "./notifications.js";
 export { adminActions, adminUsers } from "./admin.js";
-export { outboxEvents, processedEvents } from "./platform.js";
+export {
+  outboxDeadLetters,
+  outboxEvents,
+  processedEvents,
+} from "./platform.js";
+export {
+  authUsers,
+  customerIdentities,
+  customerOtpChallenges,
+  merchantOtpChallenges,
+} from "./identity.js";
+export {
+  analyticsCustomerStats,
+  analyticsDailyRevenue,
+  analyticsProjectionEvents,
+  analyticsRetentionStats,
+} from "./analytics.js";

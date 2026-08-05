@@ -2,8 +2,6 @@
  * ADR-033 — Auth.js (next-auth v5) JWT config stub for merchant OTP.
  *
  * Credentials provider bridges ADR-031 verifyOtp → JWT claims.
- * No Route Handler / UI this cycle — App Router wires NextAuth(config) later.
- *
  * Folder convention: docs/tech/nextauth.md → identity/infrastructure/auth
  */
 
@@ -21,41 +19,44 @@ import {
   assertShortSessionTtl,
   buildMerchantJwtClaims,
   sessionCookieSecure,
-  type MerchantJwtClaims,
 } from "../../../../nextauth-jwt/index.js";
 import type { VerifyMerchantOtpResult } from "../../application/merchant-otp-use-cases.js";
+import {
+  applyMerchantClaimsToSession,
+  applyMerchantClaimsToToken,
+  type MerchantAuthUser,
+} from "./claims.js";
 
-/** User payload returned from Credentials authorize → jwt callback. */
-export type MerchantAuthUser = {
-  id: string;
-  merchantId: string | null;
-  roles: string[];
-  tokenVersion: number;
-};
+export type {
+  MerchantAuthUser,
+} from "./claims.js";
+export {
+  applyMerchantClaimsToSession,
+  applyMerchantClaimsToToken,
+} from "./claims.js";
 
-export type ResolveMerchantClaims = (verified: VerifyMerchantOtpResult) => {
-  merchantId?: string | null;
-  roles?: readonly string[];
-};
+export type ResolveMerchantClaims = (
+  verified: VerifyMerchantOtpResult,
+) =>
+  | {
+      merchantId?: string | null;
+      roles?: readonly string[];
+    }
+  | Promise<{
+      merchantId?: string | null;
+      roles?: readonly string[];
+    }>;
 
 export type CreateMerchantAuthConfigDeps = {
-  /** ADR-031 verify use case (injected; no coupling to concrete repos). */
   verifyOtp: (input: {
     phone: string;
     code: string;
   }) => Promise<VerifyMerchantOtpResult>;
-  /** Merchant link + role assignment (ADR-034 RBAC / ADR-005 membership). */
   resolveClaims?: ResolveMerchantClaims;
-  /** Defaults to process.env.AUTH_SECRET. */
   secret?: string;
-  /** Inject for tests — defaults to process.env.NODE_ENV. */
   nodeEnv?: string;
 };
 
-/**
- * Minimal Auth.js-compatible config (JWT strategy, no database adapter).
- * Pass to `NextAuth(...)` from App Router when handlers land.
- */
 export type MerchantAuthJsConfig = {
   providers: ReturnType<typeof Credentials>[];
   session: {
@@ -86,7 +87,6 @@ export type MerchantAuthJsConfig = {
   };
   trustHost: boolean;
   secret?: string;
-  /** Explicitly absent — database sessions forbidden. */
   adapter?: undefined;
 };
 
@@ -106,69 +106,6 @@ function asMerchantAuthUser(
   return null;
 }
 
-/**
- * Apply OTP verify result (+ optional claim placeholders) onto Auth.js JWT token.
- */
-export function applyMerchantClaimsToToken(
-  token: Record<string, unknown>,
-  user: MerchantAuthUser,
-): Record<string, unknown> {
-  const claims = buildMerchantJwtClaims({
-    authUserId: user.id,
-    tokenVersion: user.tokenVersion,
-    merchantId: user.merchantId,
-    roles: user.roles,
-  });
-  return {
-    ...token,
-    sub: claims.sub,
-    merchantId: claims.merchantId,
-    roles: [...claims.roles],
-    tokenVersion: claims.tokenVersion,
-  };
-}
-
-/**
- * Expose JWT claims on the session object for server/client consumers.
- */
-export function applyMerchantClaimsToSession(
-  session: { user?: Record<string, unknown> } & Record<string, unknown>,
-  token: Record<string, unknown>,
-): Record<string, unknown> {
-  const claims: MerchantJwtClaims = buildMerchantJwtClaims({
-    authUserId: String(token.sub ?? ""),
-    tokenVersion:
-      typeof token.tokenVersion === "number" ? token.tokenVersion : 0,
-    merchantId:
-      token.merchantId === null || typeof token.merchantId === "string"
-        ? (token.merchantId as string | null)
-        : null,
-    roles: Array.isArray(token.roles)
-      ? (token.roles as string[])
-      : [],
-  });
-
-  const user = {
-    ...(session.user ?? {}),
-    id: claims.sub,
-    merchantId: claims.merchantId,
-    roles: [...claims.roles],
-    tokenVersion: claims.tokenVersion,
-  };
-
-  return {
-    ...session,
-    user,
-    merchantId: claims.merchantId,
-    roles: [...claims.roles],
-    tokenVersion: claims.tokenVersion,
-  };
-}
-
-/**
- * Credentials `authorize` bridge — OTP verify → merchant JWT user payload.
- * Auth.js stores this under provider.options; NextAuth merges at runtime.
- */
 export function createMerchantOtpAuthorize(
   deps: Pick<CreateMerchantAuthConfigDeps, "verifyOtp" | "resolveClaims">,
 ) {
@@ -182,7 +119,7 @@ export function createMerchantOtpAuthorize(
     }
     try {
       const verified = await deps.verifyOtp({ phone, code });
-      const resolved = deps.resolveClaims?.(verified) ?? {};
+      const resolved = (await deps.resolveClaims?.(verified)) ?? {};
       const claims = buildMerchantJwtClaims({
         authUserId: verified.authUserId,
         tokenVersion: verified.tokenVersion,
@@ -279,15 +216,8 @@ export function createMerchantAuthConfig(
 }
 
 /**
- * App Router wiring reminder (handlers not created this ADR):
- *
- * ```ts
- * import NextAuth from "next-auth";
- * import { createMerchantAuthConfig } from "@/modules/identity/infrastructure/auth";
- * export const { handlers, auth, signIn, signOut } = NextAuth(
- *   createMerchantAuthConfig({ verifyOtp: useCases.verifyOtp }),
- * );
- * ```
+ * App Router wiring (ADR-095):
+ * `NextAuth(createAppAuthConfig(...))` → export handlers GET/POST from `@/auth`.
  */
 export const NEXTAUTH_APP_ROUTER_WIRE_HINT =
-  "NextAuth(createMerchantAuthConfig(deps)) → export handlers GET/POST" as const;
+  "NextAuth(createMerchantAuthConfig(deps)+customer) → export handlers GET/POST" as const;

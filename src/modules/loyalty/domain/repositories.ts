@@ -42,6 +42,12 @@ export type PointsLedgerRepository = {
    * Idempotency for earn-on-sale: unique earn per sale reference.
    */
   findEarnBySaleId(saleId: string): Promise<PointsLedgerEntry | null>;
+  /**
+   * Idempotency for POS redeem when referenceId is supplied.
+   */
+  findRedeemByReferenceId(
+    referenceId: string,
+  ): Promise<PointsLedgerEntry | null>;
   listByWalletId(
     walletId: string,
     options?: { limit?: number },

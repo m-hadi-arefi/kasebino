@@ -54,4 +54,16 @@ export class InMemoryStoreMembershipRepository
       return true;
     });
   }
+
+  async listByMerchantId(
+    merchantId: string,
+    options?: { includeDeleted?: boolean },
+  ): Promise<StoreMembership[]> {
+    const includeDeleted = options?.includeDeleted ?? false;
+    return [...this.byId.values()].filter((m) => {
+      if (m.merchantId !== merchantId) return false;
+      if (!includeDeleted && m.deletedAt !== null) return false;
+      return true;
+    });
+  }
 }

@@ -36,6 +36,7 @@ export const CI_QUALITY_GATES = [
   "typecheck",
   "test",
   "build",
+  "schema_drift_check",
   "migration_review",
 ] as const;
 
@@ -53,6 +54,8 @@ export const CI_GATE_COMMANDS = {
   /** Composite used by the workflow for the three package scripts. */
   validateComposite: "npm run validate",
   validateIncludes: ["typecheck", "lint", "test"] as const,
+  /** ADR-092: drizzle-kit check fails when schema drifts without migration. */
+  schemaDriftCheck: "npm run db:check",
   migrationReview: "manual_or_checklist_before_merge",
 } as const;
 

@@ -1,11 +1,45 @@
 /**
  * ADR-085 — ADR/ARD governance completion rules (executable contract).
- * Narrative: AGENT.md + docs/architecture/adr-roadmap.md
+ * ADR-120 — STATUS board truth: contract landed ≠ product-runtime complete.
+ * Narrative: AGENT.md + docs/architecture/adr-roadmap.md + AUDIT_REPORT.md
  */
 
 export const ARCHITECTURE_SOURCE_OF_TRUTH = "/adrs" as const;
 
 export const ARD_ROLE = "implementation_package" as const;
+
+/** ADR-120 — physical ADR folders (source layout after audit reorg). */
+export const ADR_FOLDERS = {
+  done: "adrs/done",
+  future: "adrs/future",
+  tasks: "adrs/tasks",
+  statusBoard: "adrs/STATUS.md",
+  reorganizationIndex: "adrs/REORGANIZATION_INDEX.md",
+  auditReport: "AUDIT_REPORT.md",
+} as const;
+
+/**
+ * ADR-120 — Runtime Completeness axis (orthogonal to Decision Accepted).
+ * - contract: domain/contracts/tests landed (`done/`); may lack HTTP/migrations/UI
+ * - partial: some product wiring exists but acceptance incomplete
+ * - complete: API + migration + tests evidence for the ADR’s product surface
+ */
+export const RUNTIME_COMPLETENESS = [
+  "contract",
+  "partial",
+  "complete",
+] as const;
+
+export type RuntimeCompleteness = (typeof RUNTIME_COMPLETENESS)[number];
+
+export const STATUS_TRUTH = {
+  adrCompleteMeans: "architecture_contract_domain_tests",
+  ardBoardIsDeliverySoT: true,
+  adrCompleteDoesNotEqualArdCompleted: true,
+  adrCompleteDoesNotEqualProductionReady: true,
+  productRuntimeWorkQueue: ADR_FOLDERS.tasks,
+  runtimeCompleteRequires: ["api", "migration", "tests"] as const,
+} as const;
 
 export const SCHEDULING = {
   skill: "ard-to-code",
@@ -13,7 +47,9 @@ export const SCHEDULING = {
   dependencyMap: "docs/architecture/adr-dependency-map.md",
   statusBoard: "adrs/STATUS.md",
   ardStatusBoard: "docs/ards/STATUS.md",
-  rule: "ard-to-code executes ADRs in roadmap order; never invent architecture outside Accepted ADRs.",
+  workQueue: ADR_FOLDERS.tasks,
+  auditReport: ADR_FOLDERS.auditReport,
+  rule: "ard-to-code implements unfinished ADRs in adrs/tasks/; never invent architecture outside Accepted ADRs; never mark product-runtime complete without api+migration+tests evidence.",
 } as const;
 
 export const DECISION_STATUSES = [
@@ -111,9 +147,44 @@ export function assertIranianFirstGateForUx(opts: {
   }
 }
 
+/**
+ * ADR-120 — refuse product-runtime `complete` without API + migration + tests evidence.
+ * Architecture-contract completion (`contract`) does not require these.
+ */
+export function assertRuntimeCompleteAllowed(evidence: {
+  runtimeCompleteness: RuntimeCompleteness;
+  hasApi: boolean;
+  hasMigration: boolean;
+  hasTests: boolean;
+}): void {
+  if (evidence.runtimeCompleteness !== "complete") {
+    return;
+  }
+  const missing: string[] = [];
+  if (!evidence.hasApi) missing.push("api");
+  if (!evidence.hasMigration) missing.push("migration");
+  if (!evidence.hasTests) missing.push("tests");
+  if (missing.length > 0) {
+    throw new Error(
+      `Cannot mark ADR product-runtime complete without evidence: missing ${missing.join(", ")} (ADR-120).`,
+    );
+  }
+}
+
+export function isProductRuntimeComplete(evidence: {
+  hasApi: boolean;
+  hasMigration: boolean;
+  hasTests: boolean;
+}): boolean {
+  return evidence.hasApi && evidence.hasMigration && evidence.hasTests;
+}
+
 export const GOVERNANCE = {
   architectureSoT: ARCHITECTURE_SOURCE_OF_TRUTH,
   ardRole: ARD_ROLE,
+  folders: ADR_FOLDERS,
+  statusTruth: STATUS_TRUTH,
+  runtimeCompleteness: RUNTIME_COMPLETENESS,
   scheduling: SCHEDULING,
   decisionStatuses: DECISION_STATUSES,
   implementationStatuses: IMPLEMENTATION_STATUSES,

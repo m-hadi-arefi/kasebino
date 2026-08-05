@@ -1,23 +1,26 @@
 # ADR Implementation Status Board
 
-> **Classification standard (confirmed 2026-08-03):**  
-> **ADR done** = Decision realized as architecture contracts / domain modules / tests (`ard-to-code` DoD).  
-> **ARD delivery** (HTTP routes, Kit migrations, live infra SDKs, full UI) may still be open — tracked in `docs/ards/STATUS.md` and `adrs/tasks/`.  
+> **Classification standard (ADR-120 + confirmed 2026-08-03):**  
+> **Two axes:** Decision (`Proposed`/`Accepted`) × **Runtime Completeness** (`contract` / `partial` / `complete`).  
+> **ADR done (`complete`)** = architecture-**contract** landed (domain / contracts / tests). **Not** product-runtime complete.  
+> **Product-runtime `complete`** requires **API + migration + tests** evidence — never mark without it.  
+> **ARD delivery** (HTTP routes, Kit migrations, live infra SDKs, full UI) is tracked in [`docs/ards/STATUS.md`](../docs/ards/STATUS.md) (delivery SoT) and [`tasks/`](./tasks/).  
 > Folders: [`done/`](./done/) · [`future/`](./future/) · [`tasks/`](./tasks/) · Moves: [`REORGANIZATION_INDEX.md`](./REORGANIZATION_INDEX.md) · Audit: [`../AUDIT_REPORT.md`](../AUDIT_REPORT.md)
 
 ## Legend
 
-| Runtime note | Meaning |
-| --- | --- |
-| `complete` | ADR folder `done/` — contract/domain/tests landed |
-| `none` | ADR folder `future/` — not started (or Proposed vendor) |
-| `task` | Audit gap ADR in `tasks/` — product/runtime wiring still needed |
+| Runtime note | Runtime Completeness | Meaning |
+| --- | --- | --- |
+| `complete` | `contract` (default for `done/`) | ADR folder `done/` — contract/domain/tests landed |
+| `none` | — | ADR folder `future/` — not started (or Proposed vendor) |
+| `task` | open / `partial` | Audit gap ADR in `tasks/` — product/runtime wiring still needed |
+| *(product)* `runtime-complete` | `complete` | Only with api+migration+tests evidence (rare until tasks drain) |
 
 Decision status remains orthogonal: `Proposed` \| `Accepted`.
 
 ---
 
-## done/ — Fully implemented as ADR contracts (81)
+## done/ — Fully implemented as ADR contracts (111)
 
 | ID | Title | Decision | ADR impl |
 | --- | --- | --- | --- |
@@ -102,13 +105,30 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-089 | Admin Dashboard Architecture | accepted | complete |
 | ADR-090 | Notification Architecture | accepted | complete |
 | ADR-091 | MVP Product Policy Resolutions (PRD §19) | accepted | complete |
+| ADR-092 | Drizzle Kit OLTP Migrations | accepted | complete |
+| ADR-093 | Drizzle Repositories | accepted | complete |
+| ADR-095 | NextAuth App Router Wiring | accepted | complete |
+| ADR-096 | Merchant POS UI CompleteSale | accepted | complete |
+| ADR-113 | RBAC Route Enforcement | accepted | complete |
+| ADR-119 | Security Hardening Runtime | accepted | complete |
+| ADR-106 | Merchant Admin Dashboards Live | accepted | complete |
+| ADR-105 | Staff Customer PWA Completion | accepted | complete |
+| ADR-104 | Store Location Maps QR | accepted | complete |
+| ADR-103 | Customer OTP Portal | accepted | complete |
+| ADR-102 | Payments HTTP PSP | accepted | complete |
+| ADR-101 | Pickup Order Lifecycle Board | accepted | complete |
+| ADR-100 | Storefront Pickup Checkout | accepted | complete |
+| ADR-099 | Loyalty Engine Runtime | accepted | complete |
+| ADR-098 | CRM Membership Merchant UI | accepted | complete |
+| ADR-097 | Catalog Inventory Merchant APIs UI | accepted | complete |
+| ADR-96 | Merchant POS UI CompleteSale | accepted | complete |
+| ADR-120 | ADR STATUS Truth Realignment | accepted | complete |
 
-## future/ — Not implemented (10)
+## future/ — Not implemented (9)
 
 | ID | Title | Decision | ADR impl |
 | --- | --- | --- | --- |
 | ADR-070 | Deployment and Zero-Downtime Strategy | accepted | none |
-| ADR-071 | Scalability Stateless Multi-Instance | accepted | none |
 | ADR-072 | Data Plane Deployment Topology | accepted | none |
 | ADR-073 | Backup and Disaster Recovery | accepted | none |
 | ADR-074 | Observability Logging Metrics Tracing | accepted | none |
@@ -118,18 +138,30 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-083 | SMS Provider Selection Iran | proposed | none |
 | ADR-084 | Payment PSP Selection | proposed | none |
 
-## tasks/ — Product/runtime gaps from audit (30)
+## tasks/ — Product/runtime gaps from audit (0)
 
 Still required for **MVP delivery** (persistence, HTTP, Auth.js App Router wire, live SDKs, e2e). See files under [`tasks/`](./tasks/) and Critical path in `AUDIT_REPORT.md`.
 
+Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Added ADR-122..124 for previously uncovered gaps.
+
 | ID range | Focus |
 | --- | --- |
-| ADR-092…094 | Migrations, Drizzle repos, HTTP `/api/v1` |
-| ADR-095…106 | Auth, POS, catalog, CRM, loyalty, storefront, payments, portals, dashboards |
-| ADR-107…119 | Notifications, Redis, outbox/EMQX, Mongo, MinIO, ready, RBAC, UI lib, SMS, obs, e2e, deploy, security |
-| ADR-120…121 | STATUS honesty / onboarding |
+| ADR-094…106 | POS, catalog, CRM, loyalty, storefront, orders board, payments, dashboards |
+| ADR-107 | Notifications center — **in_progress** (plan `docs/execution/plans/ADR-107.md`; not moved to done this cycle) |
+| ADR-108 | Redis cache + rate-limit runtime — **in_progress** (plan `docs/execution/plans/ADR-108.md`; Redis client + adapters wired; not moved to done this cycle) |
+| ADR-109 | Outbox worker + live EMQX — **in_progress** (plan `docs/execution/plans/ADR-109.md`; worker + mqtt.js + DLQ + jobs wired; not moved to done this cycle) |
+| ADR-110 | Mongo analytics runtime — **in_progress** (plan `docs/execution/plans/ADR-110.md`; driver + adapters + beacons wired; not moved to done this cycle) |
+| ADR-111 | MinIO receipts/assets — **in_progress** (plan `docs/execution/plans/ADR-111.md`; not moved to done this cycle) |
+| ADR-112 | Readiness `/api/ready` — **in_progress** (plan `docs/execution/plans/ADR-112.md`; PG+Redis required; Mongo/EMQX/MinIO optional; not moved to done this cycle) |
+| ADR-114 | shadcn UI primitives — **in_progress** (plan `docs/execution/plans/ADR-114.md`; not moved to done this cycle) |
+| ADR-121 | Merchant onboarding + multi-store setup — **in_progress** (plan `docs/execution/plans/ADR-121.md`; not moved to done this cycle) |
+| ADR-122 | Marketing landing page — **in_progress** (plan `docs/execution/plans/ADR-122.md`; not moved to done this cycle) |
+| ADR-123 | Application composition root / DI — **in_progress** (plan `docs/execution/plans/ADR-123.md`; not moved to done this cycle) |
+| ADR-124 | Realtime MQTT client (merchant) — **in_progress** (plan `docs/execution/plans/ADR-124.md`; not moved to done this cycle) |
+| ADR-071 | Scalability Stateless Multi-Instance — **in_progress** (plan `docs/execution/plans/ADR-071.md`; contract `src/scalability-stateless/`; not moved to done this cycle) |
+| ADR-115…123 | SMS, observability, e2e, onboarding, landing, composition |
 
----
+
 
 ## Notes
 

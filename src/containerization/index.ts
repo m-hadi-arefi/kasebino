@@ -17,6 +17,7 @@ export const CONTAINER_FILES = {
   dockerignore: ".dockerignore",
   nextConfig: "next.config.ts",
   healthRoute: "app/api/health/route.ts",
+  readyRoute: "app/api/ready/route.ts",
 } as const;
 
 /** Non-root runtime identity in the runner stage. */
@@ -36,14 +37,14 @@ export const NEXT_STANDALONE = {
 } as const;
 
 /**
- * Ops probe paths (ARD-001).
- * Health = liveness (implemented). Ready = DB/Redis readiness (reserved).
+ * Ops probe paths (ARD-001 / ADR-112).
+ * Health = liveness. Ready = dependency readiness (Postgres+Redis required).
  */
 export const CONTAINER_PROBES = {
   healthPath: "/api/health",
   readyPath: "/api/ready",
   healthImplemented: true,
-  readyImplemented: false,
+  readyImplemented: true,
   dockerfileHealthcheckContains: "/api/health",
 } as const;
 
@@ -81,7 +82,7 @@ export const TWELVE_FACTOR_RULES = {
   statelessProcess: true,
   /** VII. Port binding — export services via port bind. */
   portBinding: true,
-  /** VIII. Concurrency — scale out via process model (multi-instance later ADR-071). */
+  /** VIII. Concurrency — scale out via process model (multi-instance ADR-071). */
   scaleOutReady: true,
   /** IX. Disposability — fast start/stop; healthcheck supports orchestration. */
   disposability: true,

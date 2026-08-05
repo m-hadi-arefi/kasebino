@@ -7,6 +7,7 @@ import {
   PICKUP_TIMER_POLICY,
 } from "../mvp-policies/index.js";
 import {
+  InMemoryDeadLetterStore,
   InMemoryOutboxStore,
   InMemoryProcessedSet,
   OUTBOX_POLL,
@@ -156,10 +157,13 @@ describe("ADR-035 Background Jobs and Transactional Outbox", () => {
     );
     expect(SCHEDULED_JOB_HOOKS.pickupUnpaidCancel.unpaidTimeoutMinutes).toBe(30);
     expect(SCHEDULED_JOB_HOOKS.pickupUnpaidCancel.resultStatus).toBe("cancelled");
+    expect(SCHEDULED_JOB_HOOKS.pickupUnpaidCancel.status).toBe("wired");
     expect(SCHEDULED_JOB_HOOKS.pickupReadyHoldCancel.holdHours).toBe(24);
+    expect(SCHEDULED_JOB_HOOKS.pickupReadyHoldCancel.status).toBe("wired");
     expect(
       SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry.defaultMonthsAfterLastEarn,
     ).toBe(LOYALTY_EXPIRY_POLICY.defaultMonthsAfterLastEarn);
+    expect(SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry.status).toBe("wired");
     expect(SCHEDULED_JOB_HOOKS.loyaltyPointsExpiry.eventName).toBe(
       "PointsExpired",
     );
@@ -167,9 +171,49 @@ describe("ADR-035 Background Jobs and Transactional Outbox", () => {
     const unpaid = runScheduledJobStub("pickup_unpaid_cancel");
     expect(unpaid.status).toBe("stub_acknowledged");
     expect(unpaid.policySnapshot.unpaidTimeoutMinutes).toBe(30);
+    expect(unpaid.messageFa).toMatch(/[\u0600-\u06FF]/);
 
     const loyalty = runScheduledJobStub("loyalty_points_expiry");
+    expect(loyalty.status).toBe("use_loyalty_runner");
     expect(loyalty.policySnapshot.defaultMonthsAfterLastEarn).toBe(12);
+  });
+
+  it("moves poison messages to DLQ after max retries", async () => {
+    const store = new InMemoryOutboxStore();
+    const processed = new InMemoryProcessedSet();
+    const deadLetter = new InMemoryDeadLetterStore();
+    const envelope = createEventEnvelope({
+      eventType: "InventoryChanged",
+      merchantId: "m-1",
+      storeId: "s-1",
+      payload: { productId: "p-1" },
+    });
+    const queued = await store.enqueue({ envelope });
+
+    const worker = createOutboxWorker({
+      store,
+      processed,
+      deadLetter,
+      maxRetries: 2,
+      consumers: ["emqx_realtime"],
+      handlers: {
+        emqx_realtime: () => {
+          throw new Error("broker_down");
+        },
+      },
+    });
+
+    const first = await worker.dispatchOnce();
+    expect(first.failed).toBe(1);
+    expect(first.deadLettered).toBe(0);
+    expect((await store.getById(queued.id))?.publishedAt).toBeNull();
+
+    const second = await worker.dispatchOnce();
+    expect(second.deadLettered).toBe(1);
+    expect(deadLetter.records).toHaveLength(1);
+    expect(deadLetter.records[0]?.lastError).toMatch(/broker_down/);
+    expect((await store.getById(queued.id))?.publishedAt).not.toBeNull();
+    expect((await store.pollPending(10))).toHaveLength(0);
   });
 
   it("scrubs payloads for worker logs and keeps Persian UX stubs", () => {

@@ -141,15 +141,32 @@ export function assertNeverReturnOtpInProduction(
   nodeEnv: string,
   responseIncludesOtp: boolean,
 ): void {
-  if (nodeEnv === "production" && responseIncludesOtp) {
+  if (
+    (nodeEnv === "production" || nodeEnv === "staging") &&
+    responseIncludesOtp
+  ) {
     throw new Error(
-      "Production auth responses must never include OTP (ADR-031 / AUTH-04).",
+      "Production/staging auth responses must never include OTP (ADR-031 / AUTH-04 / ADR-095).",
     );
   }
 }
 
-export function shouldReturnDevOtp(nodeEnv: string): boolean {
-  return nodeEnv !== "production";
+/**
+ * Dev OTP in API JSON — only local development or explicit opt-in.
+ * Staging/test/production must never leak OTP unless `MOS_RETURN_DEV_OTP=1`.
+ */
+export function shouldReturnDevOtp(
+  nodeEnv: string,
+  mosReturnDevOtp:
+    | string
+    | undefined = typeof process !== "undefined"
+    ? process.env.MOS_RETURN_DEV_OTP
+    : undefined,
+): boolean {
+  if (mosReturnDevOtp === "1") {
+    return true;
+  }
+  return nodeEnv === "development";
 }
 
 export function shouldSendSms(nodeEnv: string): boolean {

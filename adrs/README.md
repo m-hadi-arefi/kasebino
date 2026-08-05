@@ -6,9 +6,9 @@ Canonical architecture decisions for MerchantOS.
 
 | Folder | Contents |
 | --- | --- |
-| [`done/`](./done/) | ADR implemented (contracts + domain + tests) — **81** |
+| [`done/`](./done/) | ADR implemented (contracts + domain + tests) — **87** |
 | [`future/`](./future/) | Not yet implemented — **10** (070–075, 079–080, 083–084) |
-| [`tasks/`](./tasks/) | Runtime/MVP wiring ADRs from audit — **30** |
+| [`tasks/`](./tasks/) | Runtime/MVP wiring ADRs from audit — **29** |
 | [`STATUS.md`](./STATUS.md) | Implementation board |
 | [`REORGANIZATION_INDEX.md`](./REORGANIZATION_INDEX.md) | Move log |
 

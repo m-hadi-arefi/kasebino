@@ -20,6 +20,25 @@ import { PaymentsDomainError } from "./errors.js";
 import type { PaymentGateway } from "./ports/payment-gateway.js";
 export { signSandboxWebhook, timingSafeEqualHex } from "./webhook-crypto.js";
 
+/**
+ * Sandbox confirm HTTP is local/dev only (ADR-102).
+ * Requires MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM=1 and non-production MOS_ENV.
+ */
+export function isSandboxPaymentConfirmAllowed(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const flag = (env.MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM ?? "").trim().toLowerCase();
+  if (flag !== "1" && flag !== "true") return false;
+  const mos = (env.MOS_ENV ?? "").trim().toLowerCase();
+  if (mos === "production" || mos === "staging") return false;
+  const node = (env.NODE_ENV ?? "").trim().toLowerCase();
+  if (mos === "local") return true;
+  if (!mos && (node === "development" || node === "test" || node === "")) {
+    return true;
+  }
+  return node === "development" || node === "test";
+}
+
 
 
 export type PaymentsUseCaseDeps = {
@@ -321,12 +340,27 @@ export function createPaymentsUseCases(deps: PaymentsUseCaseDeps) {
         throw new PaymentsDomainError("WEBHOOK_SIGNATURE_INVALID");
       }
 
-
-
       const payment = await requirePayment(deps.payments, input.paymentId);
       const at = nowFn();
 
+      /** Idempotent: already-succeeded payment + success outcome. */
+      if (input.outcome === "succeeded" && payment.status === "succeeded") {
+        return {
+          payment,
+          confirmed: true as const,
+          event: null,
+          alreadyProcessed: true as const,
+        };
+      }
 
+      if (input.outcome === "failed" && payment.status === "failed") {
+        return {
+          payment,
+          confirmed: false as const,
+          event: null,
+          alreadyProcessed: true as const,
+        };
+      }
 
       if (input.outcome === "failed") {
         try {
@@ -350,10 +384,9 @@ export function createPaymentsUseCases(deps: PaymentsUseCaseDeps) {
             failureCode: payment.failureCode ?? "WEBHOOK_FAILED",
             occurredAt: at,
           }),
+          alreadyProcessed: false as const,
         };
       }
-
-
 
       try {
         markPaymentSucceeded(payment, at, {
@@ -376,6 +409,7 @@ export function createPaymentsUseCases(deps: PaymentsUseCaseDeps) {
           providerRef: payment.providerRef,
           occurredAt: at,
         }),
+        alreadyProcessed: false as const,
       };
     },
 

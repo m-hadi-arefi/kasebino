@@ -24,7 +24,6 @@ import {
   type OrderRepository,
   type OrderStatus,
 } from "../domain/index.js";
-import { createDefaultSandboxPaymentConfirmPort } from "../../payments/index.js";
 import { OrderingDomainError } from "./errors.js";
 import type {
   InventoryReleasePort,
@@ -34,6 +33,7 @@ import type {
 import {
   createStubInventoryReleasePort,
   createStubInventoryReservePort,
+  createStubPaymentConfirmPort,
 } from "./ports.js";
 
 export type OrderingUseCaseDeps = {
@@ -118,7 +118,7 @@ export function createOrderingUseCases(deps: OrderingUseCaseDeps) {
   const inventoryRelease =
     deps.inventoryRelease ?? createStubInventoryReleasePort();
   const paymentConfirm =
-    deps.paymentConfirm ?? createDefaultSandboxPaymentConfirmPort();
+    deps.paymentConfirm ?? createStubPaymentConfirmPort();
 
   return {
     async createOrder(input: CreateOrderInput) {
@@ -251,6 +251,8 @@ export function createOrderingUseCases(deps: OrderingUseCaseDeps) {
           orderId: order.id,
           merchantId: order.merchantId,
           storeId: order.storeId,
+          membershipId: order.membershipId,
+          customerId: order.customerId,
           occurredAt: at,
         }),
       };

@@ -23,13 +23,32 @@ Mandatory for NFR perf and auth abuse protection.
 ## Folder conventions
 
 - `src/redis-architecture/` — architecture contract (ADR-051)
-- `src/infrastructure/redis/` — thin REDIS_URL client stub (ADR-051)
+- `src/infrastructure/redis/` — live `redis` client + adapters (ADR-108)
+  - `client.ts` — REDIS_URL config + connect helpers
+  - `redis-cache-aside-store.ts` — `CacheAsideStorePort`
+  - `redis-rate-limit-store.ts` — `RateLimitRedisPort`
+  - `create-redis-runtime.ts` — production composition factory
 - `src/cache-aside/` — get-or-load helpers, CacheAsideStorePort, in-memory store (ADR-052)
 - `src/cache-keys/` — key builders + TTL table (ADR-053)
 - `src/cache-invalidation/` — event→key delete maps + `invalidateOnEvent` (ADR-054)
 - `src/rate-limiting/` — rate-limit policies, Redis port, in-memory store (ADR-055)
-- `src/shared/infrastructure/redis` — module-owned Redis protocol adapters (optional)
 - `module cache adapters` — domain call sites wire keys/TTL + outbox `cache_invalidation` handler
+
+## Live vs mock paths (ADR-108)
+
+| Mode | Env | Behavior |
+| --- | --- | --- |
+| **Live** | `REDIS_URL=redis://localhost:6379` (Compose host port) or `redis://redis:6379` (in-network) | `createAppContext` / `createProductionApiContext` → Redis cache + rate limiter |
+| **Mock** | `MOS_REDIS_MODE=memory` (or `mock`), or missing `REDIS_URL` | In-memory stores for unit tests / offline CI |
+| **Injected** | tests pass `rateLimiter` + `rateLimitMode: "injected"` | Handler isolation |
+
+Start Redis: `docker compose up -d redis`
+
+## Fail policies
+
+- Cache-aside reads: **fail-open** → PostgreSQL loader
+- OTP / auth rate limits: **fail-closed** → 429 Persian unavailable message
+- default / admin / storefront rate limits: **fail-open**
 
 ## Anti-patterns
 
@@ -49,7 +68,7 @@ Mandatory for NFR perf and auth abuse protection.
 
 ## Example architecture usage
 
-Barcode and analytics caching paths.
+Barcode and analytics caching paths; OTP `/api/v1/auth/otp/*` rate limits.
 
 ## Related rules
 

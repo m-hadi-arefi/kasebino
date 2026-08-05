@@ -199,7 +199,7 @@ describe("ADR-089 Admin Dashboard Architecture", () => {
     expect(merchants).toMatch(/فروشنده/);
     expect(merchants).toMatch(/فعال‌سازی|تعلیق/);
     expect(merchants).toMatch(/ممیزی|ثبت/);
-    expect(merchants).toMatch(/هنوز فروشنده‌ای|خالی|وارد/);
+    expect(merchants).toMatch(/هنوز فروشنده‌ای|خالی|وارد|بارگذاری/);
 
     const security = readFileSync(
       join(root, ADMIN_DASHBOARD_APP_PATHS.securityPage),

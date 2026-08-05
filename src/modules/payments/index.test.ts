@@ -5,18 +5,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  FEE_POLICY,
-  PAYMENTS_ERROR_MESSAGES_FA,
-  PAYMENTS_DECISION,
-  PaymentsDomainError,
-  createDefaultSandboxPaymentConfirmPort,
   createPaymentsUseCases,
-  createSandboxPaymentConfirmPort,
-  computePilotFeeMinor,
+  isSandboxPaymentConfirmAllowed,
   InMemoryPaymentRepository,
   SandboxPaymentGateway,
   signSandboxWebhook,
   paymentStatusLabelFa,
+  PAYMENTS_ERROR_MESSAGES_FA,
+  PAYMENTS_DECISION,
+  PaymentsDomainError,
+  createDefaultSandboxPaymentConfirmPort,
+  createSandboxPaymentConfirmPort,
+  computePilotFeeMinor,
+  FEE_POLICY,
 } from "./index.js";
 import {
   createOrderingUseCases,
@@ -227,7 +228,7 @@ describe("ADR-012 Payments module", () => {
     expect(gateway.confirmed.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("defaults Ordering paymentConfirm to sandbox mock", async () => {
+  it("defaults Ordering paymentConfirm to stub (InMemory not auto-wired)", async () => {
     const orders = new InMemoryOrderRepository();
     let seq = 0;
     const ordering = createOrderingUseCases({
@@ -252,8 +253,12 @@ describe("ADR-012 Payments module", () => {
 
     const paid = await ordering.markPaid({ orderId: created.order.id });
     expect(paid.order.status).toBe("paid");
-    expect(paid.paymentId.length).toBeGreaterThan(0);
-    expect(createDefaultSandboxPaymentConfirmPort()).toBeDefined();
+    expect(paid.paymentId).toMatch(/^pay-stub-/);
+    expect(
+      createDefaultSandboxPaymentConfirmPort({
+        payments: new InMemoryPaymentRepository(),
+      }),
+    ).toBeDefined();
   });
 
   it("exposes Persian labels and forbids Stripe-as-default in decision", () => {
@@ -264,5 +269,29 @@ describe("ADR-012 Payments module", () => {
     );
     expect(() => new PaymentsDomainError("PROVIDER_NOT_AVAILABLE").messageFa).not.toThrow();
     expect(new PaymentsDomainError("FEES_INACTIVE").messageFa).toMatch(/کرمان|کارمزد/);
+  });
+
+  it("gates sandbox confirm to local/dev with explicit flag", () => {
+    expect(
+      isSandboxPaymentConfirmAllowed({
+        MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: "1",
+        MOS_ENV: "local",
+        NODE_ENV: "test",
+      }),
+    ).toBe(true);
+    expect(
+      isSandboxPaymentConfirmAllowed({
+        MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: "1",
+        MOS_ENV: "production",
+        NODE_ENV: "production",
+      }),
+    ).toBe(false);
+    expect(
+      isSandboxPaymentConfirmAllowed({
+        MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: "0",
+        MOS_ENV: "local",
+        NODE_ENV: "development",
+      }),
+    ).toBe(false);
   });
 });

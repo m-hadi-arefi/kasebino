@@ -56,6 +56,9 @@ export const STORE_CUSTOMER_PWA_OFFLINE = {
   catalog: "read_mostly_stretch" as const,
   authRequiresNetwork: true,
   ordersRequireNetwork: true,
+  serviceWorker: "/sw-store-customer.js" as const,
+  audience: "store-customer" as const,
+  sharedWithStaffForbidden: true,
   noteFa:
     "کاتالوگ ممکن است بعداً برای مشاهدهٔ آفلاین ذخیره شود؛ ورود و سفارش فعلاً به اینترنت نیاز دارند.",
   rule: "Do not promise offline checkout; staff offline queue is ADR-022/024 only.",
@@ -78,6 +81,11 @@ export const STORE_CUSTOMER_PWA_COPY_FA = {
   installing: "در حال آماده‌سازی…",
   installed: "اپلیکیشن فروشگاه روی دستگاه شماست.",
   regionLabel: "پیشنهاد نصب اپلیکیشن فروشگاه",
+  browserHint: "از منوی مرورگر، «افزودن به صفحهٔ اصلی» را انتخاب کنید.",
+  iosHint:
+    "در سافاری آیفون: دکمهٔ اشتراک‌گذاری را بزنید، سپس «Add to Home Screen» / «افزودن به صفحهٔ اصلی» را انتخاب کنید.",
+  offlineNote:
+    "کاتالوگ ممکن است بعداً برای مشاهدهٔ آفلاین ذخیره شود؛ ورود و سفارش فعلاً به اینترنت نیاز دارند.",
 } as const;
 
 export const STORE_CUSTOMER_PWA_INSTALL_UX = {
@@ -129,11 +137,11 @@ export type StoreCustomerWebManifest = {
 };
 
 /**
- * uiuxpromax gate evidence for ADR-023 install chrome.
- * Brief: docs/execution/plans/ADR-023.md
+ * uiuxpromax gate evidence for ADR-023 / ADR-105 install chrome.
+ * Brief: docs/execution/plans/ADR-105.md
  */
 export const STORE_CUSTOMER_PWA_UIUX_GATE = {
-  briefPath: "docs/execution/plans/ADR-023.md",
+  briefPath: "docs/execution/plans/ADR-105.md",
   gatePassed: true,
   skillPresent: true,
   docsPresent: true,
@@ -220,6 +228,29 @@ export function assertStoreCustomerPwaBranding(
   if (!name) {
     throw new Error("Store customer PWA branding requires displayName (ADR-023).");
   }
+}
+
+/**
+ * Prefer usable public URL/path icons; MinIO keys map to storefront logo proxy (ADR-111).
+ */
+export function resolveStoreCustomerIconSrc(
+  logoObjectKey: string | null | undefined,
+  storeSlug?: string | null,
+): string | null {
+  const key = logoObjectKey?.trim();
+  if (!key) return null;
+  if (
+    key.startsWith("https://") ||
+    key.startsWith("http://") ||
+    key.startsWith("/")
+  ) {
+    return key;
+  }
+  const slug = storeSlug?.trim();
+  if (slug) {
+    return `/api/v1/storefront/${encodeURIComponent(slug)}/logo`;
+  }
+  return null;
 }
 
 function truncateShortName(name: string): string {

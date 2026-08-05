@@ -1,0 +1,85 @@
+/**
+ * ADR-100 storefront customer UI — Persian copy.
+ */
+
+export const STOREFRONT_UI_COPY_FA = {
+  homeEyebrow: "ویترین فروشگاه",
+  pickupOnlyHeadline: "فقط تحویل حضوری",
+  pickupOnlyBody:
+    "سفارش آنلاین ثبت می‌شود و کالا را خودتان از مغازه تحویل می‌گیرید. ارسال پیک نداریم.",
+  fulfillmentLabel: "تحویل حضوری",
+  pickupRestrictionNote: "ارسال پیک یا پیک موتوری در دسترس نیست.",
+  catalogNav: "کاتالوگ",
+  aboutNav: "درباره",
+  dashboardNav: "پنل من",
+  checkoutNav: "سبد و تسویه",
+  orderPickupCta: "سفارش حضوری (پیکاپ)",
+  catalogTitle: "کاتالوگ کالاها",
+  catalogSubtitle: "قیمت‌ها به تومان · موجودی همین مغازه",
+  pricesInToman: "قیمت‌ها به تومان",
+  loadingCatalog: "در حال بارگذاری کالاها…",
+  emptyCatalog: "هنوز کالایی ثبت نشده.",
+  outOfStock: "ناموجود",
+  inStock: "موجود",
+  availableQty: "موجودی",
+  viewProduct: "مشاهده کالا",
+  addToCart: "افزودن به سبد",
+  addedToCart: "به سبد اضافه شد",
+  backHome: "خانه",
+  backCatalog: "بازگشت به کاتالوگ",
+  productDetailTitle: "جزئیات کالا",
+  quantityLabel: "تعداد",
+  checkoutTitle: "تسویه سفارش حضوری",
+  checkoutSubtitle: "پرداخت آنلاین · تحویل فقط در مغازه",
+  cartEmpty: "سبد خرید خالی است.",
+  cartTitle: "سبد خرید",
+  removeLine: "حذف",
+  totalLabel: "جمع",
+  placeOrder: "ثبت سفارش و پرداخت",
+  placingOrder: "در حال ثبت سفارش…",
+  loginRequired: "برای ثبت سفارش وارد شوید",
+  loginCta: "ورود با پیامک",
+  consentRequired: "پذیرش عضویت برای ثبت اولین سفارش لازم است.",
+  unpaidNote:
+    "اگر پرداخت تکمیل نشود، سفارش حداکثر تا ۳۰ دقیقه در انتظار می‌ماند و بعد لغو می‌شود.",
+  pickupEtaNote:
+    "پس از پرداخت، آماده‌سازی در مغازه شروع می‌شود و برای تحویل حضوری خبر می‌دهید.",
+  orderSuccess: "سفارش ثبت شد — در انتظار پرداخت",
+  orderPendingPayment: "وضعیت: در انتظار پرداخت",
+  orderPaidSuccess: "پرداخت موفق — سفارش برای آماده‌سازی ثبت شد",
+  goPay: "ادامه پرداخت",
+  sandboxSimulatePay: "شبیه‌سازی پرداخت (آزمایشی)",
+  sandboxSimulating: "در حال تأیید پرداخت آزمایشی…",
+  paymentFailedRetry: "پرداخت انجام نشد. دوباره تلاش کنید.",
+  paymentAmountLabel: "مبلغ قابل پرداخت",
+  sandboxOnlyHint: "در این نسخه فقط درگاه آزمایشی فعال است.",
+  networkError: "ارتباط برقرار نشد. دوباره تلاش کنید.",
+  aboutTitle: "دربارهٔ مغازه",
+  aboutAddress: "آدرس",
+  aboutHours: "ساعات کاری",
+  aboutClosed: "تعطیل",
+  aboutMap: "نقشه و مسیریابی",
+  aboutMapFallback:
+    "تصویر نقشه در این محیط در دسترس نیست — از آدرس و دکمهٔ مسیریابی استفاده کنید.",
+  aboutNavigate: "مسیریابی",
+  aboutMapLater: "نقشه و مسیریابی به‌زودی اضافه می‌شود.",
+  qrLandingWelcome: "به فروشگاه خوش آمدید",
+  qrLandingHint:
+    "از طریق QR وارد شدید — عضویت با پیامک و سفارش حضوری (پیکاپ).",
+  notFoundTitle: "فروشگاه پیدا نشد",
+  notFoundBody: "این پیوند معتبر نیست یا فروشگاه غیرفعال است.",
+  storeInactive: "فروشگاه پیدا نشد یا غیرفعال است.",
+  jalaliHint: "زمان‌ها بر اساس تقویم شمسی و وقت تهران",
+} as const;
+
+export type StorefrontUiCopyKey = keyof typeof STOREFRONT_UI_COPY_FA;
+
+export const WEEKDAY_LABELS_FA: Record<string, string> = {
+  saturday: "شنبه",
+  sunday: "یکشنبه",
+  monday: "دوشنبه",
+  tuesday: "سه‌شنبه",
+  wednesday: "چهارشنبه",
+  thursday: "پنجشنبه",
+  friday: "جمعه",
+};

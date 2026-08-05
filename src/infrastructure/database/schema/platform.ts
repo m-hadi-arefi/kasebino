@@ -76,3 +76,33 @@ export const processedEvents = pgTable(
     ),
   ],
 );
+
+/**
+ * ADR-109 — durable dead-letter after max outbox retries (ADR-035/036).
+ * Poison messages leave the pending poll set via `published_at` terminal mark.
+ */
+export const outboxDeadLetters = pgTable(
+  "outbox_dead_letters",
+  {
+    id: uuid("id").primaryKey(),
+    outboxId: uuid("outbox_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    eventType: varchar("event_type", { length: 128 }).notNull(),
+    merchantId: uuid("merchant_id").notNull(),
+    storeId: uuid("store_id"),
+    /** Canonical envelope JSON snapshot at DLQ time. */
+    payloadJson: text("payload_json").notNull(),
+    attemptCount: integer("attempt_count").notNull(),
+    lastError: text("last_error").notNull(),
+    deadLetteredAt: timestamp("dead_lettered_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("outbox_dead_letters_outbox_id_uq").on(t.outboxId),
+    index("outbox_dead_letters_event_id_idx").on(t.eventId),
+    index("outbox_dead_letters_merchant_id_idx").on(t.merchantId),
+    index("outbox_dead_letters_dead_lettered_at_idx").on(t.deadLetteredAt),
+  ],
+);
