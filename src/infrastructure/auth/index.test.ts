@@ -38,11 +38,13 @@ import {
 
 describe("ADR-095 Auth.js wiring support", () => {
   it("never returns OTP for staging/test/production without MOS_RETURN_DEV_OTP=1", () => {
-    expect(shouldReturnDevOtp("staging", "")).toBe(false);
-    expect(shouldReturnDevOtp("test", "")).toBe(false);
-    expect(shouldReturnDevOtp("production", "")).toBe(false);
-    expect(shouldReturnDevOtp("development", "")).toBe(true);
-    expect(shouldReturnDevOtp("staging", "1")).toBe(true);
+    expect(shouldReturnDevOtp("staging", "", "")).toBe(false);
+    expect(shouldReturnDevOtp("test", "", "")).toBe(false);
+    expect(shouldReturnDevOtp("production", "", "")).toBe(false);
+    expect(shouldReturnDevOtp("development", "", "")).toBe(true);
+    expect(shouldReturnDevOtp("staging", "1", "")).toBe(true);
+    // Docker local parity: production image + MOS_ENV=local
+    expect(shouldReturnDevOtp("production", "", "local")).toBe(true);
   });
 
   it("uses Console SMS only in local/development", () => {

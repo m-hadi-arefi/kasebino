@@ -83,11 +83,12 @@ describe("ADR-032 Customer SMS OTP Authentication contract", () => {
     expect(() => assertOtpRateLimitPerMinute(10)).toThrow(/3/);
     expect(CUSTOMER_OTP_ENV_RULES.production.returnOtpInApi).toBe(false);
     expect(CUSTOMER_OTP_ENV_RULES.smsProviderAdr).toBe("ADR-083");
-    expect(shouldReturnDevOtp("development")).toBe(true);
-    expect(shouldReturnDevOtp("production")).toBe(false);
-    expect(shouldReturnDevOtp("staging")).toBe(false);
-    expect(shouldReturnDevOtp("test")).toBe(false);
-    expect(shouldReturnDevOtp("staging", "1")).toBe(true);
+    expect(shouldReturnDevOtp("development", undefined, "")).toBe(true);
+    expect(shouldReturnDevOtp("production", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("staging", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("test", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("staging", "1", "")).toBe(true);
+    expect(shouldReturnDevOtp("production", undefined, "local")).toBe(true);
     expect(shouldSendSms("production")).toBe(true);
     expect(() =>
       assertNeverReturnOtpInProduction("production", true),

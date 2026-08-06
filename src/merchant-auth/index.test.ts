@@ -44,12 +44,13 @@ describe("ADR-031 Merchant Authentication contract", () => {
     expect(MERCHANT_OTP_ENV_RULES.development.returnOtpInApi).toBe(true);
     expect(MERCHANT_OTP_ENV_RULES.smsProviderAdr).toBe("ADR-083");
     expect(MERCHANT_OTP_ENV_RULES.smsProviderStatus).toBe("proposed");
-    expect(shouldReturnDevOtp("development")).toBe(true);
-    expect(shouldReturnDevOtp("production")).toBe(false);
-    expect(shouldReturnDevOtp("staging")).toBe(false);
-    expect(shouldReturnDevOtp("test")).toBe(false);
-    expect(shouldReturnDevOtp("production", "1")).toBe(true);
-    expect(shouldReturnDevOtp("staging", undefined)).toBe(false);
+    expect(shouldReturnDevOtp("development", undefined, "")).toBe(true);
+    expect(shouldReturnDevOtp("production", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("staging", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("test", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("production", "1", "")).toBe(true);
+    expect(shouldReturnDevOtp("staging", undefined, "")).toBe(false);
+    expect(shouldReturnDevOtp("production", undefined, "local")).toBe(true);
     expect(shouldSendSms("production")).toBe(true);
     expect(shouldSendSms("development")).toBe(false);
     expect(() =>

@@ -217,7 +217,8 @@ export function assertExplicitConsentCheckbox(
 
 /**
  * Dev OTP in API JSON — only local development or explicit opt-in.
- * Staging/test/production must never leak OTP unless `MOS_RETURN_DEV_OTP=1`.
+ * Staging/test/production must never leak OTP unless `MOS_RETURN_DEV_OTP=1`
+ * or local Docker parity (`MOS_ENV=local` with a production NODE_ENV image).
  */
 export function shouldReturnDevOtp(
   nodeEnv: string,
@@ -226,11 +227,20 @@ export function shouldReturnDevOtp(
     | undefined = typeof process !== "undefined"
     ? process.env.MOS_RETURN_DEV_OTP
     : undefined,
+  mosEnv:
+    | string
+    | undefined = typeof process !== "undefined"
+    ? process.env.MOS_ENV
+    : undefined,
 ): boolean {
   if (mosReturnDevOtp === "1") {
     return true;
   }
-  return nodeEnv === "development";
+  if (nodeEnv === "development") {
+    return true;
+  }
+  // Docker compose app profile runs NODE_ENV=production with MOS_ENV=local.
+  return (mosEnv ?? "").trim().toLowerCase() === "local";
 }
 
 export function shouldSendSms(nodeEnv: string): boolean {

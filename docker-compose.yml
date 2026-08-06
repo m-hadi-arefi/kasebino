@@ -27,6 +27,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
       MINIO_CONSOLE_URL: http://minio:9001
       MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: ${MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM:-1}
+      # Local Docker parity: return OTP in JSON when MOS_ENV=local (also honors explicit flag)
+      MOS_RETURN_DEV_OTP: ${MOS_RETURN_DEV_OTP:-}
       HOSTNAME: 0.0.0.0
       PORT: "3000"
     depends_on:
