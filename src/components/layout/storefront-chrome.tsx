@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 export type StorefrontChromeProps = {
   storeSlug: string;
   storeName: string;
-  primaryColor?: string;
+  primaryColor?: string | null;
   children: React.ReactNode;
   mode?: "public" | "portal";
 };
