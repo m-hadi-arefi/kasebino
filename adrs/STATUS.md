@@ -138,11 +138,11 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-083 | SMS Provider Selection Iran | proposed | none |
 | ADR-084 | Payment PSP Selection | proposed | none |
 
-## tasks/ — Product/runtime gaps from audit (0)
+## tasks/ — Product/runtime gaps from audit (1)
 
 Still required for **MVP delivery** (persistence, HTTP, Auth.js App Router wire, live SDKs, e2e). See files under [`tasks/`](./tasks/) and Critical path in `AUDIT_REPORT.md`.
 
-Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Added ADR-122..124 for previously uncovered gaps.
+Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Added ADR-122..124 for previously uncovered gaps. **ADR-125** (2026-08-06): production UI shell + full page migration.
 
 | ID range | Focus |
 | --- | --- |
@@ -158,6 +158,7 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-122 | Marketing landing page — **in_progress** (plan `docs/execution/plans/ADR-122.md`; not moved to done this cycle) |
 | ADR-123 | Application composition root / DI — **in_progress** (plan `docs/execution/plans/ADR-123.md`; not moved to done this cycle) |
 | ADR-124 | Realtime MQTT client (merchant) — **in_progress** (plan `docs/execution/plans/ADR-124.md`; not moved to done this cycle) |
+| ADR-125 | Production UI shell + page migration — **in_progress** (plan `docs/execution/plans/ADR-125.md`; tasks `adrs/tasks/ADR-125-production-ui-shell-page-migration.md`) |
 | ADR-071 | Scalability Stateless Multi-Instance — **in_progress** (plan `docs/execution/plans/ADR-071.md`; contract `src/scalability-stateless/`; not moved to done this cycle) |
 | ADR-115…123 | SMS, observability, e2e, onboarding, landing, composition |
 

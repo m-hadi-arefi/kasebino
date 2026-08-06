@@ -1,9 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
+import { FormSection } from "@/components/composites/form-section";
+import { PageHeader } from "@/components/composites/page-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   STORE_CREATE_UI_COPY_FA,
   createMerchantStore,
@@ -61,105 +66,94 @@ export function CreateStoreClient() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
-      <header className="flex flex-col gap-2">
-        <Link
-          href="/stores"
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          {fa.back}
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.title}
-        </h1>
-        <p className="text-[var(--color-muted)]">{fa.subtitle}</p>
-      </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={fa.title}
+        description={fa.subtitle}
+        breadcrumbs={[
+          { label: "فروشگاه‌ها", href: "/stores" },
+          { label: fa.title },
+        ]}
+      />
 
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--color-danger)]">
-        {error}
-      </p>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription aria-live="polite">{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>نام فروشگاه</span>
-          <input
-            required
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>شناسه آدرس ویترین</span>
-          <input
-            dir="ltr"
-            required
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-2 text-sm">
-          <span>آدرس (خیابان و پلاک)</span>
-          <input
-            required
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={line1}
-            onChange={(e) => setLine1(e.target.value)}
-          />
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-2 text-sm">
-            <span>شهر</span>
-            <input
+        <FormSection title={fa.title}>
+          <div className="space-y-2">
+            <Label>نام فروشگاه</Label>
+            <Input
               required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>استان</span>
-            <input
-              required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={province}
-              onChange={(e) => setProvince(e.target.value)}
-            />
-          </label>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-2 text-sm">
-            <span>عرض جغرافیایی</span>
-            <input
+          </div>
+          <div className="space-y-2">
+            <Label>شناسه آدرس ویترین</Label>
+            <Input
               dir="ltr"
-              inputMode="decimal"
               required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>طول جغرافیایی</span>
-            <input
-              dir="ltr"
-              inputMode="decimal"
+          </div>
+          <div className="space-y-2">
+            <Label>آدرس (خیابان و پلاک)</Label>
+            <Input
               required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
+              value={line1}
+              onChange={(e) => setLine1(e.target.value)}
             />
-          </label>
-        </div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-        >
-          {pending ? fa.submitting : fa.submit}
-        </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>شهر</Label>
+              <Input
+                required
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>استان</Label>
+              <Input
+                required
+                value={province}
+                onChange={(e) => setProvince(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>عرض جغرافیایی</Label>
+              <Input
+                dir="ltr"
+                inputMode="decimal"
+                required
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>طول جغرافیایی</Label>
+              <Input
+                dir="ltr"
+                inputMode="decimal"
+                required
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button type="submit" disabled={pending} className="w-full">
+            {pending ? fa.submitting : fa.submit}
+          </Button>
+        </FormSection>
       </form>
-    </main>
+    </div>
   );
 }

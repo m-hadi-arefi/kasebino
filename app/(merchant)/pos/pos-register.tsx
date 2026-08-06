@@ -34,6 +34,16 @@ import { enqueueOfflineSaleInIdb } from "@/pos-offline/browser-queue";
 
 import { trackPosFunnelStep } from "@/modules/pos/ui/track-pos-funnel";
 
+import { ErrorState } from "@/components/composites/error-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { StoreSwitcher } from "../stores/store-switcher";
 import { CameraBarcodeSheet } from "./camera-barcode-sheet";
 
@@ -319,17 +329,11 @@ export function PosRegister() {
   };
 
   if (storesQuery.isLoading) {
-    return (
-      <p className="text-[var(--color-muted)]">{POS_UI_COPY_FA.loadingScope}</p>
-    );
+    return <LoadingState rows={1} label={POS_UI_COPY_FA.loadingScope} />;
   }
 
   if (storesQuery.isError || !storesQuery.data?.length) {
-    return (
-      <p className="text-[var(--color-danger)]" role="alert">
-        {POS_UI_COPY_FA.noStore}
-      </p>
-    );
+    return <ErrorState title={POS_UI_COPY_FA.noStore} />;
   }
 
   if (step === "success" && receipt) {
@@ -373,9 +377,9 @@ export function PosRegister() {
           </div>
         </dl>
         {receipt.receiptReady || receipt.receiptUrl ? (
-          <button
+          <Button
             type="button"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 text-[var(--color-fg)]"
+            variant="outline"
             onClick={() => {
               void (async () => {
                 try {
@@ -390,15 +394,14 @@ export function PosRegister() {
             }}
           >
             {POS_UI_COPY_FA.viewReceipt}
-          </button>
+          </Button>
         ) : (
           <p className="text-sm text-[var(--color-muted)]">
             {POS_UI_COPY_FA.receiptPreparing}
           </p>
         )}
-        <button
+        <Button
           type="button"
-          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-[var(--color-primary-fg)]"
           onClick={() => {
             setReceipt(null);
             setStep("cart");
@@ -406,7 +409,7 @@ export function PosRegister() {
           }}
         >
           {POS_UI_COPY_FA.newSale}
-        </button>
+        </Button>
       </section>
     );
   }
@@ -414,20 +417,21 @@ export function PosRegister() {
   if (step === "checkout") {
     return (
       <section className="flex flex-col gap-5" aria-label={POS_UI_COPY_FA.phoneStepTitle}>
-        <button
+        <Button
           type="button"
-          className="min-h-11 self-start text-sm text-[var(--color-primary)]"
+          variant="link"
+          className="h-auto self-start p-0"
           onClick={() => setStep("cart")}
         >
           {POS_UI_COPY_FA.back}
-        </button>
+        </Button>
         <h2 className="text-xl font-semibold">{POS_UI_COPY_FA.phoneStepTitle}</h2>
-        <p className="text-sm text-[var(--color-muted)]">
+        <p className="text-sm text-muted-foreground">
           {POS_UI_COPY_FA.consentNotice}
         </p>
-        <label className="flex flex-col gap-2 text-sm" htmlFor={phoneId}>
-          <span>{POS_UI_COPY_FA.phoneLabel}</span>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor={phoneId}>{POS_UI_COPY_FA.phoneLabel}</Label>
+          <Input
             id={phoneId}
             dir="ltr"
             inputMode="tel"
@@ -435,11 +439,17 @@ export function PosRegister() {
             placeholder={POS_UI_COPY_FA.phonePlaceholder}
             value={phoneDraft ?? ""}
             onChange={(e) => setCustomerPhoneDraft(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
           />
-        </label>
+        </div>
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">{POS_UI_COPY_FA.tenderTitle}</legend>
+          <RadioGroup
+            value={tender}
+            onValueChange={(v) =>
+              setTender(v as "cash" | "card_terminal" | "mixed")
+            }
+            className="flex flex-col gap-2"
+          >
           {(
             [
               ["cash", POS_UI_COPY_FA.tenderCash],
@@ -447,34 +457,31 @@ export function PosRegister() {
               ["mixed", POS_UI_COPY_FA.tenderMixed],
             ] as const
           ).map(([value, label]) => (
-            <label
+            <Label
               key={value}
-              className="flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3"
+              htmlFor={`tender-${value}`}
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border bg-card px-3"
             >
-              <input
-                type="radio"
-                name="tender"
-                value={value}
-                checked={tender === value}
-                onChange={() => setTender(value)}
-              />
+              <RadioGroupItem value={value} id={`tender-${value}`} />
               <span>{label}</span>
-            </label>
+            </Label>
           ))}
+          </RadioGroup>
         </fieldset>
-        <div className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
+        <Card>
+          <CardContent className="flex flex-col gap-3 pt-4">
           <p className="text-sm font-medium">{POS_UI_COPY_FA.redeemPoints}</p>
-          <p className="text-sm text-[var(--color-muted)]">
+          <p className="text-sm text-muted-foreground">
             {POS_UI_COPY_FA.redeemHint}
           </p>
-          <button
+          <Button
             type="button"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 text-sm disabled:opacity-60"
+            variant="outline"
             disabled={walletLookupMutation.isPending}
             onClick={() => walletLookupMutation.mutate()}
           >
             {POS_UI_COPY_FA.redeemLookup}
-          </button>
+          </Button>
           {redeemBalance !== null ? (
             <p className="text-sm" aria-live="polite">
               {POS_UI_COPY_FA.redeemBalance}:{" "}
@@ -483,19 +490,18 @@ export function PosRegister() {
               </strong>
             </p>
           ) : null}
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{POS_UI_COPY_FA.redeemPointsLabel}</span>
-            <input
+          <div className="space-y-2">
+            <Label>{POS_UI_COPY_FA.redeemPointsLabel}</Label>
+            <Input
               inputMode="numeric"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3"
               value={redeemPointsDraft}
               onChange={(e) => setRedeemPointsDraft(e.target.value)}
               disabled={!redeemMembershipId}
             />
-          </label>
-          <button
+          </div>
+          <Button
             type="button"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-primary)] px-4 text-sm text-[var(--color-primary)] disabled:opacity-60"
+            variant="outline"
             disabled={
               !redeemMembershipId ||
               redeemMutation.isPending ||
@@ -506,33 +512,33 @@ export function PosRegister() {
             {redeemMutation.isPending
               ? POS_UI_COPY_FA.redeeming
               : POS_UI_COPY_FA.redeemApply}
-          </button>
+          </Button>
           {redeemMessage ? (
-            <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
               {redeemMessage}
             </p>
           ) : null}
-        </div>
+          </CardContent>
+        </Card>
         <div className="flex items-center justify-between text-base font-semibold">
           <span>{POS_UI_COPY_FA.total}</span>
           <span>{formatPosToman(totalMinor)}</span>
         </div>
         {error ? (
-          <p className="text-sm text-[var(--color-danger)]" role="alert">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription role="alert">{error}</AlertDescription>
+          </Alert>
         ) : null}
-        <button
+        <Button
           type="button"
-          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-[var(--color-primary-fg)] disabled:opacity-60"
           disabled={saleMutation.isPending}
           onClick={onComplete}
         >
           {saleMutation.isPending
             ? POS_UI_COPY_FA.completing
             : POS_UI_COPY_FA.completeSale}
-        </button>
-        <p className="text-xs text-[var(--color-muted)]">
+        </Button>
+        <p className="text-xs text-muted-foreground">
           {POS_UI_COPY_FA.pickupOnlyNote}
         </p>
       </section>
@@ -552,9 +558,9 @@ export function PosRegister() {
           }}
         />
         <div className="flex flex-col gap-3">
-          <label className="flex flex-col gap-2 text-sm" htmlFor={searchId}>
-            <span>{POS_UI_COPY_FA.searchLabel}</span>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor={searchId}>{POS_UI_COPY_FA.searchLabel}</Label>
+            <Input
               id={searchId}
               value={query}
               onChange={(e) => {
@@ -570,25 +576,25 @@ export function PosRegister() {
                 }
               }}
               placeholder={POS_UI_COPY_FA.searchPlaceholder}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
             />
-          </label>
+          </div>
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
-              className="min-h-11 flex-1 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm text-[var(--color-primary-fg)]"
+              className="flex-1"
               onClick={() => setCameraOpen(true)}
             >
               {POS_UI_COPY_FA.scanCamera}
-            </button>
+            </Button>
           </div>
-          <label className="flex flex-col gap-2 text-sm" htmlFor={barcodeId}>
-            <span>{POS_UI_COPY_FA.barcodeManualLabel}</span>
+          <div className="space-y-2">
+            <Label htmlFor={barcodeId}>{POS_UI_COPY_FA.barcodeManualLabel}</Label>
             <div className="flex gap-2">
-              <input
+              <Input
                 id={barcodeId}
                 dir="ltr"
                 inputMode="numeric"
+                className="flex-1"
                 value={manualBarcode}
                 onChange={(e) => setManualBarcode(e.target.value)}
                 onKeyDown={(e) => {
@@ -598,17 +604,16 @@ export function PosRegister() {
                   }
                 }}
                 placeholder={POS_UI_COPY_FA.barcodePlaceholder}
-                className="min-h-11 flex-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
               />
-              <button
+              <Button
                 type="button"
-                className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 text-sm"
+                variant="outline"
                 onClick={() => void resolveBarcode(manualBarcode)}
               >
                 {POS_UI_COPY_FA.addToCart}
-              </button>
+              </Button>
             </div>
-          </label>
+          </div>
         </div>
 
         {searchQuery.isFetching ? (
@@ -622,7 +627,7 @@ export function PosRegister() {
               <li key={product.id}>
                 <button
                   type="button"
-                  className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-start"
+                  className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 text-start transition-colors hover:bg-accent"
                   onClick={() => addProduct(product)}
                 >
                   <span>{product.name}</span>
@@ -636,43 +641,43 @@ export function PosRegister() {
         ) : null}
 
         {unmatchedBarcode ? (
-          <section
-            className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-warning)] bg-[var(--color-surface)] px-3 py-3"
-            role="status"
-          >
-            <h3 className="font-medium text-[var(--color-warning)]">
+          <Card className="border-amber-500/50">
+            <CardContent className="flex flex-col gap-2 pt-4" role="status">
+            <h3 className="font-medium text-amber-600">
               {POS_UI_COPY_FA.unmatchedTitle}
             </h3>
-            <p className="text-sm text-[var(--color-muted)]">
+            <p className="text-sm text-muted-foreground">
               {POS_UI_COPY_FA.unmatchedBody}{" "}
               <span dir="ltr">{unmatchedBarcode}</span>
             </p>
-            <button
+            <Button
               type="button"
-              className="min-h-11 text-start text-sm text-[var(--color-primary)]"
+              variant="link"
+              className="h-auto justify-start p-0"
               onClick={() => {
                 setQuery(unmatchedBarcode);
                 setUnmatchedBarcode(null);
               }}
             >
               {POS_UI_COPY_FA.unmatchedSearch}
-            </button>
-            <p className="text-xs text-[var(--color-muted)]">
+            </Button>
+            <p className="text-xs text-muted-foreground">
               {POS_UI_COPY_FA.unmatchedCreateHint}{" "}
               <a
                 href={POS_UI_COPY_FA.unmatchedCreateHref}
-                className="min-h-11 text-[var(--color-primary)] underline"
+                className="text-primary underline"
               >
                 {POS_UI_COPY_FA.unmatchedCreateLink}
               </a>
             </p>
-          </section>
+            </CardContent>
+          </Card>
         ) : null}
 
         {error ? (
-          <p className="text-sm text-[var(--color-danger)]" role="alert">
-            {error}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription role="alert">{error}</AlertDescription>
+          </Alert>
         ) : null}
 
         <section aria-label={POS_UI_COPY_FA.cartRegion} className="flex flex-col gap-3">
@@ -686,21 +691,23 @@ export function PosRegister() {
               {lines.map((line) => (
                 <li
                   key={line.productId}
-                  className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3"
                 >
+                  <Card>
+                    <CardContent className="flex flex-col gap-2 py-3">
                   <div className="flex items-start justify-between gap-3">
                     <span className="font-medium">{line.productName}</span>
-                    <span className="text-sm">
+                    <Badge variant="secondary">
                       {formatPosToman(line.unitPriceMinor * line.quantity)}
-                    </span>
+                    </Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-sm">
-                      <span>{POS_UI_COPY_FA.quantity}</span>
-                      <input
+                    <Label className="flex items-center gap-2 text-sm">
+                      {POS_UI_COPY_FA.quantity}
+                      <Input
                         type="number"
                         min={1}
                         inputMode="numeric"
+                        className="h-11 w-20 text-center"
                         value={line.quantity}
                         onChange={(e) =>
                           updateQuantity(
@@ -708,17 +715,20 @@ export function PosRegister() {
                             Number.parseInt(e.target.value, 10) || 0,
                           )
                         }
-                        className="min-h-11 w-20 rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 text-center"
                       />
-                    </label>
-                    <button
+                    </Label>
+                    <Button
                       type="button"
-                      className="min-h-11 px-3 text-sm text-[var(--color-danger)]"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive"
                       onClick={() => removeLine(line.productId)}
                     >
                       {POS_UI_COPY_FA.removeLine}
-                    </button>
+                    </Button>
                   </div>
+                    </CardContent>
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -726,27 +736,27 @@ export function PosRegister() {
         </section>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-        <div className="mx-auto flex w-full max-w-lg items-center gap-3">
+      <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 py-3 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
           <div className="flex flex-1 flex-col">
-            <span className="text-xs text-[var(--color-muted)]">
+            <span className="text-xs text-muted-foreground">
               {POS_UI_COPY_FA.total}
             </span>
             <span className="text-lg font-semibold">
               {formatPosToman(totalMinor)}
             </span>
           </div>
-          <button
+          <Button
             type="button"
             disabled={lines.length === 0}
-            className="min-h-11 min-w-28 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 text-[var(--color-primary-fg)] disabled:opacity-50"
+            className="min-h-11 min-w-28"
             onClick={() => {
               setError(null);
               setStep("checkout");
             }}
           >
             {POS_UI_COPY_FA.checkout}
-          </button>
+          </Button>
         </div>
       </div>
 

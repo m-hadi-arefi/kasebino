@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { PageHeader } from "@/components/composites/page-header";
 import { auth } from "@/auth";
 import { isMerchantSession } from "@/infrastructure/auth/session-guard";
 
@@ -20,10 +21,14 @@ export default async function MerchantNotificationsPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="اعلان‌ها"
+        description="مرکز اعلان‌های فروشگاه — سفارش و موجودی"
+      />
       <NotificationsProviders>
-        <NotificationsCenterClient />
+        <NotificationsCenterClient showPageHeader={false} />
       </NotificationsProviders>
-    </main>
+    </div>
   );
 }

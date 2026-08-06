@@ -15,7 +15,7 @@ export default function StorefrontLayout({
   children: ReactNode;
 }>) {
   return (
-    <div lang="fa" dir="rtl" className="min-h-dvh bg-[var(--color-bg)]">
+    <div lang="fa" dir="rtl" className="min-h-dvh bg-background text-foreground">
       {children}
     </div>
   );

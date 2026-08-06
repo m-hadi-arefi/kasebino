@@ -1,14 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import { PageHeader } from "@/components/composites/page-header";
+import { StatCard } from "@/components/composites/stat-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LOYALTY_UI_COPY_FA,
   fetchCustomerStorefrontWallet,
   formatLoyaltyJalali,
   ledgerEntryLabelFa,
 } from "@/modules/loyalty/ui";
+import { Wallet } from "lucide-react";
 
 const fa = LOYALTY_UI_COPY_FA;
 
@@ -20,80 +26,74 @@ export function CustomerWalletClient({ storeSlug }: { storeSlug: string }) {
   });
 
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-2">
-        <Link
-          href={`${base}/dashboard`}
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          پنل من
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.customerWalletTitle}
-        </h1>
-        <p className="text-sm text-[var(--color-muted)]">
-          {fa.customerWalletSubtitle} · مبالغ به تومان · تاریخ‌ها شمسی (تهران)
-        </p>
-      </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={fa.customerWalletTitle}
+        description={`${fa.customerWalletSubtitle} · مبالغ به تومان · تاریخ‌ها شمسی (تهران)`}
+        breadcrumbs={[
+          { label: "پنل من", href: `${base}/dashboard` },
+          { label: fa.customerWalletTitle },
+        ]}
+      />
 
       {walletQuery.isLoading ? (
-        <p className="text-[var(--color-muted)]" aria-live="polite">
-          {fa.customerLoading}
-        </p>
+        <LoadingState rows={2} label={fa.customerLoading} />
       ) : null}
 
       {walletQuery.isError ? (
-        <p className="text-[var(--color-danger)]" role="alert">
-          {(walletQuery.error as Error).message || fa.networkError}
-        </p>
+        <ErrorState
+          description={(walletQuery.error as Error).message || fa.networkError}
+          onRetry={() => void walletQuery.refetch()}
+        />
       ) : null}
 
-      {walletQuery.data ? (
-        <section
-          aria-live="polite"
-          className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-6 text-center"
-        >
-          {walletQuery.data.wallet ? (
+      {walletQuery.data?.wallet ? (
+        <StatCard
+          title={fa.walletBalance}
+          value={
             <>
-              <p className="text-sm text-[var(--color-muted)]">{fa.walletBalance}</p>
-              <p className="mt-2 text-3xl font-semibold text-[var(--color-fg)]">
-                {walletQuery.data.wallet.balance}{" "}
-                <span className="text-base font-medium">{fa.pointsUnit}</span>
-              </p>
-              <p className="mt-3 text-sm text-[var(--color-muted)]">
-                {fa.lastEarnLabel}:{" "}
-                {formatLoyaltyJalali(walletQuery.data.wallet.lastEarnAt)}
-              </p>
+              {walletQuery.data.wallet.balance}{" "}
+              <span className="text-base font-medium">{fa.pointsUnit}</span>
             </>
-          ) : (
-            <p className="text-[var(--color-muted)]">{fa.customerEmpty}</p>
-          )}
-        </section>
+          }
+          description={`${fa.lastEarnLabel}: ${formatLoyaltyJalali(walletQuery.data.wallet.lastEarnAt)}`}
+          icon={Wallet}
+        />
+      ) : null}
+
+      {walletQuery.data && !walletQuery.data.wallet ? (
+        <EmptyState title={fa.customerEmpty} />
       ) : null}
 
       {walletQuery.data?.ledger?.length ? (
-        <section aria-label={fa.customerLedgerTitle} className="flex flex-col gap-2">
-          <h2 className="text-base font-semibold">{fa.customerLedgerTitle}</h2>
-          <ul className="flex flex-col gap-2">
-            {walletQuery.data.ledger.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex min-h-11 items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm"
-              >
-                <span>
-                  {ledgerEntryLabelFa(entry.entryType)} · {entry.points}{" "}
-                  {fa.pointsUnit}
-                </span>
-                <span className="text-[var(--color-muted)]">
-                  {formatLoyaltyJalali(entry.createdAt)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{fa.customerLedgerTitle}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-2">
+              {walletQuery.data.ledger.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="flex min-h-11 items-center justify-between gap-3 border-b border-border py-2 text-sm last:border-0"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {ledgerEntryLabelFa(entry.entryType)} · {entry.points}{" "}
+                      {fa.pointsUnit}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {formatLoyaltyJalali(entry.createdAt)}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       ) : null}
 
-      <p className="text-sm text-[var(--color-muted)]">
+      <p className="text-sm text-muted-foreground">
         فقط اطلاعات عضویت همین مغازه نمایش داده می‌شود.
       </p>
     </div>

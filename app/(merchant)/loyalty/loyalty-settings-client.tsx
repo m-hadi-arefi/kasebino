@@ -1,9 +1,22 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 
+import { FormSection } from "@/components/composites/form-section";
+import { LoadingState } from "@/components/composites/loading-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   LOYALTY_UI_COPY_FA,
   fetchLoyaltyRule,
@@ -17,7 +30,6 @@ import {
 const fa = LOYALTY_UI_COPY_FA;
 
 export function LoyaltySettingsClient() {
-  const storeSelectId = useId();
   const amountId = useId();
   const pointsId = useId();
   const expiryId = useId();
@@ -98,126 +110,102 @@ export function LoyaltySettingsClient() {
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/dashboard"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.backToDashboard}
-        </Link>
-        <Link
-          href="/pos"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openPos}
-        </Link>
-        <Link
-          href="/customers"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openCustomers}
-        </Link>
-      </nav>
-
-      <label className="flex flex-col gap-2 text-sm" htmlFor={storeSelectId}>
-        <span>{fa.storeLabel}</span>
-        <select
-          id={storeSelectId}
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3"
+      <div className="space-y-2">
+        <Label htmlFor="loyalty-store">{fa.storeLabel}</Label>
+        <Select
           value={storeId}
-          onChange={(e) => setStoreId(e.target.value)}
+          onValueChange={setStoreId}
           disabled={storesQuery.isLoading}
         >
-          {(storesQuery.data ?? []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.displayName}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger id="loyalty-store">
+            <SelectValue placeholder={fa.storeLabel} />
+          </SelectTrigger>
+          <SelectContent dir="rtl">
+            {(storesQuery.data ?? []).map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.displayName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {ruleQuery.isLoading ? (
-        <p className="text-[var(--color-muted)]" aria-live="polite">
-          {fa.loadRule}
-        </p>
+        <LoadingState rows={1} label={fa.loadRule} />
       ) : null}
 
       {statusMessage ? (
-        <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
-          {statusMessage}
-        </p>
+        <Alert>
+          <AlertDescription aria-live="polite">{statusMessage}</AlertDescription>
+        </Alert>
       ) : null}
 
       {saveMutation.isError ? (
-        <p className="text-[var(--color-danger)]" role="alert">
-          {(saveMutation.error as Error).message || fa.networkError}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription role="alert">
+            {(saveMutation.error as Error).message || fa.networkError}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      <section
-        aria-label={fa.settingsTitle}
-        className="flex flex-col gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4"
-      >
-        <label className="flex flex-col gap-2 text-sm" htmlFor={amountId}>
-          <span>{fa.amountTomanLabel}</span>
-          <input
+      <FormSection title={fa.settingsTitle}>
+        <div className="space-y-2">
+          <Label htmlFor={amountId}>{fa.amountTomanLabel}</Label>
+          <Input
             id={amountId}
             inputMode="numeric"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3"
             value={tomanPerPoint}
             onChange={(e) => setTomanPerPoint(e.target.value)}
           />
-          <span className="text-[var(--color-muted)]">{fa.amountHint}</span>
+          <p className="text-sm text-muted-foreground">{fa.amountHint}</p>
           {tomanInputToMinor(tomanPerPoint) !== null ? (
-            <span className="text-xs text-[var(--color-muted)]">
+            <p className="text-xs text-muted-foreground">
               = {formatLoyaltyToman(tomanInputToMinor(tomanPerPoint)!)} برای هر{" "}
               {pointsPerUnit || "1"} {fa.pointsUnit}
-            </span>
+            </p>
           ) : null}
-        </label>
+        </div>
 
-        <label className="flex flex-col gap-2 text-sm" htmlFor={pointsId}>
-          <span>{fa.pointsPerUnitLabel}</span>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor={pointsId}>{fa.pointsPerUnitLabel}</Label>
+          <Input
             id={pointsId}
             inputMode="numeric"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3"
             value={pointsPerUnit}
             onChange={(e) => setPointsPerUnit(e.target.value)}
           />
-        </label>
+        </div>
 
-        <label className="flex min-h-11 items-center gap-3 text-sm" htmlFor={disableId}>
-          <input
+        <div className="flex min-h-11 items-center gap-3">
+          <Checkbox
             id={disableId}
-            type="checkbox"
             checked={expiryDisabled}
-            onChange={(e) => setExpiryDisabled(e.target.checked)}
+            onCheckedChange={(checked) =>
+              setExpiryDisabled(checked === true)
+            }
           />
-          <span>{fa.expiryDisabledLabel}</span>
-        </label>
+          <Label htmlFor={disableId}>{fa.expiryDisabledLabel}</Label>
+        </div>
 
-        <label className="flex flex-col gap-2 text-sm" htmlFor={expiryId}>
-          <span>{fa.expiryMonthsLabel}</span>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor={expiryId}>{fa.expiryMonthsLabel}</Label>
+          <Input
             id={expiryId}
             inputMode="numeric"
             disabled={expiryDisabled}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 disabled:opacity-50"
             value={expiryMonths}
             onChange={(e) => setExpiryMonths(e.target.value)}
           />
-        </label>
+        </div>
 
-        <button
+        <Button
           type="button"
-          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-[var(--color-primary-fg)] disabled:opacity-60"
           disabled={!storeId || saveMutation.isPending}
           onClick={() => saveMutation.mutate()}
         >
           {saveMutation.isPending ? fa.saving : fa.save}
-        </button>
-      </section>
+        </Button>
+      </FormSection>
     </div>
   );
 }

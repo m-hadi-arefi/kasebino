@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 
+import { FormSection } from "@/components/composites/form-section";
+import { PageHeader } from "@/components/composites/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { uploadStoreBrandingAsset } from "@/modules/store/ui";
 import {
   ONBOARDING_UI_COPY_FA,
@@ -229,82 +235,67 @@ export function OnboardingWizardClient() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.title}
-        </h1>
-        <p className="text-[var(--color-muted)]">{fa.subtitle}</p>
+      <PageHeader title={fa.title} description={fa.subtitle} />
         {status && !status.complete ? (
-          <p className="text-sm text-[var(--color-muted)]">{fa.resumeHint}</p>
+          <p className="text-sm text-muted-foreground">{fa.resumeHint}</p>
         ) : null}
-      </header>
 
       <ol
         aria-label="مراحل راه‌اندازی"
         className="flex flex-wrap gap-2 text-sm"
       >
         {steps.map((s) => (
-          <li
-            key={s}
-            className={
-              s === step
-                ? "rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-1.5 text-[var(--color-primary-fg,#fff)]"
-                : "rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-1.5 text-[var(--color-muted)]"
-            }
-          >
+          <li key={s}>
+            <Badge variant={s === step ? "default" : "outline"}>
             {stepLabels[s]}
+            </Badge>
           </li>
         ))}
       </ol>
 
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--color-danger)]">
+      <p aria-live="polite" className="min-h-6 text-sm text-destructive">
         {error}
       </p>
 
       {!status ? (
-        <p className="text-[var(--color-muted)]">{fa.loading}</p>
+        <p className="text-muted-foreground">{fa.loading}</p>
       ) : null}
 
       {status && step === "merchant" ? (
         <form className="flex flex-col gap-4" onSubmit={onMerchantSubmit}>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{fa.tradeNameLabel}</span>
-            <input
+          <FormSection title={fa.stepMerchant}>
+          <div className="space-y-2">
+            <Label>{fa.tradeNameLabel}</Label>
+            <Input
               required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
               value={tradeName}
               onChange={(e) => setTradeName(e.target.value)}
             />
-            <span className="text-[var(--color-muted)]">{fa.tradeNameHint}</span>
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{fa.merchantSlugLabel}</span>
-            <input
+            <p className="text-sm text-muted-foreground">{fa.tradeNameHint}</p>
+          </div>
+          <div className="space-y-2">
+            <Label>{fa.merchantSlugLabel}</Label>
+            <Input
               dir="ltr"
               required
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
               value={merchantSlug}
               onChange={(e) => setMerchantSlug(e.target.value)}
             />
-            <span className="text-[var(--color-muted)]">{fa.merchantSlugHint}</span>
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{fa.contactPhoneLabel}</span>
-            <input
+            <p className="text-sm text-muted-foreground">{fa.merchantSlugHint}</p>
+          </div>
+          <div className="space-y-2">
+            <Label>{fa.contactPhoneLabel}</Label>
+            <Input
               dir="ltr"
               inputMode="tel"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
             />
-          </label>
-          <button
-            type="submit"
-            disabled={pending}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-          >
+          </div>
+          <Button type="submit" disabled={pending}>
             {pending ? fa.saving : fa.nextCta}
-          </button>
+          </Button>
+          </FormSection>
         </form>
       ) : null}
 
@@ -402,13 +393,9 @@ export function OnboardingWizardClient() {
               />
             </label>
           </div>
-          <button
-            type="submit"
-            disabled={pending}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-          >
+          <Button type="submit" disabled={pending} className="min-h-11 w-full">
             {pending ? fa.saving : fa.nextCta}
-          </button>
+          </Button>
         </form>
       ) : null}
 
@@ -434,21 +421,17 @@ export function OnboardingWizardClient() {
               onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
             />
           </label>
-          <button
-            type="submit"
-            disabled={pending}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-          >
+          <Button type="submit" disabled={pending} className="min-h-11 w-full">
             {pending ? fa.saving : fa.nextCta}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             disabled={pending}
             onClick={onSkipLogo}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5"
           >
             {fa.skipLogo}
-          </button>
+          </Button>
         </form>
       ) : null}
 

@@ -44,8 +44,7 @@ const sheetVariants = cva(
       },
     },
     defaultVariants: {
-      /** Start-edge drawer in RTL (logical `start-0`). */
-      side: "left",
+      side: "right",
     },
   }
 )

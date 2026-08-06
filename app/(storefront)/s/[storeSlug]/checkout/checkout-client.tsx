@@ -4,6 +4,13 @@ import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   STOREFRONT_CONSENT_LABEL_FA,
   STOREFRONT_UI_COPY_FA,
@@ -111,45 +118,45 @@ export function CheckoutClient({
 
     return (
       <section className="flex flex-col gap-4" aria-live="polite">
-        <h2 className="text-xl font-semibold text-[var(--color-fg)]">
+        <h2 className="text-xl font-semibold text-foreground">
           {paid ? fa.orderPaidSuccess : fa.orderSuccess}
         </h2>
         {!paid ? (
           <>
-            <p className="text-[var(--color-muted)]">{fa.orderPendingPayment}</p>
+            <p className="text-muted-foreground">{fa.orderPendingPayment}</p>
             <p className="text-base font-medium">
               {fa.paymentAmountLabel}: {amountLabel}
             </p>
-            <p className="text-sm text-[var(--color-muted)]">
+            <p className="text-sm text-muted-foreground">
               {fa.unpaidNote} · مهلت تقریبی تا {formatUnpaidDeadlineJalali()}
             </p>
-            <p className="text-sm text-[var(--color-muted)]">{fa.fulfillmentLabel}</p>
-            <p className="text-sm text-[var(--color-muted)]">{fa.sandboxOnlyHint}</p>
+            <p className="text-sm text-muted-foreground">{fa.fulfillmentLabel}</p>
+            <p className="text-sm text-muted-foreground">{fa.sandboxOnlyHint}</p>
             {placed.redirectUrl ? (
-              <a
-                href={placed.redirectUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 text-center font-medium text-[var(--color-primary-fg)]"
-              >
-                {fa.goPay}
-              </a>
+              <Button asChild className="min-h-11 w-full">
+                <a href={placed.redirectUrl}>{fa.goPay}</a>
+              </Button>
             ) : null}
             {sandboxSimulateEnabled() && placed.payment?.id ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 disabled={sandboxMutation.isPending}
-                className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] px-5 py-3 font-medium disabled:opacity-50"
+                className="min-h-11 w-full"
                 onClick={() => sandboxMutation.mutate()}
               >
                 {sandboxMutation.isPending
                   ? fa.sandboxSimulating
                   : fa.sandboxSimulatePay}
-              </button>
+              </Button>
             ) : null}
             {sandboxMutation.isError ? (
-              <p className="text-[var(--color-danger)]" role="alert">
-                {(sandboxMutation.error as Error).message ||
-                  fa.paymentFailedRetry}
-              </p>
+              <ErrorState
+                description={
+                  (sandboxMutation.error as Error).message ||
+                  fa.paymentFailedRetry
+                }
+              />
             ) : null}
           </>
         ) : (
@@ -157,15 +164,12 @@ export function CheckoutClient({
             <p className="text-base font-medium">
               {fa.paymentAmountLabel}: {amountLabel}
             </p>
-            <p className="text-sm text-[var(--color-muted)]">{fa.fulfillmentLabel}</p>
+            <p className="text-sm text-muted-foreground">{fa.fulfillmentLabel}</p>
           </>
         )}
-        <Link
-          href={`${base}/dashboard/orders`}
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          سفارش‌های من
-        </Link>
+        <Button asChild variant="link" className="h-auto p-0">
+          <Link href={`${base}/dashboard/orders`}>سفارش‌های من</Link>
+        </Button>
       </section>
     );
   }
@@ -176,64 +180,68 @@ export function CheckoutClient({
         storeId {storeId} · فقط تحویل حضوری · تومان · جلالی
       </p>
 
-      <section
-        aria-label={fa.fulfillmentLabel}
-        className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
-      >
-        <p className="font-medium text-[var(--color-fg)]">{fa.fulfillmentLabel}</p>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">{fa.pickupRestrictionNote}</p>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">{fa.pickupEtaNote}</p>
-      </section>
+      <Card aria-label={fa.fulfillmentLabel}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{fa.fulfillmentLabel}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 text-sm text-muted-foreground">
+          <p>{fa.pickupRestrictionNote}</p>
+          <p>{fa.pickupEtaNote}</p>
+        </CardContent>
+      </Card>
 
       <section aria-label={fa.cartTitle} className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{fa.cartTitle}</h2>
         {lines.length === 0 ? (
-          <p className="text-[var(--color-muted)]">{fa.cartEmpty}</p>
+          <EmptyState title={fa.cartEmpty} />
         ) : (
           <ul className="flex flex-col gap-2">
             {lines.map((line) => (
-              <li
-                key={line.productId}
-                className="flex min-h-11 flex-wrap items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{line.name}</span>
-                  <span className="text-sm text-[var(--color-muted)]">
-                    {line.priceDisplayToman} × {line.quantity}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    aria-label={fa.quantityLabel}
-                    className="min-h-11 w-16 rounded-[var(--radius-md)] border border-[var(--color-border)] px-2 text-center"
-                    value={line.quantity}
-                    onChange={(e) => {
-                      const next = setCartLineQuantity(
-                        storeSlug,
-                        line.productId,
-                        Math.max(0, Number(e.target.value) || 0),
-                      );
-                      setLines(next);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="min-h-11 px-2 text-sm text-[var(--color-danger)]"
-                    onClick={() => {
-                      const next = setCartLineQuantity(
-                        storeSlug,
-                        line.productId,
-                        0,
-                      );
-                      setLines(next);
-                    }}
-                  >
-                    {fa.removeLine}
-                  </button>
-                </div>
+              <li key={line.productId}>
+                <Card>
+                  <CardContent className="flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{line.name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {line.priceDisplayToman} × {line.quantity}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        aria-label={fa.quantityLabel}
+                        className="min-h-11 w-16 text-center"
+                        value={line.quantity}
+                        onChange={(e) => {
+                          const next = setCartLineQuantity(
+                            storeSlug,
+                            line.productId,
+                            Math.max(0, Number(e.target.value) || 0),
+                          );
+                          setLines(next);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="min-h-11 text-destructive"
+                        onClick={() => {
+                          const next = setCartLineQuantity(
+                            storeSlug,
+                            line.productId,
+                            0,
+                          );
+                          setLines(next);
+                        }}
+                      >
+                        {fa.removeLine}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </li>
             ))}
           </ul>
@@ -247,39 +255,43 @@ export function CheckoutClient({
 
       {!isAuthenticated ? (
         <div className="flex flex-col gap-3">
-          <p className="text-[var(--color-muted)]">{fa.loginRequired}</p>
-          <Link
-            href={`${base}/login?callbackUrl=${encodeURIComponent(`${base}/checkout`)}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 font-medium text-[var(--color-primary-fg)]"
-          >
-            {fa.loginCta}
-          </Link>
+          <p className="text-muted-foreground">{fa.loginRequired}</p>
+          <Button asChild className="min-h-11 w-full">
+            <Link
+              href={`${base}/login?callbackUrl=${encodeURIComponent(`${base}/checkout`)}`}
+            >
+              {fa.loginCta}
+            </Link>
+          </Button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          <label className="flex min-h-11 items-start gap-3 text-sm text-[var(--color-fg)]">
-            <input
-              type="checkbox"
-              className="mt-1 size-5"
+        <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-lg border border-border bg-card/95 p-4 shadow-md backdrop-blur">
+          <div className="flex items-start gap-3 text-sm">
+            <Checkbox
+              id="checkout-consent"
               checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
+              onCheckedChange={(v) => setConsent(v === true)}
             />
-            <span>{STOREFRONT_CONSENT_LABEL_FA}</span>
-          </label>
+            <Label htmlFor="checkout-consent" className="leading-6">
+              {STOREFRONT_CONSENT_LABEL_FA}
+            </Label>
+          </div>
           {placeMutation.isError ? (
-            <p className="text-[var(--color-danger)]" role="alert">
-              {(placeMutation.error as Error).message || fa.networkError}
-            </p>
+            <ErrorState
+              description={
+                (placeMutation.error as Error).message || fa.networkError
+              }
+            />
           ) : null}
-          <button
+          <Button
             type="button"
-            disabled={lines.length === 0 || placeMutation.isPending}
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 font-medium text-[var(--color-primary-fg)] disabled:opacity-50"
+            disabled={lines.length === 0 || !consent || placeMutation.isPending}
+            className="min-h-11 w-full"
             onClick={() => placeMutation.mutate()}
           >
             {placeMutation.isPending ? fa.placingOrder : fa.placeOrder}
-          </button>
-          <p className="text-sm text-[var(--color-muted)]">
+          </Button>
+          <p className="text-sm text-muted-foreground">
             {fa.unpaidNote} · {fa.jalaliHint}
           </p>
         </div>

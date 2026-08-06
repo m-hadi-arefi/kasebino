@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/composites/page-header";
+import { StorefrontChrome } from "@/components/layout/storefront-chrome";
 import { auth } from "@/auth";
 import { isCustomerSession } from "@/infrastructure/auth/session-guard";
 import { STOREFRONT_UI_COPY_FA } from "@/modules/storefront/ui";
@@ -35,34 +36,34 @@ export default async function StorefrontCheckoutPage({
   if (!profile) notFound();
 
   const session = await auth();
+  const store = profile.store;
   const base = `/s/${encodeURIComponent(storeSlug)}`;
 
   return (
-    <main
-      lang="fa"
-      dir="rtl"
-      className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6"
+    <StorefrontChrome
+      storeSlug={storeSlug}
+      storeName={store.branding.displayName}
+      primaryColor={store.branding.primaryColor}
+      mode="public"
     >
-      <header className="flex flex-col gap-2">
-        <Link
-          href={base}
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          {fa.backHome}
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.checkoutTitle}
-        </h1>
-        <p className="text-sm text-[var(--color-muted)]">{fa.checkoutSubtitle}</p>
-      </header>
-
-      <CheckoutProviders>
-        <CheckoutClient
-          storeSlug={storeSlug}
-          storeId={profile.store.id}
-          isAuthenticated={isCustomerSession(session)}
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={fa.checkoutTitle}
+          description={fa.checkoutSubtitle}
+          breadcrumbs={[
+            { label: fa.backHome, href: base },
+            { label: fa.checkoutTitle },
+          ]}
         />
-      </CheckoutProviders>
-    </main>
+
+        <CheckoutProviders>
+          <CheckoutClient
+            storeSlug={storeSlug}
+            storeId={store.id}
+            isAuthenticated={isCustomerSession(session)}
+          />
+        </CheckoutProviders>
+      </div>
+    </StorefrontChrome>
   );
 }

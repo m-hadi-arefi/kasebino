@@ -3,6 +3,13 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { ErrorState } from "@/components/composites/error-state";
+import { FormSection } from "@/components/composites/form-section";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AUTH_UX_COPY_FA } from "@/infrastructure/auth/auth-ux-copy";
 import { csrfHeadersForBrowserFetch } from "@/infrastructure/security";
 
@@ -114,102 +121,106 @@ export function CustomerOtpLoginForm({ storeSlug }: CustomerOtpLoginFormProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
+    <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
+        <h1 className="text-2xl font-semibold text-foreground">
           {AUTH_UX_COPY_FA.customerTitle}
         </h1>
-        <p className="text-[var(--color-muted)]">{AUTH_UX_COPY_FA.customerHint}</p>
+        <p className="text-muted-foreground">{AUTH_UX_COPY_FA.customerHint}</p>
       </header>
 
       {step === "phone" ? (
         <form className="flex flex-col gap-4" onSubmit={onRequestOtp}>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{AUTH_UX_COPY_FA.phoneLabel}</span>
-            <input
-              dir="ltr"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder={AUTH_UX_COPY_FA.phonePlaceholder}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </label>
-          <label className="flex items-start gap-3 text-sm leading-6">
-            <input
-              type="checkbox"
-              className="mt-1 size-5 shrink-0"
+          <FormSection title={AUTH_UX_COPY_FA.phoneLabel}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="customer-phone">{AUTH_UX_COPY_FA.phoneLabel}</Label>
+              <Input
+                id="customer-phone"
+                dir="ltr"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder={AUTH_UX_COPY_FA.phonePlaceholder}
+                className="min-h-11 text-base"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+              />
+            </div>
+          </FormSection>
+          <div className="flex items-start gap-3 text-sm leading-6">
+            <Checkbox
+              id="customer-consent-phone"
               checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
+              onCheckedChange={(v) => setConsent(v === true)}
               required
             />
-            <span>{AUTH_UX_COPY_FA.consentLabel}</span>
-          </label>
-          <button
+            <Label htmlFor="customer-consent-phone" className="leading-6">
+              {AUTH_UX_COPY_FA.consentLabel}
+            </Label>
+          </div>
+          <Button
             type="submit"
             disabled={loading || !consent}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)] disabled:opacity-60"
+            className="min-h-11"
           >
             {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.requestOtp}
-          </button>
+          </Button>
         </form>
       ) : (
         <form className="flex flex-col gap-4" onSubmit={onVerifyOtp}>
-          <label className="flex items-start gap-3 text-sm leading-6">
-            <input
-              type="checkbox"
-              className="mt-1 size-5 shrink-0"
+          <div className="flex items-start gap-3 text-sm leading-6">
+            <Checkbox
+              id="customer-consent-otp"
               checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
+              onCheckedChange={(v) => setConsent(v === true)}
               required
             />
-            <span>{AUTH_UX_COPY_FA.consentLabel}</span>
-          </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{AUTH_UX_COPY_FA.otpLabel}</span>
-            <input
-              dir="ltr"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder={AUTH_UX_COPY_FA.otpPlaceholder}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base tracking-widest"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              maxLength={6}
-              required
-            />
-          </label>
+            <Label htmlFor="customer-consent-otp" className="leading-6">
+              {AUTH_UX_COPY_FA.consentLabel}
+            </Label>
+          </div>
+          <FormSection title={AUTH_UX_COPY_FA.otpLabel}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="customer-otp">{AUTH_UX_COPY_FA.otpLabel}</Label>
+              <Input
+                id="customer-otp"
+                dir="ltr"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder={AUTH_UX_COPY_FA.otpPlaceholder}
+                className="min-h-11 text-base tracking-widest"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                maxLength={6}
+                required
+              />
+            </div>
+          </FormSection>
           {devOtp ? (
-            <p className="text-sm text-[var(--color-muted)]" dir="ltr">
+            <p className="text-sm text-muted-foreground" dir="ltr">
               devOtp: {devOtp}
             </p>
           ) : null}
-          <button
+          <Button
             type="submit"
             disabled={loading || !consent}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)] disabled:opacity-60"
+            className="min-h-11"
           >
             {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.verifyOtp}
-          </button>
+          </Button>
         </form>
       )}
 
       {message ? (
-        <p className="text-sm text-[var(--color-fg)]" role="status">
-          {message}
-        </p>
+        <Alert>
+          <AlertDescription role="status">{message}</AlertDescription>
+        </Alert>
       ) : null}
-      {error ? (
-        <p className="text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <ErrorState title="خطا" description={error} /> : null}
 
-      <p className="text-sm text-[var(--color-muted)]">
+      <p className="text-sm text-muted-foreground">
         {AUTH_UX_COPY_FA.pickupOnlyNote}
       </p>
-    </main>
+    </div>
   );
 }

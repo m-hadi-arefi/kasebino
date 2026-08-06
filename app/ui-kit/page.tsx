@@ -1,7 +1,11 @@
+import { EmptyState } from "@/components/composites/empty-state";
+import { PageHeader } from "@/components/composites/page-header";
 import { PhoneKeypad } from "@/components/composites/phone-keypad";
-import { TomanDisplay } from "@/components/composites/toman-display";
+import { StatCard } from "@/components/composites/stat-card";
 import { StatusChip } from "@/components/composites/status-chip";
+import { TomanDisplay } from "@/components/composites/toman-display";
 import { JalaliDateText } from "@/components/composites/jalali-date-text";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,34 +27,45 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
+import { Info, TrendingUp } from "lucide-react";
+
 import { UiKitToastButton } from "./ui-kit-toast-button";
 
 /**
- * ADR-114 — Persian RTL smoke page for shadcn primitives + Iranian composites.
- * Not a marketing landing; kit proof only.
+ * ADR-114 / ADR-125 — Persian RTL smoke page for shadcn primitives + composites.
  */
 export default function UiKitPage() {
   return (
     <main
       dir="rtl"
       lang="fa"
-      className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-8 bg-background px-4 py-8 text-foreground"
+      className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-8 overflow-x-clip bg-background px-4 py-8 text-foreground"
     >
       <Toaster />
-      <header className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">کاسبینو · کتابخانهٔ رابط کاربری</p>
-        <h1 className="text-2xl font-semibold tracking-tight">نمونهٔ پریمیتیو و کامپوزیت</h1>
-        <p className="text-muted-foreground">
-          چیدمان راست‌به‌چپ، تایپوگرافی فارسی، اهداف لمسی بزرگ برای اندروید فروشگاهی.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="کاسبینو · کتابخانهٔ رابط کاربری"
+        title="نمونهٔ پریمیتیو و کامپوزیت"
+        description="چیدمان راست‌به‌چپ، تایپوگرافی فارسی، اهداف لمسی بزرگ برای اندروید فروشگاهی."
+      />
 
-      <Tabs defaultValue="primitives">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="primitives">پریمیتیوها</TabsTrigger>
-          <TabsTrigger value="iranian">ایرانی</TabsTrigger>
+      <Tabs defaultValue="primitives" className="w-full min-w-0">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
+          <TabsTrigger value="primitives" className="w-full">
+            پریمیتیوها
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="w-full">
+            بازخورد
+          </TabsTrigger>
+          <TabsTrigger value="composites" className="w-full">
+            کامپوزیت‌ها
+          </TabsTrigger>
+          <TabsTrigger value="iranian" className="w-full">
+            ایرانی
+          </TabsTrigger>
         </TabsList>
+
         <TabsContent value="primitives" className="flex flex-col gap-6">
           <Card>
             <CardHeader>
@@ -107,6 +122,56 @@ export default function UiKitPage() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="feedback" className="flex flex-col gap-6">
+          <Alert>
+            <Info className="size-4" aria-hidden />
+            <AlertTitle>اطلاع‌رسانی</AlertTitle>
+            <AlertDescription>
+              نمونهٔ هشدار خنثی برای راهنمایی کاربر در جریان ثبت‌نام.
+            </AlertDescription>
+          </Alert>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>اسکلت بارگذاری</CardTitle>
+              <CardDescription>Placeholder تا رسیدن داده از API</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-24 w-full rounded-lg" />
+            </CardContent>
+          </Card>
+
+          <Tabs defaultValue="tab-a">
+            <TabsList>
+              <TabsTrigger value="tab-a">خلاصه</TabsTrigger>
+              <TabsTrigger value="tab-b">جزئیات</TabsTrigger>
+            </TabsList>
+            <TabsContent value="tab-a" className="text-sm text-muted-foreground">
+              محتوای تب اول — مثلاً KPI روزانه.
+            </TabsContent>
+            <TabsContent value="tab-b" className="text-sm text-muted-foreground">
+              محتوای تب دوم — فهرست تراکنش‌ها.
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="composites" className="flex flex-col gap-6">
+          <StatCard
+            title="فروش امروز"
+            value={<TomanDisplay toman={4_250_000} />}
+            description="تقویم شمسی · Asia/Tehran"
+            trend="+۱۲٪ نسبت به دیروز"
+            icon={TrendingUp}
+          />
+
+          <EmptyState
+            title="هنوز سفارشی ثبت نشده"
+            description="وقتی مشتری از ویترین سفارش دهد، اینجا نمایش داده می‌شود."
+          />
         </TabsContent>
 
         <TabsContent value="iranian" className="flex flex-col gap-6">

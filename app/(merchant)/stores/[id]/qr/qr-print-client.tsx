@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import { PageHeader } from "@/components/composites/page-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   STORE_QR_PRINT_UI_COPY_FA,
   fetchStoreQrMeta,
@@ -41,36 +45,37 @@ export function StoreQrPrintClient({ storeId }: Props) {
     : null;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6 print:max-w-none print:px-8 print:py-10">
-      <header className="flex flex-col gap-2 print:items-center print:text-center">
-        <div className="flex flex-wrap gap-3 print:hidden">
-          <Link
-            href="/dashboard"
-            className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-          >
-            {fa.backDashboard}
-          </Link>
-          <Link
-            href={`/stores/${encodeURIComponent(storeId)}/location`}
-            className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-          >
-            {fa.backLocation}
-          </Link>
-        </div>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.title}
-        </h1>
-        <p className="text-[var(--color-muted)] print:text-base">{fa.subtitle}</p>
-      </header>
+    <div className="flex flex-col gap-6 print:max-w-none">
+      <PageHeader
+        className="print:items-center print:text-center"
+        title={fa.title}
+        description={fa.subtitle}
+        breadcrumbs={[
+          { label: "فروشگاه‌ها", href: "/stores" },
+          { label: fa.title },
+        ]}
+        actions={
+          <div className="flex flex-wrap gap-2 print:hidden">
+            <Button variant="link" size="sm" asChild className="h-auto p-0">
+              <Link href={`/stores/${encodeURIComponent(storeId)}/location`}>
+                {fa.backLocation}
+              </Link>
+            </Button>
+          </div>
+        }
+      />
 
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--color-danger)] print:hidden">
-        {error}
-      </p>
+      {error ? (
+        <Alert variant="destructive" className="print:hidden">
+          <AlertDescription aria-live="polite">{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <section
-        className="flex flex-col items-center gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-8 print:border-0 print:bg-transparent"
+      <Card
+        className="print:border-0 print:shadow-none"
         aria-label={fa.title}
       >
+        <CardContent className="flex flex-col items-center gap-4 py-8 print:bg-transparent">
         {dataUrl ? (
           <img
             src={dataUrl}
@@ -80,35 +85,36 @@ export function StoreQrPrintClient({ storeId }: Props) {
             className="h-auto w-[min(70vw,280px)] print:w-[70mm]"
           />
         ) : (
-          <p className="text-sm text-[var(--color-muted)]">{fa.loading}</p>
+          <p className="text-sm text-muted-foreground">{fa.loading}</p>
         )}
-        <p className="text-center text-lg font-medium text-[var(--color-fg)]">
+        <p className="text-center text-lg font-medium text-foreground">
           {fa.stickerCta}
         </p>
         {meta ? (
-          <p className="break-all text-center text-xs text-[var(--color-muted)] print:text-sm">
-            <span className="block font-medium text-[var(--color-fg)]">
+          <p className="break-all text-center text-xs text-muted-foreground print:text-sm">
+            <span className="block font-medium text-foreground">
               {fa.targetLabel}
             </span>
             {meta.targetUrl}
           </p>
         ) : null}
-      </section>
+        </CardContent>
+      </Card>
 
-      <ul className="flex flex-col gap-2 text-sm text-[var(--color-muted)] print:gap-3 print:text-base">
+      <ul className="flex flex-col gap-2 text-sm text-muted-foreground print:gap-3 print:text-base">
         <li>{fa.stickerWindow}</li>
         <li>{fa.stickerCounter}</li>
         <li className="print:hidden">{fa.downloadHint}</li>
       </ul>
 
-      <button
+      <Button
         type="button"
-        className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 font-medium text-[var(--color-primary-fg)] print:hidden"
+        className="print:hidden"
         onClick={() => window.print()}
         disabled={!meta}
       >
         {fa.printCta}
-      </button>
-    </main>
+      </Button>
+    </div>
   );
 }

@@ -4,6 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { LoadingState } from "@/components/composites/loading-state";
+import { SectionHeader } from "@/components/composites/section-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   CRM_UI_COPY_FA,
   fetchMerchantStores,
@@ -33,45 +37,44 @@ export function DashboardCustomersWidget() {
     enabled: Boolean(storeId),
   });
 
+  const loading = storesQuery.isLoading || segmentsQuery.isLoading;
+
   return (
-    <li className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-      <p className="font-medium text-[var(--color-fg)]">
-        {fa.dashboardCustomersTitle}
-      </p>
-      <p className="mt-1 text-sm text-[var(--color-muted)]">
-        {fa.dashboardCustomersHint}
-      </p>
+    <div className="flex flex-col gap-3">
+      <SectionHeader
+        title={fa.dashboardCustomersTitle}
+        description={fa.dashboardCustomersHint}
+        action={
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/customers">{fa.dashboardOpenCrm}</Link>
+          </Button>
+        }
+      />
+      <Card>
+        <CardContent className="pt-6">
+          {loading ? (
+            <LoadingState rows={1} label={fa.dashboardLoading} />
+          ) : null}
 
-      {storesQuery.isLoading || segmentsQuery.isLoading ? (
-        <p className="mt-2 text-sm text-[var(--color-muted)]" aria-live="polite">
-          {fa.dashboardLoading}
-        </p>
-      ) : null}
+          {!storesQuery.isLoading && (storesQuery.data?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {fa.dashboardEmptyStore}
+            </p>
+          ) : null}
 
-      {!storesQuery.isLoading && (storesQuery.data?.length ?? 0) === 0 ? (
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          {fa.dashboardEmptyStore}
-        </p>
-      ) : null}
-
-      {segmentsQuery.data ? (
-        <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-          <p>فعال: {segmentsQuery.data.totalActive}</p>
-          <p>
-            {segmentLabelFa("new")}: {segmentsQuery.data.counts.new} ·{" "}
-            {segmentLabelFa("returning")}:{" "}
-            {segmentsQuery.data.counts.returning} ·{" "}
-            {segmentLabelFa("lapsed")}: {segmentsQuery.data.counts.lapsed}
-          </p>
-        </div>
-      ) : null}
-
-      <Link
-        href="/customers"
-        className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--color-primary)]"
-      >
-        {fa.dashboardOpenCrm}
-      </Link>
-    </li>
+          {segmentsQuery.data ? (
+            <div className="flex flex-col gap-1 text-sm text-foreground">
+              <p>فعال: {segmentsQuery.data.totalActive}</p>
+              <p className="text-muted-foreground">
+                {segmentLabelFa("new")}: {segmentsQuery.data.counts.new} ·{" "}
+                {segmentLabelFa("returning")}:{" "}
+                {segmentsQuery.data.counts.returning} ·{" "}
+                {segmentLabelFa("lapsed")}: {segmentsQuery.data.counts.lapsed}
+              </p>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

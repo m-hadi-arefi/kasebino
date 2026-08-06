@@ -1,8 +1,10 @@
-import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/composites/page-header";
+import { StorefrontChrome } from "@/components/layout/storefront-chrome";
+import { Button } from "@/components/ui/button";
 import { STOREFRONT_UI_COPY_FA } from "@/modules/storefront/ui";
 import { loadStorefrontProduct } from "@/modules/storefront/ui/load";
 
@@ -40,50 +42,42 @@ export default async function StorefrontProductPage({
 
   const { product, profile } = data;
   const base = `/s/${encodeURIComponent(storeSlug)}`;
-  const accent = profile.store.branding.primaryColor;
-  const accentStyle = accent
-    ? ({ ["--color-primary"]: accent } as CSSProperties)
-    : undefined;
+  const store = profile.store;
 
   return (
-    <main
-      className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6"
-      style={accentStyle}
+    <StorefrontChrome
+      storeSlug={storeSlug}
+      storeName={store.branding.displayName}
+      primaryColor={store.branding.primaryColor}
+      mode="public"
     >
-      <header className="flex flex-col gap-2">
-        <Link
-          href={`${base}/catalog`}
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          {fa.backCatalog}
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {product.name}
-        </h1>
-        <p className="text-lg font-medium text-[var(--color-fg)]">
-          {product.priceDisplayToman}
-        </p>
-        <p className="text-sm text-[var(--color-muted)]">
-          {product.inStock
-            ? `${fa.availableQty}: ${product.availableQuantity}`
-            : fa.outOfStock}
-        </p>
-      </header>
+      <div className="flex flex-col gap-6 pb-4">
+        <PageHeader
+          title={product.name}
+          description={
+            product.inStock
+              ? `${fa.availableQty}: ${product.availableQuantity} · ${product.priceDisplayToman}`
+              : `${fa.outOfStock} · ${product.priceDisplayToman}`
+          }
+          breadcrumbs={[
+            { label: fa.backCatalog, href: `${base}/catalog` },
+            { label: product.name },
+          ]}
+        />
 
-      {product.description ? (
-        <p className="text-[var(--color-fg)] leading-7">{product.description}</p>
-      ) : null}
+        {product.description ? (
+          <p className="leading-7 text-foreground">{product.description}</p>
+        ) : null}
 
-      <p className="text-sm text-[var(--color-muted)]">{fa.fulfillmentLabel}</p>
+        <p className="text-sm text-muted-foreground">{fa.fulfillmentLabel}</p>
 
-      <AddToCartButton storeSlug={storeSlug} product={product} />
-
-      <Link
-        href={`${base}/checkout`}
-        className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5"
-      >
-        {fa.checkoutNav}
-      </Link>
-    </main>
+        <div className="sticky bottom-4 z-10 space-y-3 rounded-lg border border-border bg-card/95 p-4 shadow-md backdrop-blur">
+          <AddToCartButton storeSlug={storeSlug} product={product} />
+          <Button asChild variant="outline" className="min-h-11 w-full">
+            <Link href={`${base}/checkout`}>{fa.checkoutNav}</Link>
+          </Button>
+        </div>
+      </div>
+    </StorefrontChrome>
   );
 }

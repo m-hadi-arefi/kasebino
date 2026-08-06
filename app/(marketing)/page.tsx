@@ -39,11 +39,11 @@ function SectionIntro({
   return (
     <header className="mb-10 max-w-2xl">
       <p className="mb-2 text-sm font-medium text-primary">{eyebrow}</p>
-      <h2 className="text-balance text-2xl font-bold tracking-tight text-fg sm:text-3xl">
+      <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
         {headline}
       </h2>
       {support ? (
-        <p className="mt-3 text-pretty text-base text-muted sm:text-lg">{support}</p>
+        <p className="mt-3 text-pretty text-base text-muted-foreground sm:text-lg">{support}</p>
       ) : null}
     </header>
   );
@@ -51,7 +51,7 @@ function SectionIntro({
 
 export default function MarketingHomePage() {
   return (
-    <div dir="rtl" lang="fa" className="bg-bg text-fg">
+    <div dir="rtl" lang="fa" className="bg-background text-foreground">
       <a
         href="#features"
         className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-fg"
@@ -59,7 +59,7 @@ export default function MarketingHomePage() {
         {copy.skipToContent}
       </a>
 
-      <header className="sticky top-0 z-20 border-b border-border/80 bg-surface/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-20 border-b border-border/80 bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <p className="text-lg font-bold tracking-tight text-primary">{copy.brand}</p>
           <nav
@@ -68,13 +68,13 @@ export default function MarketingHomePage() {
           >
             <Link
               href="#features"
-              className="hidden min-h-11 items-center px-2 text-sm text-muted sm:inline-flex"
+              className="hidden min-h-11 items-center px-2 text-sm text-muted-foreground sm:inline-flex"
             >
               {copy.navFeatures}
             </Link>
             <Link
               href="#pricing"
-              className="hidden min-h-11 items-center px-2 text-sm text-muted sm:inline-flex"
+              className="hidden min-h-11 items-center px-2 text-sm text-muted-foreground sm:inline-flex"
             >
               {copy.navPricing}
             </Link>
@@ -138,7 +138,7 @@ export default function MarketingHomePage() {
           </div>
         </section>
 
-        <SectionShell id="features" className="bg-surface">
+        <SectionShell id="features" className="bg-muted/30">
           <SectionIntro
             eyebrow={copy.featuresEyebrow}
             headline={copy.featuresHeadline}
@@ -147,8 +147,8 @@ export default function MarketingHomePage() {
           <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
             {copy.features.map((feature) => (
               <li key={feature.id} className="border-s-2 border-primary ps-4">
-                <h3 className="text-lg font-semibold text-fg">{feature.title}</h3>
-                <p className="mt-2 text-muted">{feature.body}</p>
+                <h3 className="text-lg font-semibold text-foreground">{feature.title}</h3>
+                <p className="mt-2 text-muted-foreground">{feature.body}</p>
               </li>
             ))}
           </ul>
@@ -171,14 +171,14 @@ export default function MarketingHomePage() {
                 </span>
                 <div>
                   <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-muted">{item.body}</p>
+                  <p className="mt-2 text-muted-foreground">{item.body}</p>
                 </div>
               </li>
             ))}
           </ol>
         </SectionShell>
 
-        <SectionShell id="how-it-works" className="bg-surface">
+        <SectionShell id="how-it-works" className="bg-muted/30">
           <SectionIntro
             eyebrow={copy.howEyebrow}
             headline={copy.howHeadline}
@@ -189,7 +189,7 @@ export default function MarketingHomePage() {
               <li key={step.step}>
                 <p className="text-3xl font-black text-primary/25">{step.step}</p>
                 <h3 className="mt-2 text-lg font-semibold">{step.title}</h3>
-                <p className="mt-2 text-muted">{step.body}</p>
+                <p className="mt-2 text-muted-foreground">{step.body}</p>
               </li>
             ))}
           </ol>
@@ -224,13 +224,13 @@ export default function MarketingHomePage() {
           </ul>
         </SectionShell>
 
-        <SectionShell id="pricing" className="bg-surface">
+        <SectionShell id="pricing" className="bg-muted/30">
           <SectionIntro
             eyebrow={copy.pricingEyebrow}
             headline={copy.pricingHeadline}
             support={copy.pricingNote}
           />
-          <p className="max-w-2xl text-pretty text-lg leading-relaxed text-fg">
+          <p className="max-w-2xl text-pretty text-lg leading-relaxed text-foreground">
             {copy.pricingBody}
           </p>
         </SectionShell>
@@ -247,12 +247,12 @@ export default function MarketingHomePage() {
                   <span>{item.q}</span>
                   <span
                     aria-hidden
-                    className="text-muted transition-transform group-open:-rotate-180"
+                    className="text-muted-foreground transition-transform group-open:-rotate-180"
                   >
                     ▾
                   </span>
                 </summary>
-                <p className="mt-3 max-w-2xl text-muted">{item.a}</p>
+                <p className="mt-3 max-w-2xl text-muted-foreground">{item.a}</p>
               </details>
             ))}
           </div>
@@ -292,15 +292,15 @@ export default function MarketingHomePage() {
         </SectionShell>
       </main>
 
-      <footer id="footer" className="border-t border-border bg-surface px-4 py-12 sm:px-6">
+      <footer id="footer" className="border-t border-border bg-background px-4 py-12 sm:px-6">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:flex-row sm:justify-between">
           <div>
             <p className="text-xl font-bold">{copy.footerCompany}</p>
-            <p className="mt-2 text-muted">{copy.footerTagline}</p>
+            <p className="mt-2 text-muted-foreground">{copy.footerTagline}</p>
           </div>
           <div>
             <p className="mb-3 text-sm font-semibold">{copy.footerProduct}</p>
-            <ul className="space-y-2 text-muted">
+            <ul className="space-y-2 text-muted-foreground">
               <li>
                 <Link className="inline-flex min-h-11 items-center" href="#features">
                   {copy.footerFeatures}
@@ -327,7 +327,7 @@ export default function MarketingHomePage() {
             </ul>
           </div>
         </div>
-        <p className="mx-auto mt-10 max-w-5xl text-sm text-muted">
+        <p className="mx-auto mt-10 max-w-5xl text-sm text-muted-foreground">
           © {new Date().getFullYear()} {copy.footerCompany}. {copy.footerRights}
         </p>
       </footer>

@@ -162,9 +162,15 @@ describe("ADR-087 Customer Dashboard Architecture", () => {
     expect(homeClient).toMatch(/logout|خروج/);
     expect(homeClient).toMatch(/تومان|priceUnit|moneyHint/);
     expect(homeClient).toMatch(/شمسی|جلالی|تهران|jalaliHint/);
-    expect(homeClient).toMatch(/orders|سفارش|navOrders/);
-    expect(homeClient).toMatch(/wallet|امتیاز|navWallet/);
+    expect(homeClient).toMatch(/StatCard|PageHeader|StorefrontChrome|membershipScopedHint/);
     expect(homeClient).not.toMatch(/delivery|courier/i);
+
+    const chrome = readFileSync(
+      join(root, "src/components/layout/storefront-chrome.tsx"),
+      "utf8",
+    );
+    expect(chrome).toMatch(/orders|سفارش|dashboard\/orders/);
+    expect(chrome).toMatch(/wallet|کیف|dashboard\/wallet/);
     expect(ordersClient).toMatch(/سفارش|ordersTitle/);
     expect(ordersClient).toMatch(/ordersEmpty|هنوز سفارشی|سفارشی ندارید/);
     expect(ordersClient).toMatch(/پیکاپ|حضوری|pickupOnlyHint/);

@@ -3,6 +3,12 @@
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 
+import { FormSection } from "@/components/composites/form-section";
+import { PageHeader } from "@/components/composites/page-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   STORE_LOCATION_UI_COPY_FA,
   fetchMerchantStore,
@@ -87,126 +93,110 @@ export function StoreLocationForm({ storeId }: Props) {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
-      <header className="flex flex-col gap-2">
-        <Link
-          href="/dashboard"
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          {fa.backDashboard}
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {fa.locationTitle}
-        </h1>
-        <p className="text-[var(--color-muted)]">{fa.locationSubtitle}</p>
-        {store ? (
-          <p className="text-sm text-[var(--color-muted)]">
-            {store.branding.displayName} · /s/{store.slug}
-          </p>
-        ) : null}
-      </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={fa.locationTitle}
+        description={
+          store
+            ? `${fa.locationSubtitle} · ${store.branding.displayName} · /s/${store.slug}`
+            : fa.locationSubtitle
+        }
+        breadcrumbs={[
+          { label: "فروشگاه‌ها", href: "/stores" },
+          { label: fa.locationTitle },
+        ]}
+      />
 
-      <p aria-live="polite" className="min-h-6 text-sm text-[var(--color-danger)]">
-        {error}
-      </p>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription aria-live="polite">{error}</AlertDescription>
+        </Alert>
+      ) : null}
       {success ? (
-        <p
-          aria-live="polite"
-          className="text-sm text-[var(--color-success)]"
-        >
-          {success}
-        </p>
+        <Alert>
+          <AlertDescription aria-live="polite">{success}</AlertDescription>
+        </Alert>
       ) : null}
 
       <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span>{fa.line1Label}</span>
-          <input
-            dir="rtl"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={line1}
-            onChange={(ev) => setLine1(ev.target.value)}
-            required
-            autoComplete="street-address"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span>{fa.line2Label}</span>
-          <input
-            dir="rtl"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={line2}
-            onChange={(ev) => setLine2(ev.target.value)}
-          />
-        </label>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span>{fa.cityLabel}</span>
-            <input
+        <FormSection title={fa.locationTitle}>
+          <div className="space-y-2">
+            <Label>{fa.line1Label}</Label>
+            <Input
               dir="rtl"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={city}
-              onChange={(ev) => setCity(ev.target.value)}
+              value={line1}
+              onChange={(ev) => setLine1(ev.target.value)}
               required
+              autoComplete="street-address"
             />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span>{fa.provinceLabel}</span>
-            <input
+          </div>
+          <div className="space-y-2">
+            <Label>{fa.line2Label}</Label>
+            <Input
               dir="rtl"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={province}
-              onChange={(ev) => setProvince(ev.target.value)}
-              required
+              value={line2}
+              onChange={(ev) => setLine2(ev.target.value)}
             />
-          </label>
-        </div>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span>{fa.postalCodeLabel}</span>
-          <input
-            inputMode="numeric"
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-            value={postalCode}
-            onChange={(ev) => setPostalCode(ev.target.value)}
-          />
-        </label>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span>{fa.latitudeLabel}</span>
-            <input
-              inputMode="decimal"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={latitude}
-              onChange={(ev) => setLatitude(ev.target.value)}
-              required
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{fa.cityLabel}</Label>
+              <Input
+                dir="rtl"
+                value={city}
+                onChange={(ev) => setCity(ev.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{fa.provinceLabel}</Label>
+              <Input
+                dir="rtl"
+                value={province}
+                onChange={(ev) => setProvince(ev.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{fa.postalCodeLabel}</Label>
+            <Input
+              inputMode="numeric"
+              value={postalCode}
+              onChange={(ev) => setPostalCode(ev.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span>{fa.longitudeLabel}</span>
-            <input
-              inputMode="decimal"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={longitude}
-              onChange={(ev) => setLongitude(ev.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <button
-          type="submit"
-          disabled={pending || !store}
-          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 font-medium text-[var(--color-primary-fg)] disabled:opacity-60"
-        >
-          {pending ? fa.saving : fa.saveCta}
-        </button>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{fa.latitudeLabel}</Label>
+              <Input
+                inputMode="decimal"
+                value={latitude}
+                onChange={(ev) => setLatitude(ev.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{fa.longitudeLabel}</Label>
+              <Input
+                inputMode="decimal"
+                value={longitude}
+                onChange={(ev) => setLongitude(ev.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <Button type="submit" disabled={pending || !store} className="w-full">
+            {pending ? fa.saving : fa.saveCta}
+          </Button>
+        </FormSection>
       </form>
 
-      <Link
-        href={`/stores/${encodeURIComponent(storeId)}/qr`}
-        className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
-      >
-        {fa.qrNav}
-      </Link>
-    </main>
+      <Button variant="outline" asChild>
+        <Link href={`/stores/${encodeURIComponent(storeId)}/qr`}>
+          {fa.qrNav}
+        </Link>
+      </Button>
+    </div>
   );
 }

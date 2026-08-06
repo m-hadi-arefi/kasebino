@@ -2,6 +2,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ADMIN_UI_COPY_FA,
   fetchAdminAudit,
@@ -17,69 +28,57 @@ export function AdminAuditClient() {
   });
 
   return (
-    <section aria-label="فهرست حسابرسی" className="flex flex-col gap-3">
+    <section aria-label="فهرست حسابرسی" className="flex flex-col gap-4">
       {audit.isLoading ? (
-        <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
-          {fa.auditLoading}
-        </p>
+        <LoadingState rows={4} label={fa.auditLoading} />
       ) : null}
 
       {audit.error ? (
-        <p className="text-sm text-[var(--color-danger)]" role="alert">
-          {fa.auditError}
-        </p>
+        <ErrorState
+          description={fa.auditError}
+          onRetry={() => void audit.refetch()}
+        />
       ) : null}
 
-      {!audit.isLoading && (audit.data?.length ?? 0) === 0 ? (
-        <p className="text-sm text-[var(--color-muted)]">{fa.auditEmpty}</p>
+      {!audit.isLoading && !audit.error && (audit.data?.length ?? 0) === 0 ? (
+        <EmptyState title={fa.auditEmpty} />
       ) : null}
 
       {(audit.data?.length ?? 0) > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[24rem] border-collapse text-start text-sm">
-            <thead>
-              <tr className="border-b border-[var(--color-border)]">
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  {fa.timeCol}
-                </th>
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  {fa.actionCol}
-                </th>
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  {fa.merchantCol}
-                </th>
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  {fa.resultCol}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="overflow-x-auto rounded-md border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{fa.timeCol}</TableHead>
+                <TableHead>{fa.actionCol}</TableHead>
+                <TableHead>{fa.merchantCol}</TableHead>
+                <TableHead>{fa.resultCol}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {audit.data!.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-[var(--color-border)]"
-                >
-                  <td className="px-3 py-3 text-[var(--color-muted)]">
+                <TableRow key={row.id}>
+                  <TableCell className="text-muted-foreground">
                     {formatAdminJalali(row.createdAt)}
-                  </td>
-                  <td className="px-3 py-3 text-[var(--color-fg)]">
+                  </TableCell>
+                  <TableCell>
                     {row.action}
                     {row.reasonFa ? (
-                      <span className="mt-1 block text-xs text-[var(--color-muted)]">
+                      <span className="mt-1 block text-xs text-muted-foreground">
                         {row.reasonFa}
                       </span>
                     ) : null}
-                  </td>
-                  <td className="px-3 py-3 text-[var(--color-muted)]">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {row.merchantId ?? "—"}
-                  </td>
-                  <td className="px-3 py-3 text-[var(--color-muted)]">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {row.result}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ) : null}
     </section>

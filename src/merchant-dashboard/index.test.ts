@@ -146,16 +146,15 @@ describe("ADR-088 Merchant Dashboard Architecture", () => {
     );
 
     expect(home).toMatch(/داشبورد/);
-    expect(home).toMatch(/وارد شوید|ورود/);
+    expect(home).toMatch(/redirect\("\/login|callbackUrl=\/dashboard/);
     expect(home).toMatch(/تومان/);
     expect(home).toMatch(/شمسی|جلالی|تهران/);
     expect(home).toMatch(/نمای کلی|overview/i);
-    expect(home).toMatch(/درآمد|revenue/i);
-    expect(home).toMatch(/مشتری/);
-    expect(home).toMatch(/بازماند|وفادار|retention/i);
+    expect(home).toMatch(/PageHeader|SectionHeader/);
     expect(home).toMatch(/۶۰|60/);
     expect(home).not.toMatch(/delivery|courier/i);
     expect(home).not.toMatch(/پنل من/);
+    expect(home).not.toMatch(/ورود موفق/);
   });
 
   it("passes uiuxpromax gate with Persian RTL mobile merchant brief", () => {

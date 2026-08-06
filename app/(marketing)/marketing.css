@@ -46,10 +46,10 @@
 
 @keyframes mos-mkt-drift {
   from {
-    transform: scale(1.02) translate3d(0, 0, 0);
+    transform: scale(1.04);
   }
   to {
-    transform: scale(1.06) translate3d(-1.2%, -0.8%, 0);
+    transform: scale(1.08);
   }
 }
 

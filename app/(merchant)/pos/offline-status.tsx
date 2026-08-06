@@ -15,6 +15,9 @@ import {
 } from "@/pos-offline/browser-queue";
 import { POS_CONSENT_NOTICE_VERSION } from "@/modules/pos/ui/copy";
 import { formatPosToman } from "@/modules/pos/ui/format";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 /**
  * Persian RTL offline / queue status for merchant staff POS (ADR-024 / ADR-105).
@@ -120,95 +123,95 @@ export function StaffOfflineStatus() {
   });
 
   return (
-    <section
-      role="status"
-      aria-live="polite"
-      aria-label={POS_OFFLINE_COPY_FA.regionLabel}
-      className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
-    >
-      <p className="text-sm text-[var(--color-fg)]">{banner}</p>
+    <Card role="status" aria-live="polite" aria-label={POS_OFFLINE_COPY_FA.regionLabel}>
+      <CardContent className="flex flex-col gap-2 pt-4">
+      <p className="text-sm text-foreground">{banner}</p>
       {(queuedCount > 0 || rejected.length > 0) && (
-        <p className="text-xs text-[var(--color-muted)]">
+        <p className="text-xs text-muted-foreground">
           {POS_OFFLINE_COPY_FA.queuedHeading}: {queuedCount}
           {rejected.length > 0
             ? ` · ${POS_OFFLINE_COPY_FA.rejectedHeading}: ${rejected.length}`
             : ""}
         </p>
       )}
-      <p className="text-xs text-[var(--color-muted)]">
+      <p className="text-xs text-muted-foreground">
         {POS_OFFLINE_COPY_FA.tomanNote}
       </p>
       {flash ? (
-        <p className="text-xs text-[var(--color-fg)]" role="status">
-          {flash}
-        </p>
+        <Alert>
+          <AlertDescription role="status">{flash}</AlertDescription>
+        </Alert>
       ) : null}
       {!online || queuedCount > 0 || rejected.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
-            className="inline-flex min-h-11 w-fit items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5 text-sm text-[var(--color-fg)]"
+            variant="outline"
+            size="sm"
             onClick={() => setReviewOpen((v) => !v)}
           >
             {POS_OFFLINE_INSTALL_UX.copyFa.reviewQueueCta}
-          </button>
+          </Button>
           {online && queuedCount > 0 ? (
-            <button
+            <Button
               type="button"
+              size="sm"
               disabled={syncing}
-              className="inline-flex min-h-11 w-fit items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm text-[var(--color-primary-fg)] disabled:opacity-60"
               onClick={() => void flush()}
             >
               {syncing
                 ? POS_OFFLINE_COPY_FA.syncing
                 : POS_OFFLINE_COPY_FA.retrySyncCta}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}
 
       {reviewOpen ? (
         <div
-          className="mt-2 flex flex-col gap-3 border-t border-[var(--color-border)] pt-3"
+          className="mt-2 flex flex-col gap-3 border-t border-border pt-3"
           role="region"
           aria-label={POS_OFFLINE_COPY_FA.rejectedHeading}
         >
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-[var(--color-fg)]">
+            <h3 className="text-sm font-semibold text-foreground">
               {POS_OFFLINE_COPY_FA.rejectedHeading}
             </h3>
-            <button
+            <Button
               type="button"
-              className="inline-flex min-h-11 items-center px-2 text-sm text-[var(--color-muted)]"
+              variant="ghost"
+              size="sm"
               onClick={() => setReviewOpen(false)}
             >
               {POS_OFFLINE_COPY_FA.closeReviewCta}
-            </button>
+            </Button>
           </div>
           {rejected.length === 0 ? (
-            <p className="text-sm text-[var(--color-muted)]">
+            <p className="text-sm text-muted-foreground">
               {POS_OFFLINE_COPY_FA.emptyRejected}
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
               {rejected.map((draft) => (
-                <li
-                  key={draft.id}
-                  className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm"
-                >
-                  <p className="text-[var(--color-fg)]">
+                <li key={draft.id}>
+                  <Card>
+                    <CardContent className="py-3 text-sm">
+                  <p className="text-foreground">
                     {POS_OFFLINE_COPY_FA.stockRejected}
                   </p>
-                  <p className="text-xs text-[var(--color-muted)]">
+                  <p className="text-xs text-muted-foreground">
                     {draft.lines.map((l) => l.productName).join("، ")} —{" "}
                     {formatPosToman(draft.totalAmountMinor)}
                   </p>
+                    </CardContent>
+                  </Card>
                 </li>
               ))}
             </ul>
           )}
         </div>
       ) : null}
-    </section>
+      </CardContent>
+    </Card>
   );
 }

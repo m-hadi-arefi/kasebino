@@ -1,9 +1,11 @@
 /*
- * MerchantOS design tokens (ADR-020).
+ * MerchantOS design tokens (ADR-020 / ADR-125).
  * Direction: modern Iranian retail utility — daylight shop-counter clarity.
  * Avoid purple-on-white AI defaults and cream/terracotta clichés.
  */
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
 
 @source "../app/**/*.{ts,tsx}";
 @source "../src/**/*.{ts,tsx}";
@@ -25,6 +27,7 @@
   --mos-radius-md: 0.5rem;
   --mos-radius-lg: 0.75rem;
   --mos-shadow-sm: 0 1px 2px rgb(20 32 51 / 0.06);
+  --mos-shadow-md: 0 4px 12px rgb(20 32 51 / 0.08);
 
   /* Design-system.md public CSS variables */
   --color-bg: var(--mos-bg);
@@ -41,6 +44,7 @@
   --radius-md: var(--mos-radius-md);
   --radius-lg: var(--mos-radius-lg);
   --shadow-sm: var(--mos-shadow-sm);
+  --shadow-md: var(--mos-shadow-md);
 
   /* Typography — Persian stack (Vazirmatn via next/font) */
   --font-sans: var(--font-vazirmatn), "Vazirmatn", "Tahoma", sans-serif;
@@ -53,7 +57,7 @@
   --density-pos-tap-min: 2.75rem; /* 44px */
   --density-analytical-tap-min: 2.5rem;
 
-  /* shadcn-compatible aliases (ADR-114) */
+  /* shadcn-compatible aliases (ADR-114 / ADR-125) */
   --background: var(--color-bg);
   --foreground: var(--color-fg);
   --card: var(--color-surface);
@@ -74,6 +78,16 @@
   --input: var(--color-border);
   --ring: var(--color-primary);
   --radius: var(--radius-md);
+
+  /* Sidebar tokens mapped to MerchantOS teal daylight */
+  --sidebar: var(--mos-surface);
+  --sidebar-foreground: var(--mos-fg);
+  --sidebar-primary: var(--mos-primary);
+  --sidebar-primary-foreground: var(--mos-primary-fg);
+  --sidebar-accent: #dce8e6;
+  --sidebar-accent-foreground: var(--mos-fg);
+  --sidebar-border: var(--mos-border);
+  --sidebar-ring: var(--mos-primary);
 }
 
 @theme inline {
@@ -113,6 +127,16 @@
   --font-display: var(--font-display);
 
   --shadow-sm: var(--mos-shadow-sm);
+  --shadow-md: var(--mos-shadow-md);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
@@ -132,5 +156,22 @@
     line-height: 1.6;
     text-align: start;
     -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

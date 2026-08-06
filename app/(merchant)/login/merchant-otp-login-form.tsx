@@ -3,6 +3,18 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { FormSection } from "@/components/composites/form-section";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AUTH_UX_COPY_FA } from "@/infrastructure/auth/auth-ux-copy";
 import { csrfHeadersForBrowserFetch } from "@/infrastructure/security";
 
@@ -81,82 +93,80 @@ export function MerchantOtpLoginForm() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {AUTH_UX_COPY_FA.merchantTitle}
-        </h1>
-        <p className="text-[var(--color-muted)]">{AUTH_UX_COPY_FA.merchantHint}</p>
-      </header>
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-6 px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">{AUTH_UX_COPY_FA.merchantTitle}</CardTitle>
+          <CardDescription>{AUTH_UX_COPY_FA.merchantHint}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {step === "phone" ? (
+            <form className="flex flex-col gap-4" onSubmit={onRequestOtp}>
+              <FormSection title={AUTH_UX_COPY_FA.phoneLabel} contentClassName="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="merchant-phone">{AUTH_UX_COPY_FA.phoneLabel}</Label>
+                  <Input
+                    id="merchant-phone"
+                    dir="ltr"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder={AUTH_UX_COPY_FA.phonePlaceholder}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+              </FormSection>
+              <Button type="submit" disabled={loading} className="min-h-11 w-full">
+                {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.requestOtp}
+              </Button>
+            </form>
+          ) : (
+            <form className="flex flex-col gap-4" onSubmit={onVerifyOtp}>
+              <FormSection title={AUTH_UX_COPY_FA.otpLabel} contentClassName="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="merchant-otp">{AUTH_UX_COPY_FA.otpLabel}</Label>
+                  <Input
+                    id="merchant-otp"
+                    dir="ltr"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder={AUTH_UX_COPY_FA.otpPlaceholder}
+                    className="tracking-widest"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    maxLength={6}
+                    required
+                  />
+                </div>
+                {devOtp ? (
+                  <p className="text-sm text-muted-foreground" dir="ltr">
+                    devOtp: {devOtp}
+                  </p>
+                ) : null}
+              </FormSection>
+              <Button type="submit" disabled={loading} className="min-h-11 w-full">
+                {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.verifyOtp}
+              </Button>
+            </form>
+          )}
 
-      {step === "phone" ? (
-        <form className="flex flex-col gap-4" onSubmit={onRequestOtp}>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{AUTH_UX_COPY_FA.phoneLabel}</span>
-            <input
-              dir="ltr"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder={AUTH_UX_COPY_FA.phonePlaceholder}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={loading}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-          >
-            {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.requestOtp}
-          </button>
-        </form>
-      ) : (
-        <form className="flex flex-col gap-4" onSubmit={onVerifyOtp}>
-          <label className="flex flex-col gap-2 text-sm">
-            <span>{AUTH_UX_COPY_FA.otpLabel}</span>
-            <input
-              dir="ltr"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder={AUTH_UX_COPY_FA.otpPlaceholder}
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base tracking-widest"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              maxLength={6}
-              required
-            />
-          </label>
-          {devOtp ? (
-            <p className="text-sm text-[var(--color-muted)]" dir="ltr">
-              devOtp: {devOtp}
-            </p>
+          {message ? (
+            <Alert>
+              <AlertDescription role="status">{message}</AlertDescription>
+            </Alert>
           ) : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[var(--color-primary-fg,#fff)]"
-          >
-            {loading ? AUTH_UX_COPY_FA.loading : AUTH_UX_COPY_FA.verifyOtp}
-          </button>
-        </form>
-      )}
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription role="alert">{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-      {message ? (
-        <p className="text-sm text-[var(--color-fg)]" role="status">
-          {message}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      <p className="text-sm text-[var(--color-muted)]">
-        {AUTH_UX_COPY_FA.pickupOnlyNote}
-      </p>
+          <p className="text-sm text-muted-foreground">
+            {AUTH_UX_COPY_FA.pickupOnlyNote}
+          </p>
+        </CardContent>
+      </Card>
     </main>
   );
 }

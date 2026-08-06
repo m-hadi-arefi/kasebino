@@ -1,9 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useState } from "react";
 
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { FilterBar } from "@/components/composites/filter-bar";
+import { LoadingState } from "@/components/composites/loading-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { fetchActiveStore } from "@/modules/merchant/ui";
 import { useRealtimeStoreChannel } from "@/realtime-client/use-realtime-store-channel";
 
@@ -20,11 +27,13 @@ export function NotificationsCenterClient(props?: {
   backLabel?: string;
   title?: string;
   subtitle?: string;
+  showPageHeader?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const storeId = props?.storeId;
+  const showPageHeader = props?.showPageHeader ?? true;
 
   const activeStoreQuery = useQuery({
     queryKey: ["notifications", "active-store"],
@@ -80,75 +89,77 @@ export function NotificationsCenterClient(props?: {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-2">
-        <Link
-          href={props?.backHref ?? "/dashboard"}
-          className="text-sm text-[var(--color-primary)] underline-offset-4 hover:underline"
-        >
-          {props?.backLabel ?? fa.backToDashboard}
-        </Link>
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          {props?.title ?? fa.merchantTitle}
-        </h1>
-        <p className="text-[var(--color-muted)]">
-          {props?.subtitle ?? fa.merchantSubtitle}
-        </p>
-        <p className="text-sm text-[var(--color-muted)]">{fa.jalaliHint}</p>
-        {unreadCount > 0 ? (
-          <p
-            className="text-sm font-medium text-[var(--color-fg)]"
-            aria-live="polite"
-          >
-            {fa.unreadCountLabel}: {unreadCount}
+      {showPageHeader ? (
+        <header className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold text-foreground">
+            {props?.title ?? fa.merchantTitle}
+          </h1>
+          <p className="text-muted-foreground">
+            {props?.subtitle ?? fa.merchantSubtitle}
           </p>
-        ) : null}
-      </header>
+          <p className="text-sm text-muted-foreground">{fa.jalaliHint}</p>
+          {unreadCount > 0 ? (
+            <p
+              className="text-sm font-medium text-foreground"
+              aria-live="polite"
+            >
+              {fa.unreadCountLabel}: {unreadCount}
+            </p>
+          ) : null}
+        </header>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">{fa.jalaliHint}</p>
+          {unreadCount > 0 ? (
+            <p
+              className="text-sm font-medium text-foreground"
+              aria-live="polite"
+            >
+              {fa.unreadCountLabel}: {unreadCount}
+            </p>
+          ) : null}
+        </>
+      )}
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="فیلتر اعلان">
-        <button
-          type="button"
-          className={`min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5 ${
-            !unreadOnly
-              ? "bg-[var(--color-fg)] text-[var(--color-bg)]"
-              : "bg-[var(--color-surface)] text-[var(--color-fg)]"
-          }`}
-          onClick={() => setUnreadOnly(false)}
-        >
-          {fa.filterAll}
-        </button>
-        <button
-          type="button"
-          className={`min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5 ${
-            unreadOnly
-              ? "bg-[var(--color-fg)] text-[var(--color-bg)]"
-              : "bg-[var(--color-surface)] text-[var(--color-fg)]"
-          }`}
-          onClick={() => setUnreadOnly(true)}
-        >
-          {fa.filterUnread}
-        </button>
+      <div role="group" aria-label="فیلتر اعلان">
+        <FilterBar>
+          <Button
+            type="button"
+            variant={!unreadOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUnreadOnly(false)}
+          >
+            {fa.filterAll}
+          </Button>
+          <Button
+            type="button"
+            variant={unreadOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUnreadOnly(true)}
+          >
+            {fa.filterUnread}
+          </Button>
+        </FilterBar>
       </div>
 
       {banner ? (
-        <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
-          {banner}
-        </p>
+        <Alert>
+          <AlertDescription aria-live="polite">{banner}</AlertDescription>
+        </Alert>
       ) : null}
 
       {listQuery.isLoading ? (
-        <p className="text-[var(--color-muted)]" aria-live="polite">
-          {fa.loading}
-        </p>
+        <LoadingState rows={3} label={fa.loading} />
       ) : null}
 
       {listQuery.isError ? (
-        <p className="text-[var(--color-danger,#b91c1c)]" role="alert">
-          {(listQuery.error as Error).message || fa.errorRetry}
-        </p>
+        <ErrorState
+          title={(listQuery.error as Error).message || fa.errorRetry}
+        />
       ) : null}
 
       {!listQuery.isLoading && !listQuery.isError && items.length === 0 ? (
-        <p className="text-[var(--color-muted)]">{fa.empty}</p>
+        <EmptyState title={fa.empty} />
       ) : null}
 
       <ul className="flex flex-col gap-3" aria-label={fa.merchantTitle}>
@@ -173,39 +184,41 @@ function NotificationRow(props: {
   const n = props.notification;
   const unread = n.readAt === null;
   return (
-    <li
-      className={`rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4 ${
-        unread ? "border-s-4 border-s-[var(--color-primary)]" : ""
-      }`}
-    >
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-medium text-[var(--color-fg)]">
-            {n.titleFa}
-          </h2>
+    <li>
+      <Card
+        className={
+          unread ? "border-s-4 border-s-primary" : undefined
+        }
+      >
+        <CardContent className="flex flex-col gap-2 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-medium text-foreground">
+              {n.titleFa}
+            </h2>
+            {unread ? (
+              <Badge variant="secondary">{fa.unreadBadge}</Badge>
+            ) : null}
+          </div>
+          <p className="text-sm text-muted-foreground">{n.bodyFa}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatNotificationJalali(n.createdAt)}
+          </p>
           {unread ? (
-            <span className="text-xs text-[var(--color-muted)]">
-              {fa.unreadBadge}
-            </span>
-          ) : null}
-        </div>
-        <p className="text-sm text-[var(--color-muted)]">{n.bodyFa}</p>
-        <p className="text-xs text-[var(--color-muted)]">
-          {formatNotificationJalali(n.createdAt)}
-        </p>
-        {unread ? (
-          <button
-            type="button"
-            disabled={props.busy}
-            onClick={props.onMarkRead}
-            className="min-h-11 self-start rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2.5 text-[var(--color-fg)] disabled:opacity-60"
-          >
-            {props.busy ? fa.marking : fa.markRead}
-          </button>
-        ) : (
-          <p className="text-xs text-[var(--color-muted)]">{fa.markedRead}</p>
-        )}
-      </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={props.busy}
+              className="w-fit"
+              onClick={props.onMarkRead}
+            >
+              {props.busy ? fa.marking : fa.markRead}
+            </Button>
+          ) : (
+            <p className="text-xs text-muted-foreground">{fa.markedRead}</p>
+          )}
+        </CardContent>
+      </Card>
     </li>
   );
 }

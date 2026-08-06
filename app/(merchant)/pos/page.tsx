@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { staffManifestPath } from "@/staff-pwa";
+import { PosChrome } from "@/components/layout/app-shell";
+
 import { StaffInstallPrompt } from "./install-prompt";
 import { StaffOfflineStatus } from "./offline-status";
 import { PosProviders } from "./pos-providers";
@@ -23,24 +25,23 @@ export const metadata: Metadata = {
 export default function MerchantPosPage() {
   return (
     <>
-      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
-        <header className="flex flex-col gap-2">
-          <p className="text-sm text-[var(--color-muted)]">کاسبینو</p>
-          <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-            صندوق فروش
-          </h1>
-          <p className="text-[var(--color-muted)]">
-            پایانه فروش پرسنل — بارکد، موبایل مشتری، جمع به تومان
+      <PosChrome>
+        <div className="flex flex-col gap-4">
+          <header className="flex flex-col gap-1">
+            <h1 className="text-xl font-semibold text-foreground">صندوق فروش</h1>
+            <p className="text-sm text-muted-foreground">
+              پایانه فروش پرسنل — بارکد، موبایل مشتری، جمع به تومان
+            </p>
+          </header>
+          <StaffOfflineStatus />
+          <p className="text-sm text-muted-foreground">
+            مسیر آنلاین صندوق اولویت دارد؛ صف آفلاین در قطعی شبکه فعال است.
           </p>
-        </header>
-        <StaffOfflineStatus />
-        <p className="text-sm text-[var(--color-muted)]">
-          مسیر آنلاین صندوق اولویت دارد؛ صف آفلاین در قطعی شبکه فعال است.
-        </p>
-        <PosProviders>
-          <PosRegister />
-        </PosProviders>
-      </main>
+          <PosProviders>
+            <PosRegister />
+          </PosProviders>
+        </div>
+      </PosChrome>
       <StaffInstallPrompt />
     </>
   );

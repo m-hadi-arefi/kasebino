@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   STOREFRONT_UI_COPY_FA,
   addToStorefrontCart,
@@ -22,7 +25,7 @@ export function AddToCartButton({
 
   if (!product.inStock) {
     return (
-      <p className="text-[var(--color-danger)]" role="status">
+      <p className="text-destructive" role="status">
         {fa.outOfStock}
       </p>
     );
@@ -30,21 +33,22 @@ export function AddToCartButton({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-        {fa.quantityLabel}
-        <input
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="product-qty">{fa.quantityLabel}</Label>
+        <Input
+          id="product-qty"
           type="number"
           inputMode="numeric"
           min={1}
           max={Math.max(1, product.availableQuantity)}
           value={qty}
           onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
+          className="min-h-11 text-base"
         />
-      </label>
-      <button
+      </div>
+      <Button
         type="button"
-        className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-3 font-medium text-[var(--color-primary-fg)]"
+        className="min-h-11 w-full"
         onClick={() => {
           addToStorefrontCart(storeSlug, {
             productId: product.id,
@@ -57,9 +61,9 @@ export function AddToCartButton({
         }}
       >
         {fa.addToCart}
-      </button>
+      </Button>
       {message ? (
-        <p className="text-sm text-[var(--color-success)]" aria-live="polite">
+        <p className="text-sm text-primary" aria-live="polite">
           {message}
         </p>
       ) : null}

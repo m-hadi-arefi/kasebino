@@ -1,0 +1,50 @@
+"use client";
+
+import type { ReactNode } from "react";
+
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+
+export type AppTopbarProps = {
+  title?: string;
+  leading?: ReactNode;
+  trailing?: ReactNode;
+  className?: string;
+  showSidebarTrigger?: boolean;
+};
+
+export function AppTopbar({
+  title,
+  leading,
+  trailing,
+  className,
+  showSidebarTrigger = true,
+}: AppTopbarProps) {
+  return (
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/75 sm:px-4",
+        className,
+      )}
+    >
+      {showSidebarTrigger ? (
+        <>
+          <SidebarTrigger className="-ms-1 hidden lg:inline-flex" />
+          <Separator orientation="vertical" className="hidden h-6 lg:block" />
+        </>
+      ) : null}
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {leading}
+        {title ? (
+          <p className="truncate text-sm font-medium text-foreground sm:text-base">
+            {title}
+          </p>
+        ) : null}
+      </div>
+      {trailing ? (
+        <div className="flex shrink-0 items-center gap-2">{trailing}</div>
+      ) : null}
+    </header>
+  );
+}

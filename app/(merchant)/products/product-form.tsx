@@ -4,6 +4,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 
+import { DeleteDialog } from "@/components/composites/confirm-dialog";
+import { FormSection } from "@/components/composites/form-section";
+import { LoadingState } from "@/components/composites/loading-state";
+import { SectionHeader } from "@/components/composites/section-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   adjustInventory,
   createCategory,
@@ -45,6 +61,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const productQuery = useQuery({
     queryKey: ["catalog", "product", productId],
@@ -152,25 +169,16 @@ export function ProductForm({ productId }: ProductFormProps) {
   });
 
   if (productId && productQuery.isLoading) {
-    return <p className="text-[var(--color-muted)]">{fa.loadingProducts}</p>;
+    return <LoadingState rows={2} label={fa.loadingProducts} />;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/products"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.backToList}
-        </Link>
-        <Link
-          href="/inventory"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openInventory}
-        </Link>
-      </nav>
+      {productId ? (
+        <Button variant="outline" size="sm" className="w-fit" asChild>
+          <Link href="/products">{fa.backToList}</Link>
+        </Button>
+      ) : null}
 
       <form
         className="flex flex-col gap-4"
@@ -186,178 +194,166 @@ export function ProductForm({ productId }: ProductFormProps) {
           saveMutation.mutate();
         }}
       >
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={nameId} className="font-medium">
-            {fa.nameLabel}
-          </label>
-          <input
-            id={nameId}
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={barcodeId} className="font-medium">
-            {fa.barcodeLabel}
-          </label>
-          <input
-            id={barcodeId}
-            required
-            inputMode="numeric"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={skuId} className="font-medium">
-            {fa.skuLabel}
-          </label>
-          <input
-            id={skuId}
-            required
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={priceId} className="font-medium">
-            {fa.priceTomanLabel}
-          </label>
-          <input
-            id={priceId}
-            required
-            inputMode="numeric"
-            value={priceToman}
-            onChange={(e) => setPriceToman(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-          />
-          <p className="text-sm text-[var(--color-muted)]">{fa.priceHint}</p>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={categoryId} className="font-medium">
-            {fa.categoryLabel}
-          </label>
-          <select
-            id={categoryId}
-            value={selectedCategoryId}
-            onChange={(e) => setSelectedCategoryId(e.target.value)}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-          >
-            <option value="">{fa.categoryNone}</option>
-            {(categoriesQuery.data ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={descId} className="font-medium">
-            {fa.descriptionLabel}
-          </label>
-          <textarea
-            id={descId}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-base"
-          />
-        </div>
-
-        {!productId ? (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={stockId} className="font-medium">
-              {fa.initialStockLabel}
-            </label>
-            <input
-              id={stockId}
-              inputMode="numeric"
-              value={initialStock}
-              onChange={(e) => setInitialStock(e.target.value)}
-              placeholder="0"
-              className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
+        <FormSection title={fa.nameLabel}>
+          <div className="space-y-2">
+            <Label htmlFor={nameId}>{fa.nameLabel}</Label>
+            <Input
+              id={nameId}
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={saveMutation.isPending}
-          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 font-medium text-[var(--color-primary-fg)]"
-        >
-          {saveMutation.isPending ? fa.saving : fa.saveProduct}
-        </button>
-
-        {productId ? (
-          <button
-            type="button"
-            disabled={deleteMutation.isPending}
-            onClick={() => {
-              if (window.confirm(fa.softDeleteConfirm)) {
-                deleteMutation.mutate();
+          <div className="space-y-2">
+            <Label htmlFor={barcodeId}>{fa.barcodeLabel}</Label>
+            <Input
+              id={barcodeId}
+              required
+              inputMode="numeric"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={skuId}>{fa.skuLabel}</Label>
+            <Input
+              id={skuId}
+              required
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={priceId}>{fa.priceTomanLabel}</Label>
+            <Input
+              id={priceId}
+              required
+              inputMode="numeric"
+              value={priceToman}
+              onChange={(e) => setPriceToman(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">{fa.priceHint}</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={categoryId}>{fa.categoryLabel}</Label>
+            <Select
+              value={selectedCategoryId || "__none__"}
+              onValueChange={(v) =>
+                setSelectedCategoryId(v === "__none__" ? "" : v)
               }
-            }}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-danger)] px-4 py-2.5 text-[var(--color-danger)]"
-          >
-            {fa.softDelete}
-          </button>
-        ) : null}
+            >
+              <SelectTrigger id={categoryId}>
+                <SelectValue placeholder={fa.categoryNone} />
+              </SelectTrigger>
+              <SelectContent dir="rtl">
+                <SelectItem value="__none__">{fa.categoryNone}</SelectItem>
+                {(categoriesQuery.data ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={descId}>{fa.descriptionLabel}</Label>
+            <Textarea
+              id={descId}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
+          </div>
+          {!productId ? (
+            <div className="space-y-2">
+              <Label htmlFor={stockId}>{fa.initialStockLabel}</Label>
+              <Input
+                id={stockId}
+                inputMode="numeric"
+                value={initialStock}
+                onChange={(e) => setInitialStock(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          ) : null}
+          <Button type="submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? fa.saving : fa.saveProduct}
+          </Button>
+          {productId ? (
+            <>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deleteMutation.isPending}
+                onClick={() => setDeleteOpen(true)}
+              >
+                {fa.softDelete}
+              </Button>
+              <DeleteDialog
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                title={fa.softDelete}
+                description={fa.softDeleteConfirm}
+                onConfirm={() => deleteMutation.mutate()}
+              />
+            </>
+          ) : null}
+        </FormSection>
       </form>
 
-      <section className="flex flex-col gap-3 border-t border-[var(--color-border)] pt-4">
-        <h2 className="text-lg font-medium">{fa.categoriesTitle}</h2>
+      <section className="flex flex-col gap-3">
+        <SectionHeader title={fa.categoriesTitle} />
         <div className="flex flex-col gap-2 sm:flex-row">
-          <label htmlFor={categoryNameId} className="sr-only">
+          <Label htmlFor={categoryNameId} className="sr-only">
             {fa.categoryNameLabel}
-          </label>
-          <input
+          </Label>
+          <Input
             id={categoryNameId}
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder={fa.categoryNameLabel}
-            className="min-h-11 flex-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
+            className="flex-1"
           />
-          <button
+          <Button
             type="button"
+            variant="outline"
             disabled={!newCategoryName.trim() || categoryMutation.isPending}
             onClick={() => categoryMutation.mutate()}
-            className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2"
           >
             {fa.addCategory}
-          </button>
+          </Button>
         </div>
         <ul className="flex flex-col gap-2">
           {(categoriesQuery.data ?? []).map((c) => (
             <li
               key={c.id}
-              className="flex min-h-11 items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
+              className="flex min-h-11 items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
             >
               <span>{c.name}</span>
-              <button
+              <Button
                 type="button"
-                className="text-sm text-[var(--color-danger)]"
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
                 onClick={() => deleteCategoryMutation.mutate(c.id)}
               >
                 {fa.deleteCategory}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
       </section>
 
-      <div aria-live="polite" className="text-sm">
-        {error ? <p className="text-[var(--color-danger)]">{error}</p> : null}
+      <div aria-live="polite" className="flex flex-col gap-2">
+        {error ? (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
         {success ? (
-          <p className="text-[var(--color-success)]">{success}</p>
+          <Alert>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         ) : null}
       </div>
     </div>

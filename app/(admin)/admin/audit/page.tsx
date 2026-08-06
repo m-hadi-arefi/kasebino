@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+
+import { PageHeader } from "@/components/composites/page-header";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Shield } from "lucide-react";
 
 import { AdminProviders } from "../admin-providers";
 import { AdminAuditClient } from "./admin-audit-client";
@@ -12,48 +16,32 @@ export const metadata: Metadata = {
 
 export default function AdminAuditPage() {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-6 px-4 py-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[var(--color-fg)]">
-          گزارش حسابرسی
-        </h1>
-        <p className="text-[var(--color-muted)]">
-          اقدامات حساس برای بررسی انطباق؛ فیلتر پذیرنده، بازیگر، و تاریخ شمسی در
-          رابط ادمین.
-        </p>
-        <p className="text-sm text-[var(--color-muted)]">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="گزارش حسابرسی"
+        description="اقدامات حساس برای بررسی انطباق؛ فیلتر پذیرنده، بازیگر، و تاریخ شمسی در رابط ادمین."
+        breadcrumbs={[
+          { label: "مدیریت پلتفرم", href: "/admin" },
+          { label: "حسابرسی" },
+        ]}
+      />
+
+      <Alert>
+        <Shield className="size-4" aria-hidden />
+        <AlertTitle>دسترسی مدیر پلتفرم</AlertTitle>
+        <AlertDescription>
           مشاهدهٔ گزارش حسابرسی نیز ثبت می‌شود · بازهٔ تاریخ‌ها به تقویم شمسی
           (تهران)
-        </p>
-      </header>
+        </AlertDescription>
+      </Alert>
 
-      <section
-        aria-live="polite"
-        className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-5"
-      >
-        <p className="font-medium text-[var(--color-fg)]">
-          این بخش فقط برای مدیران پلتفرم است. دسترسی کارکنان فروشگاه مجاز نیست.
-        </p>
-      </section>
-
-      <AdminProviders>
-        <AdminAuditClient />
-      </AdminProviders>
-
-      <nav aria-label="ناوبری حسابرسی" className="flex flex-wrap gap-3">
-        <Link
-          href="/admin"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
-        >
-          خانه
-        </Link>
-        <Link
-          href="/admin/merchants"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-fg)]"
-        >
-          فهرست فروشندگان
-        </Link>
-      </nav>
-    </main>
+      <Card>
+        <CardContent className="pt-6">
+          <AdminProviders>
+            <AdminAuditClient />
+          </AdminProviders>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

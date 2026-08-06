@@ -1,4 +1,4 @@
-# Progress Log
+Ôªø# Progress Log
 
 Autonomous execution diary. Append-only.
 
@@ -16,12 +16,20 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
-### 2026-08-05 ó ADR-071 Scalability Stateless Multi-Instance ó completed
+### 2026-08-06 ‚Äî ADR-125 Production UI shell + page migration ‚Äî completed (runtime)
+
+- Plan: `docs/execution/plans/ADR-125.md`; ADR: `adrs/tasks/ADR-125-production-ui-shell-page-migration.md`
+- Changes: expanded shadcn primitives; layout shells; shared composites; migrated all surfaces; Playwright audit + report
+- Validations: typecheck + lint green; UI contract tests green; test:e2e 21 passed / 15 skipped
+- Docs updated: ADR-125, STATUS, redesign report, this log
+- Next: E2E_STORAGE_STATE + E2E_STORE_SLUG for full coverage; sign-off then move ADR-125 to done/
+
+### 2026-08-05 ÔøΩ ADR-071 Scalability Stateless Multi-Instance ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ó ADR-071 Scalability Stateless Multi-Instance ó in progress (not moved)
+### 2026-08-05 ÔøΩ ADR-071 Scalability Stateless Multi-Instance ÔøΩ in progress (not moved)
 
 - Plan: `docs/execution/plans/ADR-071.md`
 - Changes: `src/scalability-stateless/` contract + assert helpers + tests (JWT/shared planes/no sticky/N?2); docs pointers; STATUS tasks note
@@ -29,12 +37,12 @@ Autonomous execution diary. Append-only.
 - Docs updated: plan, STATUS, deployment/performance/zero-downtime, ARD-019, this log
 - Gap: left in `tasks/` per operator; not committed; LB/zero-downtime runtime ADR-070; data-plane HA ADR-072
 
-### 2026-08-05 ù ADR-124 Realtime MQTT Client Runtime ù completed
+### 2026-08-05 ÔøΩ ADR-124 Realtime MQTT Client Runtime ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-124 Realtime MQTT client (merchant) ù in progress (not moved)
+### 2026-08-05 ÔøΩ ADR-124 Realtime MQTT client (merchant) ÔøΩ in progress (not moved)
 
 - Plan: `docs/execution/plans/ADR-124.md`
 - Changes: hardened `POST /api/v1/realtime/token` (session + owned store); mqtt.js browser transport; `useRealtimeStoreChannel`; poll-only flag; wired orders board / POS / notifications; Persian connection UX
@@ -42,12 +50,12 @@ Autonomous execution diary. Append-only.
 - Docs updated: plan, STATUS, emqx.md, .env.example, ARD-015 note, this log
 - Gap: left in `tasks/` per operator; not committed; Compose EMQX e2e smoke not automated; ADM-03 deferred
 
-### 2026-08-05 ù ADR-123 Application Composition Root ù completed
+### 2026-08-05 ÔøΩ ADR-123 Application Composition Root ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-123 Application composition root ù in progress (not moved)
+### 2026-08-05 ÔøΩ ADR-123 Application composition root ÔøΩ in progress (not moved)
 
 - Plan: `docs/execution/plans/ADR-123.md`
 - Changes: `createAppContext` composition root; shared production repos; worker/OTP wired via composition; production SMS/env guards; Postgres route-handler integration test; `docs/tech/composition-root.md` + README note
@@ -56,12 +64,12 @@ Autonomous execution diary. Append-only.
 - Gap: ADR left in `tasks/` per operator; not committed; live SMS/PSP deferred (ADR-115 / ADR-084)
 - Next: operator confirm AC then move tasks to done
 
-### 2026-08-05 ù ADR-122 Marketing Landing Page ù completed
+### 2026-08-05 ÔøΩ ADR-122 Marketing Landing Page ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-122 Marketing landing page ù in progress (not moved)
+### 2026-08-05 ÔøΩ ADR-122 Marketing landing page ÔøΩ in progress (not moved)
 
 - Plan: `docs/execution/plans/ADR-122.md` (uiuxpromax Persian RTL brand-first brief)
 - Changes: Full `(marketing)` landing (Hero through Footer); `src/modules/marketing/ui` copy + tests; `public/marketing/*` SVG visuals; SEO OG metadata; CTAs to `/login`
@@ -70,35 +78,35 @@ Autonomous execution diary. Append-only.
 - Gap: Lighthouse >=95 CI/measurement deferred to ADR-117; local evidence not captured this cycle
 - Next: operator confirm AC then move tasks to done
 
-### 2026-08-05 ù ADR-121 Merchant Onboarding Store Setup ù completed
+### 2026-08-05 ÔøΩ ADR-121 Merchant Onboarding Store Setup ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-121 Merchant onboarding + multi-store setup ù in progress (not moved)
+### 2026-08-05 ÔøΩ ADR-121 Merchant onboarding + multi-store setup ÔøΩ in progress (not moved)
 
 - Plan: `docs/execution/plans/ADR-121.md` (uiuxpromax Persian RTL brief)
 - Changes: AUTH-06 owner claim hydrate; active-store cookie API; onboarding wizard `/onboarding`; store create/switcher; activate on complete; Persian copy gate tests
-- Validations: `npm run validate` green with DATABASE_URL ù:5433/merchantos (853 tests)
+- Validations: `npm run validate` green with DATABASE_URL ÔøΩ:5433/merchantos (853 tests)
 - Docs updated: plan, STATUS note, this log
 - Next: operator confirm AC then move tasks ? done
 
-### 2026-08-05 ù ADR-114 shadcn UI Component Library ù completed
+### 2026-08-05 ÔøΩ ADR-114 shadcn UI Component Library ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-112 Readiness Probe API Ready ù completed
+### 2026-08-05 ÔøΩ ADR-112 Readiness Probe API Ready ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-111 MinIO Receipts Assets ù completed
+### 2026-08-05 ÔøΩ ADR-111 MinIO Receipts Assets ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 
 
-### 2026-08-05 ù ADR-110 MongoDB Analytics Runtime ù completed
+### 2026-08-05 ÔøΩ ADR-110 MongoDB Analytics Runtime ÔøΩ completed
 
 - Moved to done/; validate green in implementer run
 

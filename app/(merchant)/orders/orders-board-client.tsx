@@ -1,9 +1,25 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 
+import { ConfirmDialog } from "@/components/composites/confirm-dialog";
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { FilterBar } from "@/components/composites/filter-bar";
+import { LoadingState } from "@/components/composites/loading-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   BOARD_OPEN_STATUSES,
   BOARD_POLL_INTERVAL_MS,
@@ -39,8 +55,14 @@ const STATUS_FILTERS: { id: BoardStatusFilter; label: string }[] = [
   { id: "all", label: fa.filterAll },
 ];
 
+type PendingConfirm = {
+  order: OrderDto;
+  action: OrderTransitionAction;
+  description: string;
+};
+
 export function OrdersBoardClient() {
-  const storeId = useId();
+  const storeSelectId = useId();
   const queryClient = useQueryClient();
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [statusFilter, setStatusFilter] = useState<BoardStatusFilter>("open");
@@ -50,6 +72,9 @@ export function OrdersBoardClient() {
   } | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
   const [liveToast, setLiveToast] = useState<string | null>(null);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(
+    null,
+  );
 
   const storesQuery = useQuery({
     queryKey: ["orders", "stores"],
@@ -80,7 +105,6 @@ export function OrdersBoardClient() {
     queryKey: ["orders", "list", selectedStoreId],
     queryFn: () => fetchStoreOrders(selectedStoreId),
     enabled: Boolean(selectedStoreId),
-    // Soft poll always; MQTT soft-refreshes via invalidate; poll-only when MQTT off.
     refetchInterval:
       realtime.state === "connected"
         ? BOARD_POLL_INTERVAL_MS * 2
@@ -120,18 +144,13 @@ export function OrdersBoardClient() {
   const filtered = filterOrdersByStatus(
     ordersQuery.data ?? [],
     statusFilter,
-  ).slice().sort((a, b) => {
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
+  )
+    .slice()
+    .sort((a, b) => {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
 
-  async function runAction(
-    order: OrderDto,
-    action: OrderTransitionAction,
-    confirmMessage?: string,
-  ) {
-    if (confirmMessage && typeof window !== "undefined") {
-      if (!window.confirm(confirmMessage)) return;
-    }
+  function executeAction(order: OrderDto, action: OrderTransitionAction) {
     transitionMutation.mutate({
       orderId: order.id,
       action,
@@ -139,32 +158,24 @@ export function OrdersBoardClient() {
     });
   }
 
+  function runAction(
+    order: OrderDto,
+    action: OrderTransitionAction,
+    confirmMessage?: string,
+  ) {
+    if (confirmMessage) {
+      setPendingConfirm({ order, action, description: confirmMessage });
+      return;
+    }
+    executeAction(order, action);
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/dashboard"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.backToDashboard}
-        </Link>
-        <Link
-          href="/pos"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openPos}
-        </Link>
-        <Link
-          href="/customers"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openCustomers}
-        </Link>
-      </nav>
-
-      <p className="text-sm text-[var(--color-muted)]">{fa.currencyHint}</p>
-      <p className="text-sm text-[var(--color-muted)]">{fa.fulfillmentHint}</p>
-      <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
+      <p className="text-sm text-muted-foreground">
+        {fa.currencyHint} · {fa.fulfillmentHint}
+      </p>
+      <p className="text-sm text-muted-foreground" aria-live="polite">
         {realtime.state === "connected"
           ? fa.realtimeConnected
           : realtime.state === "poll_fallback" || !realtime.mqttEnabled
@@ -177,103 +188,88 @@ export function OrdersBoardClient() {
           : null}
       </p>
       {liveToast ? (
-        <p
-          className="text-sm font-medium text-[var(--color-fg)]"
-          role="status"
-          aria-live="polite"
-          dir={REALTIME_CLIENT_UX_FA.dir}
-        >
-          {liveToast}
-        </p>
+        <Alert>
+          <AlertDescription
+            role="status"
+            aria-live="polite"
+            dir={REALTIME_CLIENT_UX_FA.dir}
+          >
+            {liveToast}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor={storeId} className="text-sm text-[var(--color-muted)]">
-          {fa.storeLabel}
-        </label>
-        <select
-          id={storeId}
-          value={selectedStoreId}
-          onChange={(e) => setSelectedStoreId(e.target.value)}
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base"
-        >
-          {(storesQuery.data?.length ?? 0) === 0 ? (
-            <option value="">{fa.storePlaceholder}</option>
-          ) : null}
-          {(storesQuery.data ?? []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.displayName}
-            </option>
-          ))}
-        </select>
+      <div className="space-y-2">
+        <Label htmlFor={storeSelectId}>{fa.storeLabel}</Label>
+        <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
+          <SelectTrigger id={storeSelectId}>
+            <SelectValue placeholder={fa.storePlaceholder} />
+          </SelectTrigger>
+          <SelectContent dir="rtl">
+            {(storesQuery.data ?? []).map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.displayName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div
-        role="group"
-        aria-label={fa.filterLabel}
-        className="flex flex-wrap gap-2"
-      >
-        {STATUS_FILTERS.map((f) => {
-          const pressed = statusFilter === f.id;
-          return (
-            <button
-              key={f.id}
+      <div role="group" aria-label={fa.filterLabel}>
+        <FilterBar
+          trailing={
+            <Button
               type="button"
-              aria-pressed={pressed}
-              onClick={() => setStatusFilter(f.id)}
-              className={`min-h-11 rounded-[var(--radius-md)] border px-3 py-2 text-sm ${
-                pressed
-                  ? "border-[var(--color-fg)] bg-[var(--color-fg)] text-[var(--color-bg)]"
-                  : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-fg)]"
-              }`}
+              variant="outline"
+              size="sm"
+              onClick={() => void ordersQuery.refetch()}
             >
-              {f.label}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm"
-          onClick={() => {
-            void ordersQuery.refetch();
-          }}
+              {fa.refreshNow}
+            </Button>
+          }
         >
-          {fa.refreshNow}
-        </button>
+          {STATUS_FILTERS.map((f) => {
+            const pressed = statusFilter === f.id;
+            return (
+              <Button
+                key={f.id}
+                type="button"
+                variant={pressed ? "default" : "outline"}
+                size="sm"
+                aria-pressed={pressed}
+                onClick={() => setStatusFilter(f.id)}
+              >
+                {f.label}
+              </Button>
+            );
+          })}
+        </FilterBar>
       </div>
 
       {banner ? (
-        <p
-          role="status"
-          aria-live="polite"
-          className={`rounded-[var(--radius-md)] border px-3 py-3 text-sm ${
-            banner.kind === "error"
-              ? "border-red-300 bg-red-50 text-red-900"
-              : "border-emerald-300 bg-emerald-50 text-emerald-900"
-          }`}
-        >
-          {banner.text}
-        </p>
+        <Alert variant={banner.kind === "error" ? "destructive" : "default"}>
+          <AlertDescription role="status" aria-live="polite">
+            {banner.text}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {storesQuery.isError || ordersQuery.isError ? (
-        <p role="alert" className="text-[var(--color-muted)]">
-          {fa.networkError}
-        </p>
+        <ErrorState title={fa.networkError} />
       ) : null}
 
       {ordersQuery.isLoading || storesQuery.isLoading ? (
-        <p aria-live="polite" className="text-[var(--color-muted)]">
-          {fa.loading}
-        </p>
+        <LoadingState rows={3} label={fa.loading} />
       ) : null}
 
       {!ordersQuery.isLoading && selectedStoreId && filtered.length === 0 ? (
-        <p className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] px-4 py-8 text-center text-[var(--color-muted)]">
-          {statusFilter === "open" || statusFilter === "all"
-            ? fa.empty
-            : fa.emptyFilter}
-        </p>
+        <EmptyState
+          title={
+            statusFilter === "open" || statusFilter === "all"
+              ? fa.empty
+              : fa.emptyFilter
+          }
+        />
       ) : null}
 
       <ul className="flex flex-col gap-3" aria-label={fa.boardTitle}>
@@ -284,103 +280,110 @@ export function OrdersBoardClient() {
           const busy = actingId === order.id;
 
           return (
-            <li
-              key={order.id}
-              className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex flex-col gap-1">
-                  <span className="inline-flex min-h-8 w-fit items-center rounded-[var(--radius-md)] border border-[var(--color-border)] px-2 py-1 text-sm font-medium">
-                    {statusLabelFa(order.status)}
-                  </span>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    {fa.createdLabel}: {formatOrdersJalali(order.createdAt)}
+            <li key={order.id}>
+              <Card>
+                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 space-y-0 pb-2">
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="outline">{statusLabelFa(order.status)}</Badge>
+                    <p className="text-sm text-muted-foreground">
+                      {fa.createdLabel}: {formatOrdersJalali(order.createdAt)}
+                    </p>
+                  </div>
+                  <p className="text-base font-semibold text-foreground">
+                    {order.totalDisplayToman}
                   </p>
-                </div>
-                <p className="text-base font-semibold text-[var(--color-fg)]">
-                  {order.totalDisplayToman}
-                </p>
-              </div>
-
-              <p className="text-[var(--color-fg)]">
-                <span className="text-sm text-[var(--color-muted)]">
-                  {fa.linesLabel}:{" "}
-                </span>
-                {summarizeLinesFa(order)}
-              </p>
-
-              {order.status === "pending_payment" ? (
-                <p className="text-sm text-amber-800">{fa.unpaidHint}</p>
-              ) : null}
-
-              {holdHint ? (
-                <p
-                  className={`text-sm ${
-                    hold === "expired" || hold === "urgent"
-                      ? "font-medium text-amber-900"
-                      : "text-[var(--color-muted)]"
-                  }`}
-                >
-                  {holdHint}
-                </p>
-              ) : null}
-
-              {order.cancelReason ? (
-                <p className="text-sm text-[var(--color-muted)]">
-                  {fa.cancelReasonLabel}: {order.cancelReason}
-                </p>
-              ) : null}
-
-              <div className="flex flex-col gap-2">
-                {primary ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      void runAction(order, primary.action);
-                    }}
-                    className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-fg)] px-4 py-2.5 text-base text-[var(--color-bg)] disabled:opacity-60"
-                  >
-                    {busy ? fa.acting : primary.label}
-                  </button>
-                ) : null}
-
-                <div className="flex flex-wrap gap-2">
-                  {canCancelOrder(order.status) ? (
-                    <button
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2 text-sm">
+                  <p>
+                    <span className="text-muted-foreground">
+                      {fa.linesLabel}:{" "}
+                    </span>
+                    {summarizeLinesFa(order)}
+                  </p>
+                  {order.status === "pending_payment" ? (
+                    <p className="text-amber-800">{fa.unpaidHint}</p>
+                  ) : null}
+                  {holdHint ? (
+                    <p
+                      className={
+                        hold === "expired" || hold === "urgent"
+                          ? "font-medium text-amber-900"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {holdHint}
+                    </p>
+                  ) : null}
+                  {order.cancelReason ? (
+                    <p className="text-muted-foreground">
+                      {fa.cancelReasonLabel}: {order.cancelReason}
+                    </p>
+                  ) : null}
+                </CardContent>
+                <CardFooter className="flex flex-col gap-2">
+                  {primary ? (
+                    <Button
                       type="button"
                       disabled={busy}
-                      onClick={() => {
-                        void runAction(order, "cancel", fa.cancelConfirm);
-                      }}
-                      className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm disabled:opacity-60"
+                      className="min-h-11 w-full"
+                      onClick={() => runAction(order, primary.action)}
                     >
-                      {fa.actionCancel}
-                    </button>
+                      {busy ? fa.acting : primary.label}
+                    </Button>
                   ) : null}
-                  {canRefundOrder(order.status, order.paidAt) ? (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        void runAction(order, "refund", fa.refundConfirm);
-                      }}
-                      className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-sm disabled:opacity-60"
-                    >
-                      {fa.actionRefund}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+                  <div className="flex flex-wrap gap-2">
+                    {canCancelOrder(order.status) ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() =>
+                          runAction(order, "cancel", fa.cancelConfirm)
+                        }
+                      >
+                        {fa.actionCancel}
+                      </Button>
+                    ) : null}
+                    {canRefundOrder(order.status, order.paidAt) ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() =>
+                          runAction(order, "refund", fa.refundConfirm)
+                        }
+                      >
+                        {fa.actionRefund}
+                      </Button>
+                    ) : null}
+                  </div>
+                </CardFooter>
+              </Card>
             </li>
           );
         })}
       </ul>
 
-      {/* Keep column labels available for screen readers / future wide layout */}
       <span className="sr-only">
         {BOARD_OPEN_STATUSES.map((s) => statusLabelFa(s)).join(" · ")}
       </span>
+
+      <ConfirmDialog
+        open={pendingConfirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingConfirm(null);
+        }}
+        title={fa.boardTitle}
+        description={pendingConfirm?.description ?? ""}
+        onConfirm={() => {
+          if (pendingConfirm) {
+            executeAction(pendingConfirm.order, pendingConfirm.action);
+          }
+          setPendingConfirm(null);
+        }}
+      />
     </div>
   );
 }

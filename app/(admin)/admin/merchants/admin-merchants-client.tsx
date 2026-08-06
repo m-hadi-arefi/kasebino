@@ -2,6 +2,20 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ConfirmDialog } from "@/components/composites/confirm-dialog";
+import { EmptyState } from "@/components/composites/empty-state";
+import { ErrorState } from "@/components/composites/error-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import { SectionHeader } from "@/components/composites/section-header";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ADMIN_UI_COPY_FA,
   activateMerchant,
@@ -33,104 +47,96 @@ export function AdminMerchantsClient() {
     },
   });
 
-  return (
-    <section aria-label="جدول فروشندگان" className="flex flex-col gap-3">
-      <h2 className="text-lg font-medium text-[var(--color-fg)]">فروشندگان</h2>
+  const pending = activate.isPending || suspend.isPending;
 
-      {list.isLoading ? (
-        <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
-          {fa.loading}
-        </p>
-      ) : null}
+  return (
+    <section aria-label="جدول فروشندگان" className="flex flex-col gap-4">
+      <SectionHeader title="فروشندگان" />
+
+      {list.isLoading ? <LoadingState rows={3} label={fa.loading} /> : null}
 
       {list.error ? (
-        <p className="text-sm text-[var(--color-danger)]" role="alert">
-          {fa.error}
-        </p>
+        <ErrorState
+          description={fa.error}
+          onRetry={() => void list.refetch()}
+        />
       ) : null}
 
-      {!list.isLoading && (list.data?.length ?? 0) === 0 ? (
-        <p className="text-sm text-[var(--color-muted)]">{fa.empty}</p>
+      {!list.isLoading && !list.error && (list.data?.length ?? 0) === 0 ? (
+        <EmptyState title={fa.empty} />
       ) : null}
 
       {(list.data?.length ?? 0) > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[20rem] border-collapse text-start text-sm">
-            <thead>
-              <tr className="border-b border-[var(--color-border)]">
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  نام
-                </th>
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  وضعیت
-                </th>
-                <th className="px-3 py-3 font-medium text-[var(--color-fg)]">
-                  اقدامات
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="overflow-x-auto rounded-md border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>نام</TableHead>
+                <TableHead>وضعیت</TableHead>
+                <TableHead className="text-end">اقدامات</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {list.data!.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-[var(--color-border)]"
-                >
-                  <td className="px-3 py-3 text-[var(--color-fg)]">
-                    {row.tradeName}
-                  </td>
-                  <td className="px-3 py-3 text-[var(--color-muted)]">
+                <TableRow key={row.id}>
+                  <TableCell className="font-medium">{row.tradeName}</TableCell>
+                  <TableCell className="text-muted-foreground">
                     {merchantStatusLabelFa(row.status)}
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-fg)] disabled:opacity-50"
-                        disabled={
-                          row.status === "active" ||
-                          activate.isPending ||
-                          suspend.isPending
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <ConfirmDialog
+                        title={fa.activate}
+                        description={fa.confirmActivate}
+                        confirmLabel={fa.activate}
+                        onConfirm={() => activate.mutate(row.id)}
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="min-h-11"
+                            disabled={
+                              row.status === "active" || pending
+                            }
+                          >
+                            {fa.activate}
+                          </Button>
                         }
-                        title={fa.confirmActivate}
-                        onClick={() => {
-                          if (window.confirm(fa.confirmActivate)) {
-                            activate.mutate(row.id);
-                          }
-                        }}
-                      >
-                        {fa.activate}
-                      </button>
-                      <button
-                        type="button"
-                        className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-fg)] disabled:opacity-50"
-                        disabled={
-                          row.status === "suspended" ||
-                          activate.isPending ||
-                          suspend.isPending
+                      />
+                      <ConfirmDialog
+                        title={fa.suspend}
+                        description={fa.confirmSuspend}
+                        confirmLabel={fa.suspend}
+                        destructive
+                        onConfirm={() => suspend.mutate(row.id)}
+                        trigger={
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="min-h-11"
+                            disabled={
+                              row.status === "suspended" || pending
+                            }
+                            title={fa.privilegeHint}
+                          >
+                            {fa.suspend}
+                          </Button>
                         }
-                        title={fa.privilegeHint}
-                        onClick={() => {
-                          if (window.confirm(fa.confirmSuspend)) {
-                            suspend.mutate(row.id);
-                          }
-                        }}
-                      >
-                        {fa.suspend}
-                      </button>
+                      />
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ) : null}
 
-      {(activate.error || suspend.error) && (
-        <p className="text-sm text-[var(--color-danger)]" role="alert">
-          {fa.error}
-        </p>
-      )}
+      {activate.error || suspend.error ? (
+        <ErrorState description={fa.error} />
+      ) : null}
     </section>
   );
 }

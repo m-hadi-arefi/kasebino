@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
+import { StorefrontChromeFromSlug } from "@/components/layout/storefront-chrome-from-slug";
 import { auth } from "@/auth";
 import {
   customerLoginPath,
@@ -36,10 +37,10 @@ export default async function CustomerDashboardHomePage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 py-6">
+    <StorefrontChromeFromSlug storeSlug={storeSlug} mode="portal">
       <PortalProviders>
         <PortalHomeClient storeSlug={storeSlug} />
       </PortalProviders>
-    </main>
+    </StorefrontChromeFromSlug>
   );
 }

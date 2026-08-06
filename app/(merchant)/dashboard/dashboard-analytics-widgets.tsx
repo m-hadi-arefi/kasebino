@@ -1,8 +1,16 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import {
+  BarChart3,
+  Heart,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
+import { ErrorState } from "@/components/composites/error-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import { StatCard } from "@/components/composites/stat-card";
 import {
   ANALYTICS_UI_COPY_FA,
   fetchAnalyticsCustomers,
@@ -14,21 +22,6 @@ import {
 } from "@/modules/analytics/ui";
 
 const fa = ANALYTICS_UI_COPY_FA;
-
-function WidgetShell({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <li className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
-      <p className="font-medium text-[var(--color-fg)]">{title}</p>
-      {children}
-    </li>
-  );
-}
 
 export function DashboardAnalyticsWidgets() {
   const overview = useQuery({
@@ -56,104 +49,90 @@ export function DashboardAnalyticsWidgets() {
   const error =
     overview.error || revenue.error || customers.error || retention.error;
 
+  if (loading) {
+    return <LoadingState rows={3} label={fa.loading} />;
+  }
+
+  if (error) {
+    return <ErrorState title={fa.error} />;
+  }
+
+  const rangeLabel =
+    overview.data?.range != null
+      ? `${formatAnalyticsJalaliDay(overview.data.range.fromDay)} — ${formatAnalyticsJalaliDay(overview.data.range.toDay)}`
+      : undefined;
+
   return (
-    <>
-      <p className="text-sm text-[var(--color-muted)]">{fa.cacheHint}</p>
-      <p className="text-sm text-[var(--color-muted)]">{fa.jalaliHint}</p>
-
-      {loading ? (
-        <p className="text-sm text-[var(--color-muted)]" aria-live="polite">
-          {fa.loading}
-        </p>
-      ) : null}
-
-      {error ? (
-        <p className="text-sm text-[var(--color-danger)]" role="alert">
-          {fa.error}
-        </p>
-      ) : null}
-
-      <WidgetShell title={overview.data?.titleFa ?? fa.overviewTitle}>
-        {overview.data ? (
-          overview.data.salesCount === 0 ? (
-            <p className="mt-2 text-sm text-[var(--color-muted)]">{fa.empty}</p>
-          ) : (
-            <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-              <p>
-                {fa.salesCount}: {overview.data.salesCount.toLocaleString("fa-IR")}
-              </p>
-              <p>
-                {fa.revenueToman}:{" "}
-                {formatAnalyticsToman(overview.data.revenueMinor)}
-              </p>
-              <p>
-                {fa.activeMemberships}:{" "}
-                {overview.data.activeMemberships.toLocaleString("fa-IR")}
-              </p>
-              <p className="text-[var(--color-muted)]">
-                {fa.rangeLabel}:{" "}
-                {formatAnalyticsJalaliDay(overview.data.range.fromDay)} —{" "}
-                {formatAnalyticsJalaliDay(overview.data.range.toDay)}
-              </p>
-            </div>
-          )
-        ) : null}
-      </WidgetShell>
-
-      <WidgetShell title={revenue.data?.titleFa ?? fa.revenueTitle}>
-        {revenue.data ? (
-          revenue.data.salesCount === 0 ? (
-            <p className="mt-2 text-sm text-[var(--color-muted)]">{fa.empty}</p>
-          ) : (
-            <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-              <p>{formatAnalyticsToman(revenue.data.revenueMinor)}</p>
-              <p className="text-[var(--color-muted)]">
-                {fa.salesCount}: {revenue.data.salesCount.toLocaleString("fa-IR")}
-              </p>
-            </div>
-          )
-        ) : null}
-      </WidgetShell>
-
-      <WidgetShell title={customers.data?.titleFa ?? fa.customersTitle}>
-        {customers.data ? (
-          customers.data.activeMemberships === 0 &&
-          customers.data.newMemberships === 0 ? (
-            <p className="mt-2 text-sm text-[var(--color-muted)]">
-              {fa.emptyCustomers}
-            </p>
-          ) : (
-            <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-              <p>
-                {fa.activeMemberships}:{" "}
-                {customers.data.activeMemberships.toLocaleString("fa-IR")}
-              </p>
-              <p>
-                {fa.newMemberships}:{" "}
-                {customers.data.newMemberships.toLocaleString("fa-IR")}
-              </p>
-            </div>
-          )
-        ) : null}
-      </WidgetShell>
-
-      <WidgetShell
-        title={retention.data?.northStarTitleFa ?? fa.northStarTitle}
-      >
-        {retention.data ? (
-          <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-fg)]">
-            <p className="text-2xl font-semibold tabular-nums">
-              {retention.data.monthlyReturningCustomers.toLocaleString("fa-IR")}
-            </p>
-            <p className="text-[var(--color-muted)]">{fa.returningCustomers}</p>
-            <p className="text-[var(--color-muted)]">
-              {fa.rangeLabel}:{" "}
-              {formatAnalyticsJalaliDay(retention.data.range.fromDay)} —{" "}
-              {formatAnalyticsJalaliDay(retention.data.range.toDay)}
-            </p>
-          </div>
-        ) : null}
-      </WidgetShell>
-    </>
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        {fa.cacheHint} · {fa.jalaliHint}
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          icon={BarChart3}
+          title={overview.data?.titleFa ?? fa.overviewTitle}
+          value={
+            overview.data?.salesCount === 0
+              ? fa.empty
+              : overview.data?.salesCount.toLocaleString("fa-IR") ?? "—"
+          }
+          description={
+            overview.data && overview.data.salesCount > 0
+              ? `${fa.revenueToman}: ${formatAnalyticsToman(overview.data.revenueMinor)}`
+              : undefined
+          }
+          trend={rangeLabel ? `${fa.rangeLabel}: ${rangeLabel}` : undefined}
+        />
+        <StatCard
+          icon={TrendingUp}
+          title={revenue.data?.titleFa ?? fa.revenueTitle}
+          value={
+            revenue.data?.salesCount === 0
+              ? fa.empty
+              : revenue.data
+                ? formatAnalyticsToman(revenue.data.revenueMinor)
+                : "—"
+          }
+          description={
+            revenue.data && revenue.data.salesCount > 0
+              ? `${fa.salesCount}: ${revenue.data.salesCount.toLocaleString("fa-IR")}`
+              : undefined
+          }
+        />
+        <StatCard
+          icon={Users}
+          title={customers.data?.titleFa ?? fa.customersTitle}
+          value={
+            customers.data &&
+            customers.data.activeMemberships === 0 &&
+            customers.data.newMemberships === 0
+              ? fa.emptyCustomers
+              : customers.data?.activeMemberships.toLocaleString("fa-IR") ?? "—"
+          }
+          description={
+            customers.data &&
+            (customers.data.activeMemberships > 0 ||
+              customers.data.newMemberships > 0)
+              ? `${fa.newMemberships}: ${customers.data.newMemberships.toLocaleString("fa-IR")}`
+              : undefined
+          }
+        />
+        <StatCard
+          icon={Heart}
+          title={retention.data?.northStarTitleFa ?? fa.northStarTitle}
+          value={
+            retention.data?.monthlyReturningCustomers.toLocaleString("fa-IR") ??
+            "—"
+          }
+          description={fa.returningCustomers}
+          trend={
+            retention.data?.range
+              ? `${fa.rangeLabel}: ${formatAnalyticsJalaliDay(retention.data.range.fromDay)} — ${formatAnalyticsJalaliDay(retention.data.range.toDay)}`
+              : undefined
+          }
+          className="sm:col-span-2 lg:col-span-1"
+        />
+      </div>
+    </div>
   );
 }

@@ -1,9 +1,15 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { EmptyState } from "@/components/composites/empty-state";
+import { LoadingState } from "@/components/composites/loading-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   adjustInventory,
   fetchInventory,
@@ -97,30 +103,15 @@ export function InventoryClient() {
   });
 
   if (storesQuery.isLoading) {
-    return <p className="text-[var(--color-muted)]">{fa.loadingInventory}</p>;
+    return <LoadingState rows={2} label={fa.loadingInventory} />;
   }
 
   if (!storesQuery.data?.length) {
-    return <p className="text-[var(--color-muted)]">{fa.noStore}</p>;
+    return <EmptyState title={fa.noStore} />;
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <Link
-          href="/dashboard"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.backToDashboard}
-        </Link>
-        <Link
-          href="/products"
-          className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-        >
-          {fa.openProducts}
-        </Link>
-      </nav>
-
       <StoreSwitcher
         value={storeId || undefined}
         onChange={(store) => {
@@ -132,12 +123,12 @@ export function InventoryClient() {
       />
 
       {inventoryQuery.isLoading || productsQuery.isLoading ? (
-        <p className="text-[var(--color-muted)]">{fa.loadingInventory}</p>
+        <LoadingState rows={3} label={fa.loadingInventory} />
       ) : null}
 
       {!productsQuery.isLoading &&
       (productsQuery.data?.length ?? 0) === 0 ? (
-        <p className="text-[var(--color-muted)]">{fa.emptyProducts}</p>
+        <EmptyState title={fa.emptyProducts} actionHref="/products/new" actionLabel={fa.addProduct} />
       ) : null}
 
       <ul className="flex flex-col gap-4">
@@ -145,53 +136,57 @@ export function InventoryClient() {
           const stock = stockByProduct.get(product.id);
           const qty = stock?.quantity ?? 0;
           return (
-            <li
-              key={product.id}
-              className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
-            >
-              <p className="font-medium">{product.name}</p>
-              <p className="mt-1 text-sm text-[var(--color-muted)]">
-                {fa.quantityLabel}: {qty.toLocaleString("fa-IR")}
-                {stock
-                  ? ` · ${fa.updatedAt}: ${formatInventoryJalali(stock.updatedAt)}`
-                  : ""}
-              </p>
-              <div className="mt-3 flex flex-col gap-2">
-                <input
-                  inputMode="numeric"
-                  placeholder={fa.adjustDeltaLabel}
-                  value={deltas[product.id] ?? ""}
-                  onChange={(e) =>
-                    setDeltas((prev) => ({
-                      ...prev,
-                      [product.id]: e.target.value,
-                    }))
-                  }
-                  className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 text-base"
-                />
-                <input
-                  placeholder={fa.adjustReasonLabel}
-                  value={reasons[product.id] ?? ""}
-                  onChange={(e) =>
-                    setReasons((prev) => ({
-                      ...prev,
-                      [product.id]: e.target.value,
-                    }))
-                  }
-                  className="min-h-11 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 text-base"
-                />
-                <button
-                  type="button"
-                  disabled={adjustMutation.isPending}
-                  onClick={() => {
-                    setError(null);
-                    adjustMutation.mutate(product.id);
-                  }}
-                  className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 font-medium text-[var(--color-primary-fg)]"
-                >
-                  {fa.adjustSubmit}
-                </button>
-              </div>
+            <li key={product.id}>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{product.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {fa.quantityLabel}: {qty.toLocaleString("fa-IR")}
+                    {stock
+                      ? ` · ${fa.updatedAt}: ${formatInventoryJalali(stock.updatedAt)}`
+                      : ""}
+                  </p>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="space-y-2">
+                    <Label>{fa.adjustDeltaLabel}</Label>
+                    <Input
+                      inputMode="numeric"
+                      placeholder={fa.adjustDeltaLabel}
+                      value={deltas[product.id] ?? ""}
+                      onChange={(e) =>
+                        setDeltas((prev) => ({
+                          ...prev,
+                          [product.id]: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{fa.adjustReasonLabel}</Label>
+                    <Input
+                      placeholder={fa.adjustReasonLabel}
+                      value={reasons[product.id] ?? ""}
+                      onChange={(e) =>
+                        setReasons((prev) => ({
+                          ...prev,
+                          [product.id]: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    disabled={adjustMutation.isPending}
+                    onClick={() => {
+                      setError(null);
+                      adjustMutation.mutate(product.id);
+                    }}
+                  >
+                    {fa.adjustSubmit}
+                  </Button>
+                </CardContent>
+              </Card>
             </li>
           );
         })}
@@ -200,13 +195,19 @@ export function InventoryClient() {
       {!inventoryQuery.isLoading &&
       productsQuery.data?.length &&
       !(inventoryQuery.data?.length ?? 0) ? (
-        <p className="text-sm text-[var(--color-muted)]">{fa.emptyInventory}</p>
+        <p className="text-sm text-muted-foreground">{fa.emptyInventory}</p>
       ) : null}
 
-      <div aria-live="polite" className="text-sm">
-        {error ? <p className="text-[var(--color-danger)]">{error}</p> : null}
+      <div aria-live="polite" className="flex flex-col gap-2">
+        {error ? (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
         {success ? (
-          <p className="text-[var(--color-success)]">{success}</p>
+          <Alert>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         ) : null}
       </div>
     </div>
