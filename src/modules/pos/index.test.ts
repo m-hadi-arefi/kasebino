@@ -127,6 +127,7 @@ describe("ADR-009 POS and Sales Domain", () => {
       productId: "prod-1",
       quantity: 2,
       sameTransaction: true,
+      saleId: "id-1",
     });
 
     expect(

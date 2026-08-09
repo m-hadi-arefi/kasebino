@@ -16,6 +16,7 @@ export {
   DrizzleOutboxStore,
   DrizzleProcessedSet,
 } from "./drizzle-outbox.js";
+export { DrizzleTransactionScope } from "./drizzle-transaction-scope.js";
 export {
   assertMerchantId,
   assertStoreId,

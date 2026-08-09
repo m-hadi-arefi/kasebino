@@ -16,6 +16,14 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
+### 2026-08-09 — ADR-126 ERPNext integration boundaries — completed (contract)
+
+- Plan: `docs/integrations/erpnext/implementation-plan.md`; ADR: `adrs/done/ADR-126-erpnext-integration-boundaries.md`
+- Changes: domain ownership docs; `external_entity_mappings` + `stock_movements` + product UOM foundation; Quantity/UOM shared module; AccountingProvider Noop/Fake + outbox consumer; CompleteSale TX scope + saleId stock movements; idempotent SaleCompleted re-enqueue
+- Validations: typecheck green; ADR-126-focused unit tests green; full suite — POS/accounting/quantity/event-driven green; live redis/mongo timeouts are env flakiness unrelated
+- Docs updated: `docs/integrations/erpnext/*`, STATUS, this log
+- Next: future ERPNextAccountingProvider ACL behind `MOS_ACCOUNTING_PROVIDER` (not in this phase)
+
 ### 2026-08-06 — ADR-125 Production UI shell + page migration — completed (runtime)
 
 - Plan: `docs/execution/plans/ADR-125.md`; ADR: `adrs/tasks/ADR-125-production-ui-shell-page-migration.md`

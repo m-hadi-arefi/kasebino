@@ -123,6 +123,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-097 | Catalog Inventory Merchant APIs UI | accepted | complete |
 | ADR-96 | Merchant POS UI CompleteSale | accepted | complete |
 | ADR-120 | ADR STATUS Truth Realignment | accepted | complete |
+| ADR-126 | ERPNext Integration Boundaries (Prep) | accepted | complete |
 
 ## future/ — Not implemented (9)
 
@@ -162,7 +163,9 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-071 | Scalability Stateless Multi-Instance — **in_progress** (plan `docs/execution/plans/ADR-071.md`; contract `src/scalability-stateless/`; not moved to done this cycle) |
 | ADR-115…123 | SMS, observability, e2e, onboarding, landing, composition |
 
+### ADR-126 note (2026-08-09)
 
+**ADR-126 ERPNext integration boundaries** completed as contract + prep wiring → moved to [`done/ADR-126-erpnext-integration-boundaries.md`](./done/ADR-126-erpnext-integration-boundaries.md). Docs: `docs/integrations/erpnext/`. No ERPNext client.
 
 ## Notes
 

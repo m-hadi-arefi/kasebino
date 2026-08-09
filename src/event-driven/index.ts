@@ -163,6 +163,14 @@ export const OUTBOX_CONSUMERS = {
     implementation: "src/infrastructure/minio/" as const,
     detailAdr: "ADR-111" as const,
   },
+  accounting_integration: {
+    channel: "accounting_provider_port" as const,
+    purpose: "erp_accounting_sync",
+    onCriticalPath: false,
+    spineFeed: "accounting_integration" as const,
+    implementation: "src/modules/accounting/" as const,
+    detailAdr: "ADR-126" as const,
+  },
 } as const;
 
 export type OutboxConsumerName = keyof typeof OUTBOX_CONSUMERS;

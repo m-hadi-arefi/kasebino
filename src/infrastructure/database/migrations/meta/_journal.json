@@ -29,6 +29,13 @@
       "when": 1785930000000,
       "tag": "0003_receipt_object_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786255978393,
+      "tag": "0004_skinny_mandroid",
+      "breakpoints": true
     }
   ]
 }

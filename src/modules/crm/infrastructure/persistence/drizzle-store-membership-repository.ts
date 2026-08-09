@@ -5,6 +5,7 @@
 import { and, asc, eq } from "drizzle-orm";
 
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
+import type { DrizzleTransactionScope } from "../../../../infrastructure/persistence/drizzle-transaction-scope.js";
 import { storeMemberships } from "../../../../infrastructure/database/schema/memberships.js";
 import {
   assertMerchantId,
@@ -66,7 +67,15 @@ function toValues(m: StoreMembership) {
 export class DrizzleStoreMembershipRepository
   implements StoreMembershipRepository
 {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(
+    private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope,
+  ) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope
+      ? this.dbOrScope.executor
+      : this.dbOrScope;
+  }
 
   async save(membership: StoreMembership): Promise<void> {
     await this.db.insert(storeMemberships).values(toValues(membership));

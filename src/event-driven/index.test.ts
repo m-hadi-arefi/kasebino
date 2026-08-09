@@ -130,9 +130,10 @@ describe("ADR-036 Event-Driven Architecture", () => {
     expect(DELIVERY_GUARANTEES.globalOrderAssumedForbidden).toBe(true);
   });
 
-  it("feeds cache, realtime, analytics, and notifications off the critical path", () => {
+  it("feeds cache, realtime, analytics, notifications, and accounting off the critical path", () => {
     expect(Object.keys(OUTBOX_CONSUMERS).sort()).toEqual(
       [
+        "accounting_integration",
         "cache_invalidation",
         "emqx_realtime",
         "minio_receipts",
@@ -142,6 +143,7 @@ describe("ADR-036 Event-Driven Architecture", () => {
     );
     expect(OUTBOX_CONSUMERS.mongodb_warehouse.onCriticalPath).toBe(false);
     expect(OUTBOX_CONSUMERS.mongodb_warehouse.analyticsPlaneOnly).toBe(true);
+    expect(OUTBOX_CONSUMERS.accounting_integration.onCriticalPath).toBe(false);
     expect(ANALYTICS_CRITICAL_PATH.onCheckoutCriticalPath).toBe(false);
     expect(
       ANALYTICS_CRITICAL_PATH.syncMongoWriteInCompleteSaleForbidden,

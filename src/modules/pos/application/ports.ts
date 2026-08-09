@@ -31,6 +31,8 @@ export type InventoryDecrementPort = {
     productId: string;
     quantity: number;
     sameTransaction: true;
+    /** ADR-126 — stock movement reference */
+    saleId?: string;
   }): Promise<void>;
 };
 
@@ -67,7 +69,7 @@ export type AnalyticsAfterSalePort = {
 };
 
 /**
- * Transactional outbox enqueue (ADR-035 / ADR-096).
+ * Transactional outbox enqueue (ADR-035 / ADR-096 / ADR-126).
  * Wired from composition; optional in unit tests.
  */
 export type SaleOutboxPort = {
@@ -79,6 +81,21 @@ export type SaleOutboxPort = {
       occurredAt: Date;
       payload: Record<string, unknown>;
     };
+    completedEvent: {
+      eventName: string;
+      aggregateId: string;
+      aggregateType: string;
+      occurredAt: Date;
+      payload: Record<string, unknown>;
+    };
+    merchantId: string;
+    storeId: string;
+  }): Promise<void>;
+  /**
+   * ADR-126 — on idempotent sale replay, re-enqueue SaleCompleted if missing
+   * so accounting sync cannot be permanently orphaned.
+   */
+  ensureSaleCompletedEnqueued?(input: {
     completedEvent: {
       eventName: string;
       aggregateId: string;

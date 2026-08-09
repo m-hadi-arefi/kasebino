@@ -33,13 +33,14 @@
  * ADR-090: `notifications` stub (migrations → ARD-014).
  * ADR-092: identity tables (`auth_users`, OTP challenges, `customer_identities`) + baseline Kit migration.
  * ADR-106: analytics projection tables for merchant AN-01..04 dashboards.
+ * ADR-126: external_entity_mappings + stock_movements + product UOM foundation.
  */
 
 export { merchantSettings, merchants } from "./merchants.js";
 export { stores } from "./stores.js";
 export { storeMemberships } from "./memberships.js";
 export { categories, products } from "./catalog.js";
-export { stockItems } from "./inventory.js";
+export { stockItems, stockMovements } from "./inventory.js";
 export { saleLines, sales } from "./sales.js";
 export { coupons, pointRules, pointsLedger, wallets } from "./loyalty.js";
 export { orderLines, orders } from "./orders.js";
@@ -51,6 +52,7 @@ export {
   outboxEvents,
   processedEvents,
 } from "./platform.js";
+export { externalEntityMappings } from "./integrations.js";
 export {
   authUsers,
   customerIdentities,

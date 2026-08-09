@@ -12,6 +12,7 @@
 import {
   bigint,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -62,6 +63,18 @@ export const products = pgTable(
     barcode: varchar("barcode", { length: 64 }).notNull(),
     /** IRR minor units (rial). Display تومان in presentation. */
     priceAmountMinor: bigint("price_amount_minor", { mode: "bigint" }).notNull(),
+    /**
+     * MerchantOS base unit code (ADR-126). Default piece; weight units (kg/g)
+     * supported in Quantity domain before stock/sale columns go decimal.
+     */
+    baseUnitCode: varchar("base_unit_code", { length: 32 })
+      .notNull()
+      .default("piece"),
+    /**
+     * Decimal scale for quantities expressed in base unit (0 = integer pieces).
+     * Stock/sale columns remain integer until a later weight-product ADR.
+     */
+    quantityScale: integer("quantity_scale").notNull().default(0),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "date",

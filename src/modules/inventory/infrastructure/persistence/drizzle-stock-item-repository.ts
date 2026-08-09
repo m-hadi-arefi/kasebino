@@ -1,11 +1,12 @@
 /**
- * Drizzle StockItemRepository (ADR-093 / ADR-008 / ADR-049).
+ * Drizzle StockItemRepository (ADR-093 / ADR-008 / ADR-049 / ADR-126 TX scope).
  */
 
 import { and, eq } from "drizzle-orm";
 
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
 import { stockItems } from "../../../../infrastructure/database/schema/inventory.js";
+import type { DrizzleTransactionScope } from "../../../../infrastructure/persistence/drizzle-transaction-scope.js";
 import {
   assertMerchantId,
   assertStoreId,
@@ -44,7 +45,15 @@ function toValues(item: StockItem) {
 }
 
 export class DrizzleStockItemRepository implements StockItemRepository {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(
+    private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope,
+  ) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope
+      ? this.dbOrScope.executor
+      : this.dbOrScope;
+  }
 
   async save(item: StockItem): Promise<void> {
     await this.db.insert(stockItems).values(toValues(item));

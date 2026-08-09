@@ -6,6 +6,7 @@ import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
+import type { DrizzleTransactionScope } from "../../../../infrastructure/persistence/drizzle-transaction-scope.js";
 import {
   saleLines,
   sales,
@@ -56,7 +57,19 @@ function toSale(row: SaleRow, lines: SaleLine[]): Sale {
 }
 
 export class DrizzleSaleRepository implements SaleRepository {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(
+    private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope,
+  ) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope
+      ? this.dbOrScope.executor
+      : this.dbOrScope;
+  }
+
+  private get inSharedTx(): boolean {
+    return "isActive" in this.dbOrScope && this.dbOrScope.isActive;
+  }
 
   private async loadLines(saleId: string): Promise<SaleLine[]> {
     const rows = await this.db
@@ -67,7 +80,7 @@ export class DrizzleSaleRepository implements SaleRepository {
   }
 
   async save(sale: Sale): Promise<void> {
-    await this.db.transaction(async (tx) => {
+    const persist = async (tx: DrizzleDb) => {
       await tx.insert(sales).values({
         id: sale.id,
         merchantId: sale.merchantId,
@@ -102,6 +115,14 @@ export class DrizzleSaleRepository implements SaleRepository {
           })),
         );
       }
+    };
+
+    if (this.inSharedTx) {
+      await persist(this.db);
+      return;
+    }
+    await this.db.transaction(async (tx) => {
+      await persist(tx as unknown as DrizzleDb);
     });
   }
 

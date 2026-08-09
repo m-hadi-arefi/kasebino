@@ -316,6 +316,13 @@ export const MVP_EVENT_CATALOG: readonly MvpCatalogEntry[] = [
     implemented: true,
     source: "domain",
   },
+  {
+    eventType: "SaleReturned",
+    domain: "pos",
+    payloadVersion: 1,
+    implemented: false,
+    source: "catalog",
+  },
   // Ordering / pickup (ADR-011 / ADR-015 / ADR-082 — pickup only)
   {
     eventType: "OrderCreated",
@@ -372,6 +379,13 @@ export const MVP_EVENT_CATALOG: readonly MvpCatalogEntry[] = [
     payloadVersion: 1,
     implemented: true,
     source: "domain",
+  },
+  {
+    eventType: "PurchaseCompleted",
+    domain: "ordering",
+    payloadVersion: 1,
+    implemented: false,
+    source: "catalog",
   },
   {
     eventType: "OrderDelivered",

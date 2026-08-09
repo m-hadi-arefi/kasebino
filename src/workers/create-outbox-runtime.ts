@@ -40,6 +40,12 @@ import { createNotificationsUseCases } from "../modules/notifications/applicatio
 import { PersistInAppNotificationChannel } from "../modules/notifications/infrastructure/channels/persist-in-app-channel.js";
 import { createOrderingUseCases } from "../modules/ordering/application/use-cases.js";
 import {
+  createAccountingOutboxHandler,
+  FakeAccountingProvider,
+  NoopAccountingProvider,
+  resolveAccountingProviderId,
+} from "../modules/accounting/index.js";
+import {
   createOutboxWorker,
   InMemoryDeadLetterStore,
   InMemoryOutboxStore,
@@ -255,6 +261,14 @@ export function createOutboxWorkerRuntime(
       sales: repos.sales,
       stores: repos.stores,
       objectStorage: minio.storage,
+    });
+    const accountingProvider =
+      resolveAccountingProviderId(env) === "fake"
+        ? new FakeAccountingProvider()
+        : new NoopAccountingProvider();
+    handlers.accounting_integration = createAccountingOutboxHandler({
+      provider: accountingProvider,
+      mappings: repos.externalEntityMappings,
     });
   }
 

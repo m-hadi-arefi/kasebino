@@ -6,6 +6,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
 import type { DrizzleDb } from "../database/drizzle/client.js";
+import type { DrizzleTransactionScope } from "./drizzle-transaction-scope.js";
 import {
   outboxDeadLetters,
   outboxEvents,
@@ -48,7 +49,15 @@ function toMessage(row: OutboxRow): OutboxMessage {
 }
 
 export class DrizzleOutboxStore implements OutboxStore {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(
+    private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope,
+  ) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope
+      ? this.dbOrScope.executor
+      : this.dbOrScope;
+  }
 
   async enqueue(input: EnqueueOutboxInput): Promise<OutboxMessage> {
     const message = createOutboxMessage(input);
@@ -71,6 +80,27 @@ export class DrizzleOutboxStore implements OutboxStore {
       lastError: null,
     });
     return message;
+  }
+
+  async hasAggregateEvent(input: {
+    merchantId: string;
+    aggregateType: string;
+    aggregateId: string;
+    eventType: string;
+  }): Promise<boolean> {
+    const rows = await this.db
+      .select({ id: outboxEvents.id })
+      .from(outboxEvents)
+      .where(
+        and(
+          eq(outboxEvents.merchantId, input.merchantId),
+          eq(outboxEvents.aggregateType, input.aggregateType),
+          eq(outboxEvents.aggregateId, input.aggregateId),
+          eq(outboxEvents.eventType, input.eventType),
+        ),
+      )
+      .limit(1);
+    return rows.length > 0;
   }
 
   async pollPending(limit: number): Promise<OutboxMessage[]> {

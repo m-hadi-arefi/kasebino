@@ -187,6 +187,13 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
         idempotencyKey: existing.idempotencyKey,
         occurredAt: existing.completedAt ?? existing.createdAt,
       });
+      if (deps.outbox?.ensureSaleCompletedEnqueued) {
+        await deps.outbox.ensureSaleCompletedEnqueued({
+          completedEvent: event,
+          merchantId: existing.merchantId,
+          storeId: existing.storeId,
+        });
+      }
       return {
         sale: existing,
         created: false,
@@ -200,6 +207,7 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
     const tenderType = requireTender(input.tenderType);
     const cart = normalizeCart(merchantId, storeId, input.lines);
     const at = now();
+    const saleId = idFactory();
 
     const membership = await deps.membership.upsertFromPosPhoneCapture({
       merchantId,
@@ -217,10 +225,10 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
         productId: line.productId,
         quantity: line.quantity,
         sameTransaction: true,
+        saleId,
       });
     }
 
-    const saleId = idFactory();
     const sale = createCompletedSaleAggregate({
       id: saleId,
       merchantId,

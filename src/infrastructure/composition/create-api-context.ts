@@ -65,6 +65,7 @@ import type { OutboxStore } from "../../outbox/index.js";
 import type { CacheAsideStorePort } from "../../cache-aside/port.js";
 import type { ProductRepository, CategoryRepository } from "../../modules/catalog/domain/repositories.js";
 import type { StockItemRepository } from "../../modules/inventory/domain/repositories.js";
+import type { StockMovementRepository } from "../../modules/inventory/domain/stock-movement-repository.js";
 import type { StoreMembershipRepository } from "../../modules/crm/domain/repositories.js";
 import type { SaleRepository } from "../../modules/pos/domain/repositories.js";
 import type {
@@ -92,6 +93,13 @@ import {
   assertProductionSmsPolicy,
 } from "./production-guards.js";
 import { getSharedProductionRepositories } from "./shared-production-repositories.js";
+import type { DrizzleTransactionScope } from "../persistence/drizzle-transaction-scope.js";
+import {
+  FakeAccountingProvider,
+  NoopAccountingProvider,
+  resolveAccountingProviderId,
+  type AccountingProvider,
+} from "../../modules/accounting/index.js";
 
 export type ApiRepositories = {
   merchants: MerchantRepository;
@@ -99,6 +107,8 @@ export type ApiRepositories = {
   products: ProductRepository;
   categories: CategoryRepository;
   stockItems: StockItemRepository;
+  /** ADR-126 stock movement ledger — optional in pure unit tests. */
+  stockMovements?: StockMovementRepository;
   storeMemberships: StoreMembershipRepository;
   sales: SaleRepository;
   pointRules: PointRuleRepository;
@@ -111,11 +121,15 @@ export type ApiRepositories = {
   adminActions: AdminActionRepository;
   /** Optional — required for customer storefront wallet (ADR-099). */
   customerIdentities?: CustomerIdentityRepository;
+  /** ADR-126 CompleteSale UoW — present for production Drizzle wiring. */
+  txScope?: DrizzleTransactionScope;
 };
 
 export type CreateApiContextOptions = {
   repos: ApiRepositories;
   paymentGateway?: PaymentGateway;
+  /** ADR-126 — default noop; fake for tests; never ERPNext in this phase. */
+  accountingProvider?: AccountingProvider;
   audit?: AuditPort;
   auditStore?: AuditStore;
   securityMonitoring?: SecurityMonitoringPort;
@@ -169,6 +183,8 @@ export type ApiContext = {
   /** ADR-111 MinIO / in-memory object storage. */
   objectStorage?: ObjectStoragePort;
   storeAssets?: ReturnType<typeof createStoreAssetUseCases>;
+  /** ADR-126 accounting integration port (noop/fake; ERPNext later). */
+  accountingProvider: AccountingProvider;
 };
 
 export function createApiContext(options: CreateApiContextOptions): ApiContext {
@@ -186,6 +202,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
   });
   const inventory = createInventoryUseCases({
     stockItems: repos.stockItems,
+    ...(repos.stockMovements ? { stockMovements: repos.stockMovements } : {}),
   });
   const crm = createCrmUseCases({
     memberships: repos.storeMemberships,
@@ -228,6 +245,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
       productId: string;
       quantity: number;
       sameTransaction: true;
+      saleId?: string;
     }) {
       await inventory.decrementForSale(input);
     },
@@ -256,10 +274,44 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
             aggregateType: input.completedEvent.aggregateType,
           });
         },
+        async ensureSaleCompletedEnqueued(input) {
+          const store = options.outbox!;
+          if (
+            "hasAggregateEvent" in store &&
+            typeof (store as { hasAggregateEvent?: unknown }).hasAggregateEvent ===
+              "function"
+          ) {
+            const exists = await (
+              store as {
+                hasAggregateEvent: (i: {
+                  merchantId: string;
+                  aggregateType: string;
+                  aggregateId: string;
+                  eventType: string;
+                }) => Promise<boolean>;
+              }
+            ).hasAggregateEvent({
+              merchantId: input.merchantId,
+              aggregateType: input.completedEvent.aggregateType,
+              aggregateId: input.completedEvent.aggregateId,
+              eventType: "SaleCompleted",
+            });
+            if (exists) return;
+          }
+          await store.enqueue({
+            envelope: envelopeFromDomainEvent({
+              domainEvent: input.completedEvent,
+              merchantId: input.merchantId,
+              storeId: input.storeId,
+            }),
+            aggregateId: input.completedEvent.aggregateId,
+            aggregateType: input.completedEvent.aggregateType,
+          });
+        },
       }
     : undefined;
 
-  const pos = createPosUseCases({
+  const posInner = createPosUseCases({
     sales: repos.sales,
     membership: membershipPort,
     inventory: inventoryPort,
@@ -278,6 +330,21 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
         }
       : {}),
   });
+
+  const pos =
+    repos.txScope != null
+      ? {
+          ...posInner,
+          completeSale: (input: Parameters<typeof posInner.completeSale>[0]) =>
+            repos.txScope!.run(() => posInner.completeSale(input)),
+        }
+      : posInner;
+
+  const accountingProvider =
+    options.accountingProvider ??
+    (resolveAccountingProviderId() === "fake"
+      ? new FakeAccountingProvider()
+      : new NoopAccountingProvider());
 
   const paymentGateway =
     options.paymentGateway ??
@@ -382,6 +449,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     analytics,
     analyticsProjection,
     analyticsCache,
+    accountingProvider,
     ...(resolvedAuditStore ? { auditStore: resolvedAuditStore } : {}),
     ...(options.objectStorage ? { objectStorage: options.objectStorage } : {}),
     ...(storeAssets ? { storeAssets } : {}),
@@ -397,6 +465,7 @@ export function apiReposFromProduction(
     products: production.products,
     categories: production.categories,
     stockItems: production.stockItems,
+    stockMovements: production.stockMovements,
     storeMemberships: production.storeMemberships,
     sales: production.sales,
     pointRules: production.pointRules,
@@ -408,6 +477,7 @@ export function apiReposFromProduction(
     adminUsers: production.adminUsers,
     adminActions: production.adminActions,
     customerIdentities: production.customerIdentities,
+    txScope: production.txScope,
   };
 }
 

@@ -5,6 +5,7 @@
 import { and, asc, eq, gt, isNotNull } from "drizzle-orm";
 
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
+import type { DrizzleTransactionScope } from "../../../../infrastructure/persistence/drizzle-transaction-scope.js";
 import {
   pointRules,
   pointsLedger,
@@ -72,7 +73,11 @@ function toLedger(row: LedgerRow): PointsLedgerEntry {
 }
 
 export class DrizzlePointRuleRepository implements PointRuleRepository {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope ? this.dbOrScope.executor : this.dbOrScope;
+  }
 
   async save(rule: PointRule): Promise<void> {
     await this.db.insert(pointRules).values({
@@ -135,7 +140,11 @@ export class DrizzlePointRuleRepository implements PointRuleRepository {
 }
 
 export class DrizzleWalletRepository implements WalletRepository {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope ? this.dbOrScope.executor : this.dbOrScope;
+  }
 
   async save(wallet: Wallet): Promise<void> {
     await this.db.insert(wallets).values({
@@ -214,7 +223,11 @@ export class DrizzleWalletRepository implements WalletRepository {
 }
 
 export class DrizzlePointsLedgerRepository implements PointsLedgerRepository {
-  constructor(private readonly db: DrizzleDb) {}
+  constructor(private readonly dbOrScope: DrizzleDb | DrizzleTransactionScope) {}
+
+  private get db(): DrizzleDb {
+    return "executor" in this.dbOrScope ? this.dbOrScope.executor : this.dbOrScope;
+  }
 
   async append(entry: PointsLedgerEntry): Promise<void> {
     await this.db.insert(pointsLedger).values({

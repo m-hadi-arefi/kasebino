@@ -7,6 +7,14 @@ export {
   createStockItemAggregate,
 } from "./stock-item.js";
 export {
+  createStockMovement,
+  STOCK_MOVEMENT_REASONS,
+  type CreateStockMovementInput,
+  type StockMovement,
+  type StockMovementReason,
+} from "./stock-movement.js";
+export type { StockMovementRepository } from "./stock-movement-repository.js";
+export {
   buildThresholdEvents,
   inventoryChangedEvent,
   inventoryDepletedEvent,
