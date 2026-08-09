@@ -5,12 +5,12 @@
 | ID | ADR-117 |
 | Status | `Proposed` |
 | Date | 2026-08-05 |
-| Origin | Release-readiness audit 2026-08-05 (docs/product vs codebase) |
-| Folder | `adrs/tasks/` |
+| Origin | Release-readiness audit 2026-08-05; reconfirmed `docs/audit/testing-gap-analysis.md` High #8 |
+| Folder | `adrs/tasks/` (promoted from `future/` 2026-08-09) |
 
 ## Status
 
-`Proposed` - Implementation-ready runtime gap ADR. Tracking: `adrs/STATUS.md`.
+`Proposed` — implementation queue. Note: `e2e/ui-audit.spec.ts` exists but is not a money-path journey. Tracking: `adrs/STATUS.md`.
 
 ## Title
 

@@ -25,6 +25,7 @@ export const MULTI_TENANT_STRATEGY_DOC =
  */
 export const CANONICAL_ROLES = [
   "merchant_owner",
+  "store_manager",
   "store_employee",
   "customer",
   "platform_admin",
@@ -39,10 +40,11 @@ export type CanonicalRole = (typeof CANONICAL_ROLES)[number];
 export const ROLE_ALIASES = {
   merchant_owner: "merchant_owner",
   owner: "merchant_owner",
+  store_manager: "store_manager",
+  manager: "store_manager",
   store_employee: "store_employee",
   employee: "store_employee",
   staff: "store_employee",
-  manager: "store_employee",
   cashier: "store_employee",
   customer: "customer",
   platform_admin: "platform_admin",
@@ -69,6 +71,12 @@ export const PERMISSIONS = [
   "inventory.read",
   "inventory.write",
   "pickup.manage",
+  /** ADR-141 — ERPNext financial surfaces (owner + store_manager). */
+  "finance.view",
+  "finance.manage",
+  "purchase.view",
+  "purchase.manage",
+  "supplier.view",
   "customer.self",
   "admin.platform",
 ] as const;
@@ -91,11 +99,37 @@ const MERCHANT_OWNER_PERMISSIONS: readonly Permission[] = [
   "inventory.read",
   "inventory.write",
   "pickup.manage",
+  "finance.view",
+  "finance.manage",
+  "purchase.view",
+  "purchase.manage",
+  "supplier.view",
 ];
 
 /**
- * store_employee: POS/CRM/loyalty/inventory/pickup — no billing or
- * destructive merchant settings unless explicitly granted later.
+ * store_manager: ops + finance (ADR-141). No destructive merchant settings.
+ */
+const STORE_MANAGER_PERMISSIONS: readonly Permission[] = [
+  "merchant.read",
+  "store.read",
+  "store.write",
+  "pos.sale",
+  "crm.read",
+  "crm.write",
+  "loyalty.read",
+  "loyalty.write",
+  "inventory.read",
+  "inventory.write",
+  "pickup.manage",
+  "finance.view",
+  "finance.manage",
+  "purchase.view",
+  "purchase.manage",
+  "supplier.view",
+];
+
+/**
+ * store_employee (cashier): POS/CRM/loyalty/inventory/pickup — no finance.
  */
 const STORE_EMPLOYEE_PERMISSIONS: readonly Permission[] = [
   "merchant.read",
@@ -123,12 +157,13 @@ export const ROLE_PERMISSION_MATRIX: Record<
   readonly Permission[]
 > = {
   merchant_owner: MERCHANT_OWNER_PERMISSIONS,
+  store_manager: STORE_MANAGER_PERMISSIONS,
   store_employee: STORE_EMPLOYEE_PERMISSIONS,
   customer: CUSTOMER_PERMISSIONS,
   platform_admin: PLATFORM_ADMIN_PERMISSIONS,
 };
 
-/** Permissions that require store scope for store_employee (not owner). */
+/** Permissions that require store scope for store_manager / store_employee (not owner). */
 export const STORE_SCOPED_PERMISSIONS: readonly Permission[] = [
   "pos.sale",
   "crm.read",
@@ -305,7 +340,9 @@ export function authorize(ctx: AuthContext, input: AuthorizeInput): void {
   const isPlatformAdmin = roles.includes("platform_admin");
   const isCustomer = roles.includes("customer");
   const isStaff =
-    roles.includes("merchant_owner") || roles.includes("store_employee");
+    roles.includes("merchant_owner") ||
+    roles.includes("store_manager") ||
+    roles.includes("store_employee");
 
   if (
     input.permission !== "customer.self" &&
@@ -350,7 +387,7 @@ export function authorize(ctx: AuthContext, input: AuthorizeInput): void {
   }
 
   if (
-    roles.includes("store_employee") &&
+    (roles.includes("store_employee") || roles.includes("store_manager")) &&
     !roles.includes("merchant_owner") &&
     requiresStoreScopeForEmployee(input.permission)
   ) {
@@ -440,6 +477,21 @@ export function assertRolePermissionMatrix(
   }
   if (!matrix.store_employee.includes("pos.sale")) {
     throw new Error("store_employee must include pos.sale (ADR-034).");
+  }
+  if (matrix.store_employee.includes("finance.view")) {
+    throw new Error(
+      "store_employee (cashier) must not include finance.view (ADR-141).",
+    );
+  }
+  if (!matrix.store_manager.includes("finance.view")) {
+    throw new Error(
+      "store_manager must include finance.view (ADR-141).",
+    );
+  }
+  if (!matrix.merchant_owner.includes("finance.view")) {
+    throw new Error(
+      "merchant_owner must include finance.view (ADR-141).",
+    );
   }
   if (matrix.customer.some((p) => p !== "customer.self")) {
     throw new Error(

@@ -124,6 +124,14 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-96 | Merchant POS UI CompleteSale | accepted | complete |
 | ADR-120 | ADR STATUS Truth Realignment | accepted | complete |
 | ADR-126 | ERPNext Integration Boundaries (Prep) | accepted | complete |
+| ADR-127 | ERPNext Integration Boundary | accepted | complete |
+| ADR-128 | ERPNext Domain Ownership | accepted | complete |
+| ADR-129 | ERPNext Synchronization Strategy | accepted | complete |
+| ADR-130 | ERPNext Product Mapping | accepted | complete |
+| ADR-131 | ERPNext Customer Mapping | accepted | complete |
+| ADR-132 | ERPNext Inventory Strategy | accepted | complete |
+| ADR-133 | ERPNext Accounting Strategy | accepted | complete |
+| ADR-134 | ERPNext UI Strategy | accepted | complete |
 
 ## future/ — Not implemented (9)
 
@@ -160,12 +168,45 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-123 | Application composition root / DI — **in_progress** (plan `docs/execution/plans/ADR-123.md`; not moved to done this cycle) |
 | ADR-124 | Realtime MQTT client (merchant) — **in_progress** (plan `docs/execution/plans/ADR-124.md`; not moved to done this cycle) |
 | ADR-125 | Production UI shell + page migration — **in_progress** (plan `docs/execution/plans/ADR-125.md`; tasks `adrs/tasks/ADR-125-production-ui-shell-page-migration.md`) |
+| ADR-135 | ERPNext Role (financial brain) — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
+| ADR-136 | ERPNext Boundary — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
+| ADR-137 | ERPNext Data Mapping — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
+| ADR-138 | ERPNext Sync Architecture — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
+| ADR-139 | ERPNext UI Strategy — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
+| ADR-140 | ERPNext Runtime Adapter + Docker — **in_progress** (provider + compose landed; soak = ADR-146) |
+| ADR-141 | ERPNext Capability Surfaces — **in_progress** (UI landed; honesty/retry = ADR-146) |
+| ADR-142 | Ordering ↔ inventory wiring — **Proposed** Critical (`docs/audit`) |
+| ADR-143 | Production Iranian PSP gateway — **Proposed** Critical (blocked: ADR-084) |
+| ADR-144 | Merchant staff invite + roles — **Proposed** High |
+| ADR-145 | Loyalty online earn + coupons decision — **Proposed** High |
+| ADR-146 | ERPNext dual-run soak + finance honesty — **Proposed** Critical |
+| ADR-147 | Catalog product images — **Proposed** Medium |
+| ADR-148 | Inventory movement history — **Proposed** Medium |
+| ADR-149 | Store hours HTTP/UI — **Proposed** Medium |
+| ADR-150 | DB migration hygiene + integrity — **Proposed** Medium |
+| ADR-151 | Production fail-closed + worker MinIO parity — **Proposed** High |
+| ADR-152 | Catalog cost + tax boundary — **Proposed** Medium |
+| ADR-115 | Production SMS adapter — **Proposed** Critical (promoted from future/; blocked: ADR-083) |
+| ADR-116 | Observability runtime — **Proposed** High (promoted from future/) |
+| ADR-117 | E2E Playwright / perf — **Proposed** High (promoted from future/) |
+| ADR-118 | Deploy / backup / DR — **Proposed** High (promoted from future/) |
 | ADR-071 | Scalability Stateless Multi-Instance — **in_progress** (plan `docs/execution/plans/ADR-071.md`; contract `src/scalability-stateless/`; not moved to done this cycle) |
-| ADR-115…123 | SMS, observability, e2e, onboarding, landing, composition |
+
+### Runtime completion note (2026-08-09)
+
+Code audit [`docs/audit/`](../docs/audit/) showed foundation runtime largely landed. New gap ADRs **142–152** + promoted **115–118**. Execution order: [`docs/architecture/adr-execution-order.md`](../docs/architecture/adr-execution-order.md). Queue index: [`tasks/INDEX.md`](./tasks/INDEX.md).
 
 ### ADR-126 note (2026-08-09)
 
 **ADR-126 ERPNext integration boundaries** completed as contract + prep wiring → moved to [`done/ADR-126-erpnext-integration-boundaries.md`](./done/ADR-126-erpnext-integration-boundaries.md). Docs: `docs/integrations/erpnext/`. No ERPNext client.
+
+### ADR-127…134 note (2026-08-09)
+
+ERPNext architecture research ADRs (boundary, ownership, sync, product/customer mapping, inventory, accounting, UI) accepted as **docs/contracts** → [`adrs/done/`](./done/). Knowledge base under `docs/integrations/erpnext/`.
+
+**2026-08-09 gap-fill:** CompleteSale OLTP-only UoW (MinIO outside TX), SaleCompleted lines, MembershipCreated accounting path, payment/movement mappers, quantity serialize, readiness tests.
+
+**2026-08-09 re-evaluation:** Prep ADRs were over-marked as “integration done.” Real product goal = MerchantOS retail OS + ERPNext financial brain. New ADRs **135–140** in [`tasks/`](./tasks/). `ErpNextAccountingProvider` + `docker-compose.erpnext.yml` landed (ADR-140). Honest readiness: [`readiness-report.md`](../docs/integrations/erpnext/readiness-report.md) (**62/100**).
 
 ## Notes
 

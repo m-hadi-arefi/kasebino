@@ -9,6 +9,9 @@ export function stockAdjustedEvent(input: {
   nextQuantity: number;
   delta: number;
   reason?: string;
+  unitCode?: string;
+  referenceType?: string | null;
+  referenceId?: string | null;
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -23,6 +26,11 @@ export function stockAdjustedEvent(input: {
       previousQuantity: input.previousQuantity,
       nextQuantity: input.nextQuantity,
       delta: input.delta,
+      /** Alias for accounting consumer (ADR-126). */
+      quantityDelta: input.delta,
+      unitCode: input.unitCode ?? "piece",
+      referenceType: input.referenceType ?? null,
+      referenceId: input.referenceId ?? null,
       reason: input.reason ?? null,
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),

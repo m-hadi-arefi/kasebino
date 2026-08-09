@@ -62,7 +62,13 @@ export function createRedisConfigFromEnv(
  */
 export function createRedisClient(url: string): MerchantOsRedisClient {
   const config = createRedisConfig(url);
-  const client = createClient({ url: config.url }) as MerchantOsRedisClient;
+  const client = createClient({
+    url: config.url,
+    socket: {
+      connectTimeout: 1_500,
+      reconnectStrategy: false,
+    },
+  }) as MerchantOsRedisClient;
   client.on("error", (err: Error) => {
     // Avoid unhandled 'error' events; infrastructure layers apply fail policies.
     if (process.env.MOS_REDIS_LOG_ERRORS === "1") {

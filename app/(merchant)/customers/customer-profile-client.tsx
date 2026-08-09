@@ -27,6 +27,8 @@ import {
   fetchWalletByMembership,
   formatLoyaltyJalali,
 } from "@/modules/loyalty/ui";
+import { CustomerFinancePanel } from "@/modules/erpnext/ui/customer-finance-panel";
+import { MerchantFinanceProviders } from "@/modules/erpnext/ui/finance-providers";
 
 const fa = CRM_UI_COPY_FA;
 
@@ -113,6 +115,10 @@ export function CustomerProfileClient({
           <p className="text-sm text-muted-foreground">{fa.walletEmpty}</p>
         )}
       </FormSection>
+
+      <MerchantFinanceProviders>
+        <CustomerFinancePanel customerId={membership.customerId} />
+      </MerchantFinanceProviders>
 
       <FormSection title={fa.profileTitle}>
         <p className="text-2xl font-semibold text-foreground" dir="ltr">

@@ -8,6 +8,8 @@ export function productCreatedEvent(input: {
   barcode: string;
   priceAmountMinor: string;
   categoryId: string | null;
+  /** MerchantOS unit foundation — default piece until weight UX lands. */
+  unitCode?: string;
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -22,6 +24,8 @@ export function productCreatedEvent(input: {
       barcode: input.barcode,
       priceAmountMinor: input.priceAmountMinor,
       categoryId: input.categoryId,
+      unitCode: input.unitCode ?? "piece",
+      baseUnitCode: input.unitCode ?? "piece",
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),
   });
@@ -36,6 +40,7 @@ export function productUpdatedEvent(input: {
   priceAmountMinor: string;
   categoryId: string | null;
   previousBarcode?: string | null;
+  unitCode?: string;
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -51,6 +56,8 @@ export function productUpdatedEvent(input: {
       priceAmountMinor: input.priceAmountMinor,
       categoryId: input.categoryId,
       previousBarcode: input.previousBarcode ?? null,
+      unitCode: input.unitCode ?? "piece",
+      baseUnitCode: input.unitCode ?? "piece",
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),
   });

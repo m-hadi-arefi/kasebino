@@ -87,21 +87,39 @@ export function createRedisRuntime(
 
 /**
  * Ping Redis via REDIS_URL. Returns false when URL missing or PING fails.
+ * Bounded wait so unit suites do not hang when Compose Redis is down but REDIS_URL is set.
  */
 export async function pingRedisFromEnv(
   env: NodeJS.ProcessEnv = process.env,
+  options?: { timeoutMs?: number },
 ): Promise<boolean> {
   const url = env[CONNECTION.envVar]?.trim();
   if (!url) {
     return false;
   }
+  const timeoutMs = options?.timeoutMs ?? 1_500;
+  let client: Awaited<ReturnType<typeof createRedisClientConnecting>>["client"] | null =
+    null;
   try {
-    const { client, ready } = createRedisClientConnecting(url);
-    await ready;
-    const pong = await client.ping();
-    await client.quit();
+    const connecting = createRedisClientConnecting(url);
+    client = connecting.client;
+    const pong = await Promise.race([
+      connecting.ready.then(() => client!.ping()),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("redis_ping_timeout")), timeoutMs);
+      }),
+    ]);
     return pong === "PONG";
   } catch {
     return false;
+  } finally {
+    if (client) {
+      // Force-close; quit() can hang when the TCP connect never completes.
+      try {
+        client.destroy();
+      } catch {
+        /* ignore */
+      }
+    }
   }
 }

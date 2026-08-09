@@ -117,7 +117,9 @@ describe("ADR-066 Docker Compose local parity", () => {
       }
     }
 
-    expect(yaml).toContain("npm run worker:outbox");
+    expect(yaml).toMatch(
+      /npm run worker:outbox|tsx src\/workers\/outbox-worker\.ts/,
+    );
     expect(COMPOSE_SERVICE_PORTS.worker).toEqual([]);
     expect(COMPOSE_DATA_PLANES.worker.role).toBe("outbox_worker_process");
 

@@ -133,6 +133,17 @@ export class InMemoryExternalEntityMappingRepository
   }
 
   async upsert(mapping: ExternalEntityMapping): Promise<void> {
+    const externalConflict = await this.findByExternal({
+      merchantId: mapping.merchantId,
+      provider: mapping.provider,
+      entityType: mapping.entityType,
+      externalId: mapping.externalId,
+    });
+    if (externalConflict && externalConflict.entityId !== mapping.entityId) {
+      throw new Error(
+        `external_entity_mappings unique violation: external id already mapped (${mapping.provider}/${mapping.entityType}/${mapping.externalId})`,
+      );
+    }
     this.rows.set(this.key(mapping), { ...mapping });
   }
 

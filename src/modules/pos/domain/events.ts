@@ -20,6 +20,15 @@ export function saleCreatedEvent(input: {
   });
 }
 
+export type SaleCompletedLinePayload = {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitCode: string;
+  unitPriceMinor: string;
+  lineTotalMinor: string;
+};
+
 export function saleCompletedEvent(input: {
   saleId: string;
   merchantId: string;
@@ -31,6 +40,8 @@ export function saleCompletedEvent(input: {
   totalAmountMinor: string;
   lineCount: number;
   idempotencyKey: string;
+  /** ADR-126/129 — accounting projection needs line items (not only lineCount). */
+  lines?: readonly SaleCompletedLinePayload[];
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -48,6 +59,7 @@ export function saleCompletedEvent(input: {
       totalAmountMinor: input.totalAmountMinor,
       lineCount: input.lineCount,
       idempotencyKey: input.idempotencyKey,
+      ...(input.lines !== undefined ? { lines: input.lines } : {}),
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),
   });

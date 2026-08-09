@@ -14,13 +14,19 @@
 
 ## Non-goals (explicitly out of MVP)
 
-- Full double-entry accounting / tax filing
-- Multi-warehouse logistics / ERP purchasing
+- Full double-entry accounting / tax filing **inside MerchantOS** (future: ERPNext owns books; see ERPNext Integration Vision)
+- Multi-warehouse logistics / ERP purchasing **as MOS product SoT** (ERPNext-first for purchase)
 - Public marketplace / multi-merchant browsing
 - Supplier management networks
 - Advanced AI recommendations
 - Desktop-native offline-first POS hardware suite (PWA offline is enough)
 - **Delivery, courier integration, rider fleets, shipping**
+- Replacing MOS POS/storefront UI with ERPNext Desk/Website
+
+## ERPNext Integration Vision
+
+MerchantOS provides retail experience, POS, customer engagement, and store operations.  
+ERPNext provides ERP/accounting and financial control — via outbox + `AccountingProvider` / `ErpNextAccountingProvider` (ADR-135…140), never by embedding ERP logic in core domains (`docs/integrations/erpnext/`). Never replace MOS UX with ERPNext Desk/Website.
 
 ## Milestone mapping
 

@@ -1,5 +1,7 @@
 # MerchantOS Full Repository Audit Report
 
+> **Superseded for runtime truth:** see [`docs/audit/`](./docs/audit/) (2026-08-09). This file remains as a historical snapshot of the pre-runtime architecture phase.
+
 | Field | Value |
 | --- | --- |
 | Product | MerchantOS (Kasbino) |

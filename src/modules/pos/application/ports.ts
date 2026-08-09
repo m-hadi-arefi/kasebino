@@ -4,11 +4,21 @@
  * loyalty earn → ADR-010 `createLoyaltyEarnPort`.
  */
 
+export type MembershipDomainEvent = {
+  eventName: string;
+  aggregateId: string;
+  aggregateType: string;
+  occurredAt: Date;
+  payload: Record<string, unknown>;
+};
+
 export type MembershipUpsertPortResult = {
   membershipId: string;
   customerId: string;
   phoneNational: string;
   created: boolean;
+  /** ADR-137 — enqueue MembershipCreated/Updated for ERP party sync. */
+  event?: MembershipDomainEvent;
 };
 
 export type MembershipUpsertPort = {
@@ -69,6 +79,13 @@ export type AnalyticsAfterSalePort = {
 };
 
 /**
+ * Optional OLTP Unit of Work (ADR-126).
+ * Must wrap membership + inventory + loyalty + sale + outbox only.
+ * Must NOT wrap MinIO, analytics, ERPNext HTTP, or MQTT.
+ */
+export type RunInUnitOfWork = <T>(fn: () => Promise<T>) => Promise<T>;
+
+/**
  * Transactional outbox enqueue (ADR-035 / ADR-096 / ADR-126).
  * Wired from composition; optional in unit tests.
  */
@@ -88,6 +105,7 @@ export type SaleOutboxPort = {
       occurredAt: Date;
       payload: Record<string, unknown>;
     };
+    membershipEvent?: MembershipDomainEvent;
     merchantId: string;
     storeId: string;
   }): Promise<void>;

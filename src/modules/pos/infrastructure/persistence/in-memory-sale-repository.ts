@@ -14,6 +14,12 @@ export class InMemorySaleRepository implements SaleRepository {
   /** merchantId\0idempotencyKey → saleId */
   private readonly byIdempotency = new Map<string, string>();
 
+  /** Test helper — simulates TX rollback for UnitOfWork fixtures. */
+  clear(): void {
+    this.byId.clear();
+    this.byIdempotency.clear();
+  }
+
   async save(sale: Sale): Promise<void> {
     this.byId.set(sale.id, sale);
     this.byIdempotency.set(

@@ -165,3 +165,31 @@ export function assertPieceIntegerQuantity(q: Quantity): number {
   }
   return n;
 }
+
+/** Stable serialization for events / mappings (not a DB column format). */
+export type SerializedQuantity = {
+  unit: MerchantOsUnitCode;
+  amountScaled: string;
+  scale: number;
+};
+
+export function serializeQuantity(q: Quantity): SerializedQuantity {
+  return {
+    unit: q.unit,
+    amountScaled: q.amountScaled.toString(),
+    scale: q.scale,
+  };
+}
+
+export function deserializeQuantity(raw: SerializedQuantity): Quantity {
+  if (!isMerchantOsUnitCode(raw.unit)) {
+    throw new Error(`Unknown MerchantOS unit code: ${raw.unit}`);
+  }
+  let amountScaled: bigint;
+  try {
+    amountScaled = BigInt(raw.amountScaled);
+  } catch {
+    throw new Error("Invalid amountScaled in SerializedQuantity");
+  }
+  return quantityFromScaled(raw.unit, amountScaled, raw.scale);
+}

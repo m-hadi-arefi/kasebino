@@ -71,7 +71,7 @@ describe("identity application AuthZ helpers (ADR-034)", () => {
       expect(labels).toEqual({
         reason: "FORBIDDEN",
         permission: "merchant.billing",
-        role: "store_employee",
+        role: "store_manager",
       });
     }
   });

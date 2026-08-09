@@ -22,6 +22,7 @@ Source of truth: [`PRD.md`](../../PRD.md)
 | [growth-loops-loyalty.md](./growth-loops-loyalty.md) | Loyalty growth loop |
 | [growth-loops-qr.md](./growth-loops-qr.md) | QR acquisition loop |
 | [growth-loops-store-pwa.md](./growth-loops-store-pwa.md) | Store PWA growth loop |
+| [../integrations/erpnext/](../integrations/erpnext/) | ERPNext financial-brain integration (ADR-135…140) |
 
 ## Governance
 

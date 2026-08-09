@@ -95,11 +95,20 @@ import {
 import { getSharedProductionRepositories } from "./shared-production-repositories.js";
 import type { DrizzleTransactionScope } from "../persistence/drizzle-transaction-scope.js";
 import {
-  FakeAccountingProvider,
-  NoopAccountingProvider,
-  resolveAccountingProviderId,
+  createAccountingProvider,
   type AccountingProvider,
 } from "../../modules/accounting/index.js";
+import {
+  createErpNextUseCases,
+  FakeFinanceReader,
+  UnavailableFinanceReader,
+  ErpNextFinanceReader,
+  InMemoryErpNextSyncRecordRepository,
+  resolveFinanceReaderMode,
+  type ErpNextUseCases,
+  type ErpNextSyncRecordRepository,
+} from "../../modules/erpnext/index.js";
+import type { ExternalEntityMappingRepository } from "../../modules/accounting/domain/external-entity-mapping.js";
 
 export type ApiRepositories = {
   merchants: MerchantRepository;
@@ -121,6 +130,10 @@ export type ApiRepositories = {
   adminActions: AdminActionRepository;
   /** Optional — required for customer storefront wallet (ADR-099). */
   customerIdentities?: CustomerIdentityRepository;
+  /** ADR-126 external id map — optional in pure unit tests. */
+  externalEntityMappings?: ExternalEntityMappingRepository;
+  /** ADR-141 ERPNext sync lifecycle. */
+  erpnextSyncRecords?: ErpNextSyncRecordRepository;
   /** ADR-126 CompleteSale UoW — present for production Drizzle wiring. */
   txScope?: DrizzleTransactionScope;
 };
@@ -183,8 +196,10 @@ export type ApiContext = {
   /** ADR-111 MinIO / in-memory object storage. */
   objectStorage?: ObjectStoragePort;
   storeAssets?: ReturnType<typeof createStoreAssetUseCases>;
-  /** ADR-126 accounting integration port (noop/fake; ERPNext later). */
+  /** ADR-126 accounting integration port (noop/fake/erpnext). */
   accountingProvider: AccountingProvider;
+  /** ADR-141 merchant finance ACL (ERPNext-backed reads + sync status). */
+  erpnext: ErpNextUseCases;
 };
 
 export function createApiContext(options: CreateApiContextOptions): ApiContext {
@@ -234,6 +249,13 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
         customerId: result.membership.customerId,
         phoneNational: result.membership.phoneNational,
         created: result.created,
+        event: {
+          eventName: result.event.eventName,
+          aggregateId: result.event.aggregateId,
+          aggregateType: result.event.aggregateType,
+          occurredAt: result.event.occurredAt,
+          payload: result.event.payload as Record<string, unknown>,
+        },
       };
     },
   };
@@ -273,6 +295,17 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
             aggregateId: input.completedEvent.aggregateId,
             aggregateType: input.completedEvent.aggregateType,
           });
+          if (input.membershipEvent) {
+            await store.enqueue({
+              envelope: envelopeFromDomainEvent({
+                domainEvent: input.membershipEvent,
+                merchantId: input.merchantId,
+                storeId: input.storeId,
+              }),
+              aggregateId: input.membershipEvent.aggregateId,
+              aggregateType: input.membershipEvent.aggregateType,
+            });
+          }
         },
         async ensureSaleCompletedEnqueued(input) {
           const store = options.outbox!;
@@ -319,10 +352,19 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
       ...(options.outbox ? { outbox: options.outbox } : {}),
     }),
     ...(outboxPort ? { outbox: outboxPort } : {}),
+    ...(repos.txScope
+      ? {
+          runInUnitOfWork: <T>(fn: () => Promise<T>) =>
+            repos.txScope!.run(fn),
+        }
+      : {}),
     ...(options.objectStorage
       ? {
           objectStorage: options.objectStorage,
-          resolveStoreDisplayName: async (input) => {
+          resolveStoreDisplayName: async (input: {
+            merchantId: string;
+            storeId: string;
+          }) => {
             const store = await repos.stores.findById(input.storeId);
             if (!store || store.merchantId !== input.merchantId) return null;
             return store.branding.displayName;
@@ -331,20 +373,32 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
       : {}),
   });
 
-  const pos =
-    repos.txScope != null
-      ? {
-          ...posInner,
-          completeSale: (input: Parameters<typeof posInner.completeSale>[0]) =>
-            repos.txScope!.run(() => posInner.completeSale(input)),
-        }
-      : posInner;
+  const pos = posInner;
 
   const accountingProvider =
-    options.accountingProvider ??
-    (resolveAccountingProviderId() === "fake"
-      ? new FakeAccountingProvider()
-      : new NoopAccountingProvider());
+    options.accountingProvider ?? createAccountingProvider();
+
+  const syncRecords =
+    repos.erpnextSyncRecords ?? new InMemoryErpNextSyncRecordRepository();
+  const financeMode = resolveFinanceReaderMode();
+  const financeReader =
+    financeMode === "erpnext"
+      ? new ErpNextFinanceReader({ syncRecords })
+      : financeMode === "fake"
+        ? new FakeFinanceReader({
+            syncRecords,
+            ...(repos.externalEntityMappings
+              ? { mappings: repos.externalEntityMappings }
+              : {}),
+          })
+        : new UnavailableFinanceReader();
+  const erpnext = createErpNextUseCases({
+    financeReader,
+    syncRecords,
+    ...(repos.externalEntityMappings
+      ? { mappings: repos.externalEntityMappings }
+      : {}),
+  });
 
   const paymentGateway =
     options.paymentGateway ??
@@ -450,6 +504,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     analyticsProjection,
     analyticsCache,
     accountingProvider,
+    erpnext,
     ...(resolvedAuditStore ? { auditStore: resolvedAuditStore } : {}),
     ...(options.objectStorage ? { objectStorage: options.objectStorage } : {}),
     ...(storeAssets ? { storeAssets } : {}),
@@ -478,6 +533,8 @@ export function apiReposFromProduction(
     adminActions: production.adminActions,
     customerIdentities: production.customerIdentities,
     txScope: production.txScope,
+    externalEntityMappings: production.externalEntityMappings,
+    erpnextSyncRecords: production.erpnextSyncRecords,
   };
 }
 

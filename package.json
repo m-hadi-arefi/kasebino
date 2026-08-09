@@ -21,7 +21,11 @@
     "worker:outbox": "tsx --env-file=.env src/workers/outbox-worker.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "erpnext:up": "docker compose -f docker-compose.erpnext.yml up -d",
+    "erpnext:down": "docker compose -f docker-compose.erpnext.yml down",
+    "erpnext:logs": "docker compose -f docker-compose.erpnext.yml logs -f create-site",
+    "erpnext:bootstrap": "node scripts/erpnext/bootstrap.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1103.0",

@@ -279,6 +279,9 @@ export function createInventoryUseCases(deps: InventoryUseCaseDeps) {
             previousQuantity,
             nextQuantity,
             delta: input.delta,
+            unitCode: "piece",
+            referenceType: input.referenceType ?? null,
+            referenceId: input.referenceId ?? null,
             ...(input.adjustReason !== undefined
               ? { reason: input.adjustReason }
               : {}),

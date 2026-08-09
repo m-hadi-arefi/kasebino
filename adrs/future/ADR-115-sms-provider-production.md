@@ -5,12 +5,12 @@
 | ID | ADR-115 |
 | Status | `Proposed` |
 | Date | 2026-08-05 |
-| Origin | Release-readiness audit 2026-08-05 (docs/product vs codebase) |
-| Folder | `adrs/tasks/` |
+| Origin | Release-readiness audit 2026-08-05; reconfirmed `docs/audit/` 2026-08-09 Critical #3 |
+| Folder | `adrs/tasks/` (promoted from `future/` 2026-08-09) |
 
 ## Status
 
-`Proposed` - Implementation-ready runtime gap ADR. Tracking: `adrs/STATUS.md`.
+`Proposed` — implementation queue. Blocked on human Accept of `adrs/future/ADR-083-sms-provider.md`. Tracking: `adrs/STATUS.md`.
 
 ## Title
 

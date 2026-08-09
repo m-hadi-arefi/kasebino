@@ -1,8 +1,10 @@
 /**
- * Provider-agnostic integration mappers (ADR-126).
+ * Provider-agnostic integration mappers (ADR-126 / ADR-130 / ADR-131).
+ * These produce AccountingProvider DTOs — never ERPNext DocType shapes.
  */
 
 import type {
+  RecordPaymentInput,
   RecordSaleInput,
   SyncCustomerInput,
   SyncProductInput,
@@ -18,6 +20,7 @@ export function mapProductToAccountingSync(input: {
   name: string;
   unitCode?: string;
   priceAmountMinor: bigint | string;
+  disabled?: boolean;
 }): SyncProductInput {
   return {
     eventId: input.eventId,
@@ -30,6 +33,7 @@ export function mapProductToAccountingSync(input: {
     name: input.name,
     unitCode: input.unitCode ?? "piece",
     priceAmountMinor: String(input.priceAmountMinor),
+    ...(input.disabled !== undefined ? { disabled: input.disabled } : {}),
   };
 }
 
@@ -96,6 +100,38 @@ export function mapSaleToAccountingRecord(input: {
   };
 }
 
+/**
+ * Payment gateway confirms money; this mapper projects the accounting consequence only.
+ * Never includes gateway secrets or raw webhook bodies.
+ */
+export function mapPaymentToAccountingRecord(input: {
+  eventId: string;
+  merchantId: string;
+  storeId?: string | null;
+  paymentId: string;
+  orderId: string;
+  amountMinor: bigint | string;
+  providerRef?: string | null;
+  occurredAt: Date | string;
+}): RecordPaymentInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.storeId ?? null,
+    entityType: "payment",
+    entityId: input.paymentId,
+    paymentId: input.paymentId,
+    orderId: input.orderId,
+    amountMinor: String(input.amountMinor),
+    currency: "IRR",
+    providerRef: input.providerRef ?? null,
+    occurredAt:
+      typeof input.occurredAt === "string"
+        ? input.occurredAt
+        : input.occurredAt.toISOString(),
+  };
+}
+
 export function mapStoreToWarehouseProjection(input: {
   merchantId: string;
   storeId: string;
@@ -107,4 +143,35 @@ export function mapStoreToWarehouseProjection(input: {
     entityId: input.storeId,
     label: input.displayName,
   };
+}
+
+/** Canonical movement kinds for future ERP projection (MOS local reasons stay lowercase). */
+export const ACCOUNTING_MOVEMENT_TYPES = [
+  "SALE",
+  "PURCHASE",
+  "RETURN",
+  "ADJUSTMENT",
+  "TRANSFER",
+] as const;
+
+export type AccountingMovementType = (typeof ACCOUNTING_MOVEMENT_TYPES)[number];
+
+export function mapStockReasonToAccountingMovementType(
+  reason: string,
+): AccountingMovementType {
+  switch (reason) {
+    case "sale":
+    case "pickup_paid":
+      return "SALE";
+    case "purchase":
+    case "receipt":
+      return "PURCHASE";
+    case "return":
+    case "pickup_restore":
+      return "RETURN";
+    case "transfer":
+      return "TRANSFER";
+    default:
+      return "ADJUSTMENT";
+  }
 }

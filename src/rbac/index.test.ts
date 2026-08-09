@@ -56,12 +56,13 @@ describe("ADR-034 Authorization RBAC Model", () => {
   it("defines canonical roles and Iranian staff aliases", () => {
     expect(CANONICAL_ROLES).toEqual([
       "merchant_owner",
+      "store_manager",
       "store_employee",
       "customer",
       "platform_admin",
     ]);
     expect(normalizeRole("owner")).toBe("merchant_owner");
-    expect(normalizeRole("manager")).toBe("store_employee");
+    expect(normalizeRole("manager")).toBe("store_manager");
     expect(normalizeRole("cashier")).toBe("store_employee");
     expect(normalizeRole("staff")).toBe("store_employee");
     expect(normalizeRoles(["owner", "cashier", "unknown"])).toEqual([
@@ -71,6 +72,32 @@ describe("ADR-034 Authorization RBAC Model", () => {
     expect(ROLE_ALIASES.owner).toBe("merchant_owner");
     expect(() => assertCanonicalRoles()).not.toThrow();
     expect(() => assertPlatformAdminRoleMatchesIsolation()).not.toThrow();
+  });
+
+  it("grants store_manager finance access but not destructive settings", () => {
+    const ctx = staffCtx({
+      roles: ["manager"],
+      storeIds: ["s-1"],
+    });
+    expect(hasCanonicalRole(ctx, "store_manager")).toBe(true);
+    expect(hasPermission(ctx, "finance.view")).toBe(true);
+    expect(hasPermission(ctx, "finance.manage")).toBe(true);
+    expect(hasPermission(ctx, "merchant.settings_destructive")).toBe(false);
+    expect(hasPermission(ctx, "pos.sale")).toBe(true);
+  });
+
+  it("denies cashier finance.view", () => {
+    const ctx = staffCtx({
+      roles: ["cashier"],
+      storeIds: ["s-1"],
+    });
+    expect(hasPermission(ctx, "finance.view")).toBe(false);
+    expect(() =>
+      authorize(ctx, {
+        permission: "finance.view",
+        resourceMerchantId: "m-1",
+      }),
+    ).toThrow(AuthorizationError);
   });
 
   it("grants merchant_owner full merchant scope including billing", () => {
@@ -98,6 +125,7 @@ describe("ADR-034 Authorization RBAC Model", () => {
     expect(hasPermission(ctx, "loyalty.write")).toBe(true);
     expect(hasPermission(ctx, "merchant.billing")).toBe(false);
     expect(hasPermission(ctx, "merchant.settings_destructive")).toBe(false);
+    expect(hasPermission(ctx, "finance.view")).toBe(false);
     expect(ROLE_PERMISSION_MATRIX.store_employee).not.toContain(
       "merchant.billing",
     );

@@ -211,6 +211,15 @@ export function createOrderingUseCases(deps: OrderingUseCaseDeps) {
           storeId: order.storeId,
           totalAmountMinor: moneyString(order.totalAmountMinor),
           paymentId: payment.paymentId,
+          idempotencyKey: order.idempotencyKey,
+          lines: order.lines.map((line) => ({
+            productId: line.productId,
+            productName: line.productName,
+            quantity: line.quantity,
+            unitCode: "piece",
+            unitPriceMinor: moneyString(line.unitPriceMinor),
+            lineTotalMinor: moneyString(line.lineTotalMinor),
+          })),
           occurredAt: at,
         }),
       };

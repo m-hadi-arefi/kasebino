@@ -24,6 +24,8 @@ export type SyncProductInput = AccountingEntityRef & {
   name: string;
   unitCode: string;
   priceAmountMinor: string;
+  /** Soft-delete / archive in ERP (Item.disabled). */
+  disabled?: boolean;
 };
 
 export type SyncCustomerInput = AccountingEntityRef & {

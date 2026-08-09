@@ -57,4 +57,5 @@ export * from "./handlers/merchants-stores.js";
 export * from "./handlers/storefront.js";
 export * from "./handlers/customer-portal.js";
 export * from "./handlers/auth-otp.js";
+export * from "./handlers/erpnext-finance.js";
 export * from "./handlers/telemetry.js";

@@ -34,6 +34,7 @@
  * ADR-092: identity tables (`auth_users`, OTP challenges, `customer_identities`) + baseline Kit migration.
  * ADR-106: analytics projection tables for merchant AN-01..04 dashboards.
  * ADR-126: external_entity_mappings + stock_movements + product UOM foundation.
+ * ADR-141: erpnext_sync_records lifecycle for finance sync status.
  */
 
 export { merchantSettings, merchants } from "./merchants.js";
@@ -52,7 +53,7 @@ export {
   outboxEvents,
   processedEvents,
 } from "./platform.js";
-export { externalEntityMappings } from "./integrations.js";
+export { externalEntityMappings, erpnextSyncRecords } from "./integrations.js";
 export {
   authUsers,
   customerIdentities,

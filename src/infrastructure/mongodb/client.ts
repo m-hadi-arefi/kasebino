@@ -127,17 +127,25 @@ export function createMongoClientConnecting(
 
 /**
  * Ping Mongo via MONGODB_URL. Returns false when URL missing or ping fails.
+ * Bounded wait so unit suites do not hang when Compose Mongo is down but MONGODB_URL is set.
  */
 export async function pingMongoFromEnv(
   env: NodeJS.ProcessEnv = process.env,
+  options?: { timeoutMs?: number },
 ): Promise<boolean> {
   const url = env[CONNECTION.envVar]?.trim();
   if (!url) {
     return false;
   }
+  const timeoutMs = options?.timeoutMs ?? 1_500;
   let client: MerchantOsMongoClient | undefined;
   try {
-    const connected = await connectMongoClient(url);
+    const connected = await Promise.race([
+      connectMongoClient(url),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("mongo_ping_timeout")), timeoutMs);
+      }),
+    ]);
     client = connected.client;
     const result = await connected.db.command({ ping: 1 });
     return result.ok === 1;

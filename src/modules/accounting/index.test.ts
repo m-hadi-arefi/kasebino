@@ -127,11 +127,15 @@ describe("ADR-126 AccountingProvider", () => {
     ).toBe(true);
   });
 
-  it("does not import erpnext in core module surface", async () => {
+  it("resolves erpnext provider id and exports adapter only from accounting module", async () => {
     const mod = await import("./index.js");
-    expect(Object.keys(mod)).not.toContain("ERPNextAccountingProvider");
     expect(mod.resolveAccountingProviderId({ MOS_ACCOUNTING_PROVIDER: "noop" })).toBe(
       "noop",
     );
+    expect(mod.resolveAccountingProviderId({ MOS_ACCOUNTING_PROVIDER: "erpnext" })).toBe(
+      "erpnext",
+    );
+    expect(typeof mod.ErpNextAccountingProvider).toBe("function");
+    expect(typeof mod.createAccountingProvider).toBe("function");
   });
 });

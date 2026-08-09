@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   assertPieceIntegerQuantity,
   convertQuantity,
+  deserializeQuantity,
   pieces,
   quantityFromNumber,
+  serializeQuantity,
   toNumber,
   UNITS,
 } from "./index.js";
@@ -46,5 +48,11 @@ describe("ADR-126 Quantity / UOM", () => {
 
   it("rejects negative quantities", () => {
     expect(() => quantityFromNumber("kg", -1)).toThrow(/non-negative/);
+  });
+
+  it("serializes and deserializes without precision loss", () => {
+    const q = quantityFromNumber("kg", 2.5);
+    const roundTrip = deserializeQuantity(serializeQuantity(q));
+    expect(roundTrip).toEqual(q);
   });
 });

@@ -13,6 +13,7 @@ export const POS_ERROR_CODES = [
   "INVALID_TENDER",
   "PHONE_REQUIRED",
   "IDEMPOTENCY_KEY_REQUIRED",
+  "OUTBOX_REQUIRED",
   "SALE_NOT_FOUND",
 ] as const;
 
@@ -31,6 +32,8 @@ export const POS_ERROR_MESSAGES_FA = {
     "شماره موبایل مشتری الزامی است. لطفاً شماره را با ۰۹ وارد کنید.",
   IDEMPOTENCY_KEY_REQUIRED:
     "کلید یکتایی (Idempotency-Key) برای تکمیل فروش الزامی است.",
+  OUTBOX_REQUIRED:
+    "صندوق خروجی رویداد برای تکمیل فروش در حالت تراکنشی الزامی است.",
   SALE_NOT_FOUND: "فروش یافت نشد.",
 } as const satisfies Record<PosErrorCode, string>;
 

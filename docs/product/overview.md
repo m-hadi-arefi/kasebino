@@ -38,6 +38,19 @@ Existing tools fail:
 | ERP | Powered by POS transactions |
 | Marketplace | Owned by the merchant |
 
+## ERPNext Integration Vision
+
+MerchantOS remains the retail experience layer. ERPNext is the external ERP/accounting **financial brain**.
+
+| MerchantOS | ERPNext |
+| --- | --- |
+| POS, storefront, CRM, loyalty, ops stock | Accounting, purchase books, financial reports, valuation |
+| Retail experience truth | Financial truth |
+
+Never move MerchantOS UX into ERPNext. Boundaries: [`docs/integrations/erpnext/`](../integrations/erpnext/). ADRs **135–140**.
+
+Local engine: `npm run erpnext:up` + `npm run erpnext:bootstrap`.
+
 ## MVP capability summary
 
 1. Phone + OTP authentication (merchant **and** customer audiences)

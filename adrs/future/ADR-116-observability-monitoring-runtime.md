@@ -5,12 +5,12 @@
 | ID | ADR-116 |
 | Status | `Proposed` |
 | Date | 2026-08-05 |
-| Origin | Release-readiness audit 2026-08-05 (docs/product vs codebase) |
-| Folder | `adrs/tasks/` |
+| Origin | Release-readiness audit 2026-08-05; reconfirmed `docs/audit/` Ops score 42 |
+| Folder | `adrs/tasks/` (promoted from `future/` 2026-08-09) |
 
 ## Status
 
-`Proposed` - Implementation-ready runtime gap ADR. Tracking: `adrs/STATUS.md`.
+`Proposed` — implementation queue. Tracking: `adrs/STATUS.md`.
 
 ## Title
 

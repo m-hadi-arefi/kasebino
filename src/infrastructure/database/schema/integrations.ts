@@ -1,13 +1,15 @@
 /**
- * Integration OLTP tables (ADR-126) — vendor-neutral external ID mappings.
+ * Integration OLTP tables (ADR-126 / ADR-141) — vendor-neutral mappings + ERPNext sync lifecycle.
  *
- * Maps MerchantOS entity UUIDs to external provider ids (future ERPNext, etc.).
- * Never store ERPNext-specific columns on domain tables.
+ * Maps MerchantOS entity UUIDs to external provider ids.
+ * Never store ERPNext-specific columns on retail domain tables.
  */
 
 import {
   index,
+  integer,
   pgTable,
+  text,
   timestamp,
   uniqueIndex,
   uuid,
@@ -54,6 +56,51 @@ export const externalEntityMappings = pgTable(
     index("external_entity_mappings_provider_entity_type_idx").on(
       t.provider,
       t.entityType,
+    ),
+  ],
+);
+
+/** ADR-141 — outbound ERPNext sync lifecycle (status + Persian error). */
+export const erpnextSyncRecords = pgTable(
+  "erpnext_sync_records",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    storeId: uuid("store_id"),
+    entityType: varchar("entity_type", { length: 64 }).notNull(),
+    entityId: uuid("entity_id").notNull(),
+    eventId: varchar("event_id", { length: 128 }),
+    erpnextType: varchar("erpnext_type", { length: 64 }),
+    erpnextId: varchar("erpnext_id", { length: 191 }),
+    status: varchar("status", { length: 32 }).notNull(),
+    lastSyncAt: timestamp("last_sync_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    errorMessageFa: text("error_message_fa"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("erpnext_sync_records_internal_uq").on(
+      t.merchantId,
+      t.entityType,
+      t.entityId,
+    ),
+    index("erpnext_sync_records_merchant_status_idx").on(
+      t.merchantId,
+      t.status,
+    ),
+    index("erpnext_sync_records_merchant_updated_idx").on(
+      t.merchantId,
+      t.updatedAt,
     ),
   ],
 );

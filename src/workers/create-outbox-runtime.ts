@@ -41,9 +41,7 @@ import { PersistInAppNotificationChannel } from "../modules/notifications/infras
 import { createOrderingUseCases } from "../modules/ordering/application/use-cases.js";
 import {
   createAccountingOutboxHandler,
-  FakeAccountingProvider,
-  NoopAccountingProvider,
-  resolveAccountingProviderId,
+  createAccountingProvider,
 } from "../modules/accounting/index.js";
 import {
   createOutboxWorker,
@@ -262,13 +260,11 @@ export function createOutboxWorkerRuntime(
       stores: repos.stores,
       objectStorage: minio.storage,
     });
-    const accountingProvider =
-      resolveAccountingProviderId(env) === "fake"
-        ? new FakeAccountingProvider()
-        : new NoopAccountingProvider();
+    const accountingProvider = createAccountingProvider(env);
     handlers.accounting_integration = createAccountingOutboxHandler({
       provider: accountingProvider,
       mappings: repos.externalEntityMappings,
+      syncRecords: repos.erpnextSyncRecords,
     });
   }
 

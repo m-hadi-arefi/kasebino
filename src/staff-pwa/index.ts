@@ -28,7 +28,7 @@ export const STAFF_PWA_AUDIENCE = {
   id: "staff" as const,
   forbiddenAudience: "store-customer" as const,
   authAudience: MERCHANT_AUTH_DECISION.audience,
-  allowedRoles: ["merchant_owner", "store_employee"] as const,
+  allowedRoles: ["merchant_owner", "store_manager", "store_employee"] as const,
   forbiddenRole: "customer" as const,
   storeCustomerPwaAdr: "ADR-023",
   storeCustomerManifestPattern: "/s/{storeSlug}/manifest.webmanifest",

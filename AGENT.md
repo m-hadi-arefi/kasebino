@@ -8,7 +8,9 @@ Build **MerchantOS** — an **Iranian-native** Customer Retention Operating Syst
 
 Retention starts at POS: capture customer phone during checkout, then power CRM, loyalty, analytics, and storefront.
 
-**This repository is an ADR-driven engineering system.** The platform is built by executing the **ard-to-code** skill against unfinished ADRs in **`adrs/tasks/`** until that queue is drained (files moved to `adrs/done/`). Folder layout: [`adrs/done/`](./adrs/done/) (architecture contracts landed) · [`adrs/future/`](./adrs/future/) (not started / Proposed vendor) · [`adrs/tasks/`](./adrs/tasks/) (product-runtime wiring). See [`AUDIT_REPORT.md`](./AUDIT_REPORT.md).
+**This repository is an ADR-driven engineering system.** The platform is built by executing the **ard-to-code** skill against unfinished ADRs in **`adrs/tasks/`** until that queue is drained (files moved to `adrs/done/`). Folder layout: [`adrs/done/`](./adrs/done/) (architecture contracts landed) · [`adrs/future/`](./adrs/future/) (not started / Proposed vendor) · [`adrs/tasks/`](./adrs/tasks/) (product-runtime wiring).
+
+**Runtime truth:** [`docs/audit/`](./docs/audit/) (2026-08-09). **Execution order:** [`docs/architecture/adr-execution-order.md`](./docs/architecture/adr-execution-order.md). **Task index:** [`adrs/tasks/INDEX.md`](./adrs/tasks/INDEX.md). Historical snapshot: [`AUDIT_REPORT.md`](./AUDIT_REPORT.md).
 
 ## Non-negotiable laws
 
@@ -35,8 +37,55 @@ Retention starts at POS: capture customer phone during checkout, then power CRM,
 - **Pickup-only** online orders with full pickup lifecycle
 - Clean Architecture; multi-tenant `merchantId` + store-scoped membership
 - Outbox → EMQX + Mongo warehouse mirror
+- **ERPNext (future):** external ERP/accounting engine via `AccountingProvider` + outbox — see ERPNext Architecture Context below
 
 See `docs/architecture/` and `docs/product/store-first-evolution.md`.
+
+## ERPNext Architecture Context
+
+MerchantOS integrates with **ERPNext** as an external ERP/accounting engine (**financial brain**).
+
+MerchantOS owns:
+
+- retail experience (Persian + RTL)
+- POS (including offline)
+- storefront / store customer PWA
+- CRM, loyalty, membership
+- orders / pickup
+- operational inventory availability
+- **native finance UX** that reads books via server ACL (`/finance`) — never Desk iframe
+
+ERPNext owns:
+
+- accounting (CoA, GL, Sales/Purchase Invoice, Payment Entry, A/R–A/P, tax config, financial reports)
+- purchasing / suppliers
+- inventory **valuation** / COGS books
+
+**Never** move MerchantOS UX into ERPNext Desk/Website.  
+**Never** put ERPNext DocTypes/HTTP inside core domains (`pos`, `catalog`, `crm`, …) or the browser.  
+Use Outbox → `AccountingProvider` for writes; `src/modules/erpnext` + `/api/v1/erpnext/*` for merchant finance reads.
+
+Knowledge base: [`docs/integrations/erpnext/`](./docs/integrations/erpnext/).  
+ADRs: **135–141**. Prep seams: ADR-126…134.
+
+Local financial engine:
+
+```bash
+npm run erpnext:up
+npm run erpnext:bootstrap   # after Setup Wizard
+# MOS_ACCOUNTING_PROVIDER=erpnext + printed secrets in .env
+npm run worker:outbox
+```
+
+Important rules:
+
+1. **Never** put ERPNext logic inside core domain modules.
+2. **Never** import Frappe REST/DocType helpers from domain/application layers of retail modules.
+3. **Never** replace MerchantOS POS/UI/storefront with ERPNext Desk or Website.
+4. **Never** HTTP to ERP inside CompleteSale/checkout transactions — outbox only.
+5. **ERPNext is financial truth**; **MerchantOS is retail experience truth**.
+6. Credentials are **server/worker only** — never `NEXT_PUBLIC_*`, browser, POS, or customer app.
+7. Default `MOS_ACCOUNTING_PROVIDER=noop` keeps CI green without Docker ERPNext.
 
 ## Iranian First UX (permanent)
 
@@ -76,6 +125,7 @@ docs/workflows/                 ← process workflows
 docs/quality|security|testing|deployment|observability/
 docs/decisions/                 ← legacy/open vendor notes (mapped into /adrs)
 docs/execution/                 ← plans, logs, self-improvement
+docs/integrations/erpnext/      ← ERPNext knowledge + integration boundaries
 docs/templates/                 ← templates
 .cursor/skills/                 ← executable Cursor skills
 ```

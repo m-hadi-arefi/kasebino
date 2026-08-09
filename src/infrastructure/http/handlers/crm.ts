@@ -24,6 +24,7 @@ import {
   ok,
   parseBody,
 } from "../envelopes.js";
+import { enqueueDomainEvent } from "../enqueue-domain-event.js";
 import {
   requireMerchantAuthResolved,
   requireMerchantPermissionResolved,
@@ -287,6 +288,19 @@ export async function handleJoinMembership(
     }),
   );
   if (!ran.ok) return ran.result;
+
+  // ADR-126/129 — MembershipCreated/Updated must hit outbox for accounting party sync.
+  if (ran.data.event) {
+    await enqueueDomainEvent({
+      outbox: ctx.outbox,
+      cache: ctx.cache,
+      notifications: ctx.notifications,
+      domainEvent: ran.data.event,
+      merchantId: auth.actor.merchantId,
+      storeId: parsed.data.storeId,
+    });
+  }
+
   return ok(
     {
       membership: membershipDto(ran.data.membership),

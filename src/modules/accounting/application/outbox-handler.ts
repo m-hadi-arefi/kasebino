@@ -8,6 +8,7 @@ import type { OutboxMessage } from "../../../outbox/index.js";
 import type { AccountingProvider } from "./ports/accounting-provider.js";
 import {
   mapCustomerToAccountingSync,
+  mapPaymentToAccountingRecord,
   mapProductToAccountingSync,
   mapSaleToAccountingRecord,
 } from "./mappers/index.js";
@@ -16,10 +17,17 @@ import {
   recordIntegrationMetric,
 } from "./observability.js";
 import type { ExternalEntityMappingRepository } from "../domain/external-entity-mapping.js";
+import type { ErpNextSyncRecordRepository } from "../../erpnext/domain/sync-record.js";
+import {
+  markSyncFailed,
+  markSyncPending,
+  markSyncSynced,
+} from "../../erpnext/application/sync-lifecycle.js";
 
 export type AccountingOutboxHandlerDeps = {
   provider: AccountingProvider;
   mappings?: ExternalEntityMappingRepository;
+  syncRecords?: ErpNextSyncRecordRepository;
   now?: () => Date;
   idFactory?: () => string;
 };
@@ -55,9 +63,43 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
       let entityType: string | null = null;
       let entityId: string | null = message.aggregateId;
 
+      const trackEntity = async (
+        type: string,
+        id: string,
+      ): Promise<void> => {
+        if (!deps.syncRecords) return;
+        await markSyncPending({
+          repo: deps.syncRecords,
+          merchantId: message.merchantId,
+          storeId: message.storeId,
+          entityType: type,
+          entityId: id,
+          eventId: message.eventId,
+          idFactory,
+          now,
+        });
+      };
+
       switch (message.eventType) {
         case "SaleCompleted": {
           const saleId = String(payload.saleId ?? message.aggregateId ?? "");
+          await trackEntity("sale", saleId);
+          const customerId =
+            payload.customerId != null ? String(payload.customerId) : "";
+          if (customerId) {
+            await deps.provider.syncCustomer(
+              mapCustomerToAccountingSync({
+                eventId: `${message.eventId}:customer`,
+                merchantId: message.merchantId,
+                storeId: message.storeId,
+                customerId,
+                phoneNational:
+                  payload.phoneNational != null
+                    ? String(payload.phoneNational)
+                    : null,
+              }),
+            );
+          }
           const linesRaw = Array.isArray(payload.lines) ? payload.lines : [];
           const lines =
             linesRaw.length > 0
@@ -102,6 +144,23 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
         }
         case "OrderPaid": {
           const orderId = String(payload.orderId ?? message.aggregateId ?? "");
+          await trackEntity("order", orderId);
+          const linesRaw = Array.isArray(payload.lines) ? payload.lines : [];
+          const lines = linesRaw.map((line) => {
+            const row = line as Record<string, unknown>;
+            return {
+              productId: String(row.productId ?? ""),
+              quantity: Number(row.quantity ?? 0),
+              unitCode: String(row.unitCode ?? "piece"),
+              unitPriceMinor: String(row.unitPriceMinor ?? "0"),
+              lineTotalMinor: String(row.lineTotalMinor ?? "0"),
+            };
+          });
+          if (lines.length === 0) {
+            throw new Error(
+              "OrderPaid requires lines for ERPNext Sales Invoice projection",
+            );
+          }
           const result = await deps.provider.recordSale(
             mapSaleToAccountingRecord({
               eventId: message.eventId,
@@ -114,7 +173,7 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
                 payload.totalAmountMinor ?? payload.amountMinor ?? "0",
               ),
               occurredAt: message.occurredAt,
-              lines: [],
+              lines,
             }),
           );
           resultExternalId = result.externalId;
@@ -126,27 +185,30 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
           const paymentId = String(
             payload.paymentId ?? message.aggregateId ?? "",
           );
-          const result = await deps.provider.recordPayment({
-            eventId: message.eventId,
-            merchantId: message.merchantId,
-            storeId: message.storeId,
-            entityType: "payment",
-            entityId: paymentId,
-            paymentId,
-            orderId: String(payload.orderId ?? ""),
-            amountMinor: String(payload.amountMinor ?? "0"),
-            currency: "IRR",
-            providerRef:
-              payload.providerRef != null ? String(payload.providerRef) : null,
-            occurredAt: message.occurredAt.toISOString(),
-          });
+          await trackEntity("payment", paymentId);
+          const result = await deps.provider.recordPayment(
+            mapPaymentToAccountingRecord({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              storeId: message.storeId,
+              paymentId,
+              orderId: String(payload.orderId ?? ""),
+              amountMinor: String(payload.amountMinor ?? "0"),
+              providerRef:
+                payload.providerRef != null
+                  ? String(payload.providerRef)
+                  : null,
+              occurredAt: message.occurredAt,
+            }),
+          );
           resultExternalId = result.externalId;
           entityType = "payment";
           entityId = paymentId;
           break;
         }
         case "ProductCreated":
-        case "ProductUpdated": {
+        case "ProductUpdated":
+        case "ProductDeleted": {
           const productId = String(
             payload.productId ?? message.aggregateId ?? "",
           );
@@ -161,6 +223,7 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
               name: String(payload.name ?? ""),
               unitCode: String(payload.unitCode ?? payload.baseUnitCode ?? "piece"),
               priceAmountMinor: String(payload.priceAmountMinor ?? "0"),
+              disabled: message.eventType === "ProductDeleted",
             }),
           );
           resultExternalId = result.externalId;
@@ -168,7 +231,10 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
           entityId = productId;
           break;
         }
-        case "CustomerCreated": {
+        case "CustomerCreated":
+        case "MembershipCreated":
+        case "MembershipUpdated": {
+          // CRM SoT is membership; accounting party projection uses customerId.
           const customerId = String(
             payload.customerId ?? message.aggregateId ?? "",
           );
@@ -181,6 +247,10 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
               phoneNational:
                 payload.phoneNational != null
                   ? String(payload.phoneNational)
+                  : null,
+              displayName:
+                payload.displayName != null
+                  ? String(payload.displayName)
                   : null,
             }),
           );
@@ -240,6 +310,20 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
         });
       }
 
+      if (deps.syncRecords && entityType && entityId) {
+        await markSyncSynced({
+          repo: deps.syncRecords,
+          merchantId: message.merchantId,
+          storeId: message.storeId,
+          entityType,
+          entityId,
+          eventId: message.eventId,
+          erpnextId: resultExternalId,
+          idFactory,
+          now,
+        });
+      }
+
       recordIntegrationMetric(INTEGRATION_METRIC_NAMES.success, {
         merchant_id: message.merchantId,
         store_id: message.storeId,
@@ -250,6 +334,32 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
         attempt,
       });
     } catch (err) {
+      if (deps.syncRecords) {
+        const fallbackType =
+          message.eventType === "SaleCompleted"
+            ? "sale"
+            : message.eventType === "OrderPaid"
+              ? "order"
+              : message.eventType === "PaymentSucceeded"
+                ? "payment"
+                : message.eventType.startsWith("Product")
+                  ? "product"
+                  : message.eventType.includes("Membership")
+                    ? "customer"
+                    : "unknown";
+        const fallbackId = String(message.aggregateId ?? "unknown");
+        await markSyncFailed({
+          repo: deps.syncRecords,
+          merchantId: message.merchantId,
+          storeId: message.storeId,
+          entityType: fallbackType,
+          entityId: fallbackId,
+          eventId: message.eventId,
+          error: err,
+          idFactory,
+          now,
+        });
+      }
       recordIntegrationMetric(INTEGRATION_METRIC_NAMES.failed, {
         merchant_id: message.merchantId,
         store_id: message.storeId,

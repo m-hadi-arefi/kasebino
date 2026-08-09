@@ -38,6 +38,7 @@ import { DrizzlePaymentRepository } from "../../modules/payments/infrastructure/
 import { DrizzleSaleRepository } from "../../modules/pos/infrastructure/persistence/drizzle-sale-repository.js";
 import { DrizzleStoreRepository } from "../../modules/store/infrastructure/persistence/drizzle-store-repository.js";
 import { DrizzleExternalEntityMappingRepository } from "../../modules/accounting/infrastructure/persistence/external-entity-mapping-repository.js";
+import { DrizzleErpNextSyncRecordRepository } from "../../modules/erpnext/infrastructure/persistence/sync-record-repository.js";
 import {
   DrizzleOutboxStore,
   DrizzleProcessedSet,
@@ -71,6 +72,7 @@ export type ProductionRepositories = {
   outbox: DrizzleOutboxStore;
   processedEvents: DrizzleProcessedSet;
   externalEntityMappings: DrizzleExternalEntityMappingRepository;
+  erpnextSyncRecords: DrizzleErpNextSyncRecordRepository;
 };
 
 export function createProductionRepositoriesFromDb(
@@ -103,6 +105,7 @@ export function createProductionRepositoriesFromDb(
     outbox: new DrizzleOutboxStore(txScope),
     processedEvents: new DrizzleProcessedSet(db),
     externalEntityMappings: new DrizzleExternalEntityMappingRepository(db),
+    erpnextSyncRecords: new DrizzleErpNextSyncRecordRepository(db),
   };
 }
 

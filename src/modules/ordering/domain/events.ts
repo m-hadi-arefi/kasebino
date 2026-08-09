@@ -30,12 +30,24 @@ export function orderCreatedEvent(input: {
   });
 }
 
+export type OrderPaidLinePayload = {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitCode: string;
+  unitPriceMinor: string;
+  lineTotalMinor: string;
+};
+
 export function orderPaidEvent(input: {
   orderId: string;
   merchantId: string;
   storeId: string;
   totalAmountMinor: string;
   paymentId?: string;
+  /** ADR-137 — required for Sales Invoice line projection. */
+  lines?: readonly OrderPaidLinePayload[];
+  idempotencyKey?: string;
   occurredAt?: Date;
 }) {
   return createDomainEvent({
@@ -49,6 +61,10 @@ export function orderPaidEvent(input: {
       totalAmountMinor: input.totalAmountMinor,
       status: "paid" as const,
       ...(input.paymentId !== undefined ? { paymentId: input.paymentId } : {}),
+      ...(input.lines !== undefined ? { lines: input.lines } : {}),
+      ...(input.idempotencyKey !== undefined
+        ? { idempotencyKey: input.idempotencyKey }
+        : {}),
     },
     ...(input.occurredAt !== undefined ? { occurredAt: input.occurredAt } : {}),
   });

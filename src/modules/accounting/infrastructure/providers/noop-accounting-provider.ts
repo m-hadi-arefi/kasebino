@@ -1,5 +1,5 @@
 /**
- * No-op accounting provider (ADR-126) — default until ERPNext adapter exists.
+ * No-op accounting provider (ADR-126) — default when ERPNext is not configured.
  */
 
 import type {

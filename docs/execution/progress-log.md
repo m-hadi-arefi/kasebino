@@ -16,6 +16,52 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
+### 2026-08-09 — ERPNext capability surfaces Phase 1–4 (ADR-141)
+
+- ADRs: `ADR-141` + uiux brief `docs/uiux/briefs/erpnext-finance-phase1.md`
+- Module: `src/modules/erpnext/` (finance reader, sync lifecycle, native UI)
+- RBAC: `finance.view` / `finance.manage` + `store_manager` (manager≠cashier)
+- DB: `erpnext_sync_records` migration `0005`
+- APIs: `/api/v1/erpnext/finance/*` (dashboard, invoices, sync, sale status, customer finance)
+- UI: `/finance`, `/finance/sync`, customer profile «نمای مالی»
+- Outbox handler writes sync pending/synced/failed with Persian errors
+- Deferred: suppliers, purchases, inventory valuation, advanced reports
+- Validations: typecheck green; lint green; npm test green (erpnext + rbac suites)
+
+### 2026-08-09 — ERPNext real goal re-evaluation + adapter foundations
+
+- Misunderstanding corrected: prior work was docs/prep ADRs marked complete; goal is MerchantOS retail OS + ERPNext financial brain via outbox
+- ADRs: 135 Role, 136 Boundary, 137 Data Mapping, 138 Sync, 139 UI, 140 Runtime Adapter (+ Docker) in `adrs/tasks/`
+- Code: `ErpNextAccountingProvider` (Frappe REST), projectors, `createAccountingProvider`, POS membership outbox, OrderPaid lines, ProductDeleted/MembershipUpdated handler paths
+- Infra: `docker-compose.erpnext.yml`, `npm run erpnext:*`, bootstrap script
+- Docs: AGENT/PRD/README/product + readiness **62/100** + connection-points
+- Validations: typecheck green; lint green; **npm test 907 passed / 3 skipped**; ERPNext provider mocked HTTP tests green
+- Next: Finish Setup Wizard on local ERPNext (`npm run erpnext:up` still pulling), bootstrap keys, dual-run CompleteSale → Sales Invoice; recon + E→M purchase later
+
+### 2026-08-09 — ERPNext integration full audit + completion
+
+- Plan/report: `docs/integrations/erpnext/readiness-report.md` (score **86/100**)
+- Changes: CompleteSale fail-closed `OUTBOX_REQUIRED` when UoW bound; CRM join enqueues MembershipCreated; Product/StockAdjusted payload enrichment; mapping tenant + outbox-fail tests; Redis/Mongo ping timeouts; docker-compose worker assert
+- Validations: typecheck green; lint green; **npm test 902 passed / 3 skipped**; build green
+- Docs updated: readiness-report, erpnext README, STATUS note, this log
+- Remaining: live ERPNext adapter, reconciliation, tax templates — not in prep scope
+
+### 2026-08-09 — ERPNext foundation gap-fill (ADR-126…134 readiness)
+
+- Plan: `docs/integrations/erpnext/implementation-execution-plan.md`
+- Changes: CompleteSale OLTP-only `runInUnitOfWork` (MinIO/analytics after commit); SaleCompleted line payloads; MembershipCreated + SaleCompleted→syncCustomer in accounting consumer; payment/movement mappers; quantity serialize; mapping unique-external guard; readiness tests
+- Validations: typecheck green; lint green; focused ERPNext/POS/accounting/quantity/MinIO tests green (38); full suite 892 passed — failures are pre-existing live Redis/Mongo timeouts + docker-compose worker command assert (unrelated)
+- Docs updated: execution plan, erpnext README, this log
+- Next: future ERPNextAccountingProvider ACL (runtime adapter ADR)
+
+### 2026-08-09 — ERPNext architecture research + ADR-127…134 — completed (docs/contracts)
+
+- Plan: research task (no runtime adapter); extend `docs/integrations/erpnext/`
+- Changes: ERPNext knowledge base (overview, modules, data/integration model, security); domain-boundary-analysis; UI strategy; roadmap; ADRs 127–134 accepted and moved to `adrs/done/`; AGENT/README/PRD/product docs ERPNext context
+- Validations: documentation only — no ERPNext dependency, API client, or credentials added
+- Docs updated: `docs/integrations/erpnext/*`, `AGENT.md`, `README.md`, `PRD.md`, `docs/product/*`, `adrs/STATUS.md`, this log
+- Next: Foundation hardening (Phase 2 roadmap); live adapter requires a future runtime ADR
+
 ### 2026-08-09 — ADR-126 ERPNext integration boundaries — completed (contract)
 
 - Plan: `docs/integrations/erpnext/implementation-plan.md`; ADR: `adrs/done/ADR-126-erpnext-integration-boundaries.md`

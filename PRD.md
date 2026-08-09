@@ -60,6 +60,26 @@ Transform local Iranian retail from **anonymous transactions** into **customer r
 | ERP | Powered by POS transactions |
 | Marketplace | Owned by the merchant |
 
+### ERPNext Integration Vision
+
+MerchantOS does not become ERP software. Future architecture pairs the platforms:
+
+**MerchantOS provides**
+
+- Retail experience (Persian + RTL cashier and customer UX)
+- POS (including offline)
+- Customer engagement (CRM, loyalty, store PWA)
+- Store operations (catalog presentation, pickup orders, operational stock)
+
+**ERPNext provides**
+
+- Enterprise resource planning capabilities behind an integration boundary
+- Accounting (GL, invoices as books, A/R–A/P)
+- Financial control (tax accounting configuration, ledgers, statutory-style reports)
+- Purchase / supplier books (ERP-first until a dedicated MOS purchase ADR)
+
+Integration is asynchronous (outbox → `AccountingProvider` / `ErpNextAccountingProvider`). Core domains never import ERPNext. See `docs/integrations/erpnext/` and **ADR-135…140** (role, boundary, mapping, sync, UI, runtime adapter). Prep seams: ADR-126…134.
+
 ---
 
 ## 3. Goals & Non-Goals
@@ -77,13 +97,14 @@ Transform local Iranian retail from **anonymous transactions** into **customer r
 
 ### Non-goals (explicitly out of scope for MVP)
 
-- Full double-entry accounting / tax filing
-- Multi-warehouse logistics / ERP purchasing
+- Full double-entry accounting / tax filing **inside MerchantOS** (external ERPNext owns books later — see ERPNext Integration Vision)
+- Multi-warehouse logistics / ERP purchasing **as a MOS SoT** (ERPNext-first)
 - Public marketplace / multi-merchant browsing
 - Supplier management networks
 - Advanced AI recommendations (later phase)
 - Desktop-native offline-first POS hardware suite (PWA offline is enough for MVP)
 - **Delivery, courier integration, rider fleets, shipping**
+- Replacing MerchantOS POS/storefront with ERPNext Desk or Website
 
 ---
 

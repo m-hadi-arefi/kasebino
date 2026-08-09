@@ -13,6 +13,7 @@ import {
   Shield,
   ScrollText,
   Building2,
+  WalletCards,
 } from "lucide-react";
 
 export type AppNavItem = {
@@ -30,6 +31,7 @@ export const MERCHANT_NAV: AppNavItem[] = [
   { title: "محصولات", href: "/products", icon: Package, match: "prefix" },
   { title: "موجودی", href: "/inventory", icon: Boxes, match: "prefix" },
   { title: "وفاداری", href: "/loyalty", icon: Gift, match: "prefix" },
+  { title: "مالی", href: "/finance", icon: WalletCards, match: "prefix" },
   { title: "اعلان‌ها", href: "/notifications", icon: Bell, match: "prefix" },
   { title: "فروشگاه‌ها", href: "/stores", icon: Store, match: "prefix" },
 ];

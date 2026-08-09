@@ -18,6 +18,7 @@ import type {
   InventoryDecrementPort,
   LoyaltyEarnPort,
   MembershipUpsertPort,
+  RunInUnitOfWork,
   SaleOutboxPort,
 } from "./ports.js";
 import { storeSaleReceiptObject } from "./store-sale-receipt.js";
@@ -38,8 +39,14 @@ export type PosUseCaseDeps = {
   /** ADR-096 — persist SaleCreated / SaleCompleted to outbox after OLTP save. */
   outbox?: SaleOutboxPort;
   /**
+   * ADR-126 — PostgreSQL Unit of Work for OLTP only (membership→outbox).
+   * Composition binds DrizzleTransactionScope.run. Identity when omitted.
+   */
+  runInUnitOfWork?: RunInUnitOfWork;
+  /**
    * ADR-111 — MinIO (or in-memory) object storage for receipt HTML.
    * Failures must never fail CompleteSale; outbox retries later.
+   * Must run AFTER the OLTP unit of work commits.
    */
   objectStorage?: ObjectStoragePort;
   /** Optional store display name for receipt header. */
@@ -152,13 +159,11 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
   const idFactory = deps.idFactory ?? (() => randomUUID());
 
   /**
-   * CompleteSale unit of work (ADR-009):
-   * 1. Idempotency replay
-   * 2. Validate cart + tender + phone
-   * 3. Membership upsert port (POS notice-continue consent)
-   * 4. Inventory decrement port (same TX flag)
-   * 5. Loyalty earn port (ADR-010 createLoyaltyEarnPort)
-   * 6. Persist Sale + emit SaleCompleted
+   * CompleteSale (ADR-009 / ADR-126):
+   * OLTP Unit of Work (same TX when Drizzle scope bound):
+   *   membership → inventory(+movements) → loyalty → sale → outbox
+   * After commit only:
+   *   MinIO receipt (best-effort) → analytics enqueue (best-effort)
    */
   async function completeSale(
     input: CompleteSaleInput,
@@ -168,100 +173,179 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
       input.storeId,
     );
     const idempotencyKey = requireIdempotency(input.idempotencyKey);
+    const phone = requirePhone(input.phone);
+    const tenderType = requireTender(input.tenderType);
+    const cart = normalizeCart(merchantId, storeId, input.lines);
+    const runUow = deps.runInUnitOfWork ?? (<T>(fn: () => Promise<T>) => fn());
 
-    const existing = await deps.sales.findByIdempotencyKey(
-      merchantId,
-      idempotencyKey,
-    );
-    if (existing) {
-      const event = saleCompletedEvent({
-        saleId: existing.id,
-        merchantId: existing.merchantId,
-        storeId: existing.storeId,
-        membershipId: existing.membershipId,
-        customerId: existing.customerId,
-        phoneNational: existing.phoneNational,
-        tenderType: existing.tenderType,
-        totalAmountMinor: existing.totalAmountMinor.toString(),
-        lineCount: existing.lines.length,
-        idempotencyKey: existing.idempotencyKey,
-        occurredAt: existing.completedAt ?? existing.createdAt,
-      });
-      if (deps.outbox?.ensureSaleCompletedEnqueued) {
-        await deps.outbox.ensureSaleCompletedEnqueued({
-          completedEvent: event,
+    // Fail-closed: a DB UnitOfWork without outbox can orphan ERP synchronization.
+    if (deps.runInUnitOfWork && !deps.outbox) {
+      throw new PosDomainError("OUTBOX_REQUIRED");
+    }
+
+    type OltpResult =
+      | {
+          kind: "replay";
+          sale: Sale;
+          event: ReturnType<typeof saleCompletedEvent>;
+        }
+      | {
+          kind: "created";
+          sale: Sale;
+          event: ReturnType<typeof saleCompletedEvent>;
+          createdEvent: ReturnType<typeof saleCreatedEvent>;
+          membershipCreated: boolean;
+        };
+
+    const toCompletedLines = (sale: Sale) =>
+      sale.lines.map((line) => ({
+        productId: line.productId,
+        productName: line.productName,
+        quantity: line.quantity,
+        unitCode: "piece",
+        unitPriceMinor: line.unitPriceMinor.toString(),
+        lineTotalMinor: (line.unitPriceMinor * BigInt(line.quantity)).toString(),
+      }));
+
+    const oltp = await runUow(async (): Promise<OltpResult> => {
+      const existing = await deps.sales.findByIdempotencyKey(
+        merchantId,
+        idempotencyKey,
+      );
+      if (existing) {
+        const event = saleCompletedEvent({
+          saleId: existing.id,
           merchantId: existing.merchantId,
           storeId: existing.storeId,
+          membershipId: existing.membershipId,
+          customerId: existing.customerId,
+          phoneNational: existing.phoneNational,
+          tenderType: existing.tenderType,
+          totalAmountMinor: existing.totalAmountMinor.toString(),
+          lineCount: existing.lines.length,
+          lines: toCompletedLines(existing),
+          idempotencyKey: existing.idempotencyKey,
+          occurredAt: existing.completedAt ?? existing.createdAt,
+        });
+        if (deps.outbox?.ensureSaleCompletedEnqueued) {
+          await deps.outbox.ensureSaleCompletedEnqueued({
+            completedEvent: event,
+            merchantId: existing.merchantId,
+            storeId: existing.storeId,
+          });
+        }
+        return { kind: "replay", sale: existing, event };
+      }
+
+      const at = now();
+      const saleId = idFactory();
+
+      const membership = await deps.membership.upsertFromPosPhoneCapture({
+        merchantId,
+        storeId,
+        phone,
+        ...(input.consentNoticeVersion !== undefined
+          ? { consentNoticeVersion: input.consentNoticeVersion }
+          : {}),
+      });
+
+      for (const line of cart.lines) {
+        await deps.inventory.decrementForSale({
+          merchantId,
+          storeId,
+          productId: line.productId,
+          quantity: line.quantity,
+          sameTransaction: true,
+          saleId,
         });
       }
+
+      const sale = createCompletedSaleAggregate({
+        id: saleId,
+        merchantId,
+        storeId,
+        membershipId: membership.membershipId,
+        customerId: membership.customerId,
+        phoneNational: membership.phoneNational,
+        tenderType,
+        lines: cart.lines.map((line) => ({
+          id: idFactory(),
+          productId: line.productId,
+          productName: line.productName,
+          quantity: line.quantity,
+          unitPriceMinor: line.unitPriceMinor,
+        })),
+        idempotencyKey,
+        now: at,
+      });
+
+      if (deps.loyaltyEarn) {
+        await deps.loyaltyEarn.earnForSale({
+          saleId: sale.id,
+          merchantId: sale.merchantId,
+          storeId: sale.storeId,
+          membershipId: membership.membershipId,
+          customerId: membership.customerId,
+          totalAmountMinor: sale.totalAmountMinor,
+        });
+      }
+
+      await deps.sales.save(sale);
+
+      const createdEvent = saleCreatedEvent({
+        saleId: sale.id,
+        merchantId: sale.merchantId,
+        storeId: sale.storeId,
+        occurredAt: at,
+      });
+
+      const event = saleCompletedEvent({
+        saleId: sale.id,
+        merchantId: sale.merchantId,
+        storeId: sale.storeId,
+        membershipId: sale.membershipId,
+        customerId: sale.customerId,
+        phoneNational: sale.phoneNational,
+        tenderType: sale.tenderType,
+        totalAmountMinor: sale.totalAmountMinor.toString(),
+        lineCount: sale.lines.length,
+        lines: toCompletedLines(sale),
+        idempotencyKey: sale.idempotencyKey,
+        occurredAt: at,
+      });
+
+      if (deps.outbox) {
+        await deps.outbox.enqueueSaleEvents({
+          createdEvent,
+          completedEvent: event,
+          ...(membership.event ? { membershipEvent: membership.event } : {}),
+          merchantId: sale.merchantId,
+          storeId: sale.storeId,
+        });
+      }
+
       return {
-        sale: existing,
-        created: false,
+        kind: "created",
+        sale,
         event,
+        createdEvent,
+        membershipCreated: membership.created,
+      };
+    });
+
+    if (oltp.kind === "replay") {
+      return {
+        sale: oltp.sale,
+        created: false,
+        event: oltp.event,
         createdEvent: null,
         membershipCreated: false,
       };
     }
 
-    const phone = requirePhone(input.phone);
-    const tenderType = requireTender(input.tenderType);
-    const cart = normalizeCart(merchantId, storeId, input.lines);
-    const at = now();
-    const saleId = idFactory();
+    const { sale, event, createdEvent, membershipCreated } = oltp;
 
-    const membership = await deps.membership.upsertFromPosPhoneCapture({
-      merchantId,
-      storeId,
-      phone,
-      ...(input.consentNoticeVersion !== undefined
-        ? { consentNoticeVersion: input.consentNoticeVersion }
-        : {}),
-    });
-
-    for (const line of cart.lines) {
-      await deps.inventory.decrementForSale({
-        merchantId,
-        storeId,
-        productId: line.productId,
-        quantity: line.quantity,
-        sameTransaction: true,
-        saleId,
-      });
-    }
-
-    const sale = createCompletedSaleAggregate({
-      id: saleId,
-      merchantId,
-      storeId,
-      membershipId: membership.membershipId,
-      customerId: membership.customerId,
-      phoneNational: membership.phoneNational,
-      tenderType,
-      lines: cart.lines.map((line) => ({
-        id: idFactory(),
-        productId: line.productId,
-        productName: line.productName,
-        quantity: line.quantity,
-        unitPriceMinor: line.unitPriceMinor,
-      })),
-      idempotencyKey,
-      now: at,
-    });
-
-    if (deps.loyaltyEarn) {
-      await deps.loyaltyEarn.earnForSale({
-        saleId: sale.id,
-        merchantId: sale.merchantId,
-        storeId: sale.storeId,
-        membershipId: membership.membershipId,
-        customerId: membership.customerId,
-        totalAmountMinor: sale.totalAmountMinor,
-      });
-    }
-
-    await deps.sales.save(sale);
-
-    // ADR-111: best-effort receipt render — never fail CompleteSale when MinIO down.
+    // ADR-111: after OLTP commit — never fail CompleteSale when MinIO down.
     if (deps.objectStorage) {
       try {
         let storeDisplayName: string | null = null;
@@ -289,36 +373,6 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
       }
     }
 
-    const createdEvent = saleCreatedEvent({
-      saleId: sale.id,
-      merchantId: sale.merchantId,
-      storeId: sale.storeId,
-      occurredAt: at,
-    });
-
-    const event = saleCompletedEvent({
-      saleId: sale.id,
-      merchantId: sale.merchantId,
-      storeId: sale.storeId,
-      membershipId: sale.membershipId,
-      customerId: sale.customerId,
-      phoneNational: sale.phoneNational,
-      tenderType: sale.tenderType,
-      totalAmountMinor: sale.totalAmountMinor.toString(),
-      lineCount: sale.lines.length,
-      idempotencyKey: sale.idempotencyKey,
-      occurredAt: at,
-    });
-
-    if (deps.outbox) {
-      await deps.outbox.enqueueSaleEvents({
-        createdEvent,
-        completedEvent: event,
-        merchantId: sale.merchantId,
-        storeId: sale.storeId,
-      });
-    }
-
     // ADR-065: analytics after OLTP commit only; never fail CompleteSale.
     if (deps.analyticsAfterSale) {
       try {
@@ -327,7 +381,7 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
           saleId: sale.id,
           merchantId: sale.merchantId,
           storeId: sale.storeId,
-          occurredAt: at,
+          occurredAt: sale.completedAt ?? sale.createdAt,
           payload: { ...event.payload },
         });
       } catch {
@@ -340,7 +394,7 @@ export function createPosUseCases(deps: PosUseCaseDeps) {
       created: true,
       event,
       createdEvent,
-      membershipCreated: membership.created,
+      membershipCreated,
     };
   }
 
