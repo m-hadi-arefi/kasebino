@@ -90,3 +90,48 @@ export function assertProductionPaymentGatewayPolicy(
     );
   }
 }
+
+/**
+ * ADR-142 — production rejects stub inventory ports for ordering.
+ * Ordering must wire real inventory reserve/release in production.
+ */
+export function assertProductionInventoryWiring(
+  env: NodeJS.ProcessEnv = process.env,
+  hasRealReserve: boolean,
+  hasRealRelease: boolean,
+): void {
+  const mos = (env.MOS_ENV ?? "").trim().toLowerCase();
+  if (mos !== "production") return;
+
+  if (!hasRealReserve || !hasRealRelease) {
+    throw new Error(
+      "Production ordering requires real inventory reserve/release ports (ADR-142). Stub inventory ports detected.",
+    );
+  }
+}
+
+/**
+ * ADR-151 — production rejects fake finance reader / noop accounting if required.
+ * At minimum, reject Fake in production to avoid dangerous local defaults leaking.
+ */
+export function assertProductionFinancePolicy(
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  const mos = (env.MOS_ENV ?? "").trim().toLowerCase();
+  if (mos !== "production") return;
+
+  const requireErpNext = (env.MOS_REQUIRE_ERPNEXT ?? "").trim() === "1";
+  const providerId = (env.MOS_ACCOUNTING_PROVIDER ?? "noop").trim().toLowerCase();
+
+  if (providerId === "fake") {
+    throw new Error(
+      "Production finance requires a real accounting provider (ADR-151). Fake provider detected.",
+    );
+  }
+
+  if (requireErpNext && providerId !== "erpnext") {
+    throw new Error(
+      "Production configuration requires MOS_ACCOUNTING_PROVIDER=erpnext (MOS_REQUIRE_ERPNEXT=1).",
+    );
+  }
+}

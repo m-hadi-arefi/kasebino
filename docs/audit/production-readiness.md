@@ -11,17 +11,17 @@ Older `AUDIT_REPORT.md` (2026-08-03) scored ~6–11% product — **that snapshot
 
 | Area | Score | Rationale |
 | --- | ---: | --- |
-| **Backend** | **74** | Modular use-cases, composition root, ~90 `/api/v1` routes, outbox worker, idempotency on money aggregates. Drag: sandbox PSP, order inventory stubs, default accounting noop. |
+| **Backend** | **76** | Modular use-cases, composition root, ~90 `/api/v1` routes, outbox worker, idempotency on money aggregates. Production guards reject inventory stubs and fake finance (ADR-151). Drag: sandbox PSP. |
 | **Frontend** | **71** | Real merchant + storefront + admin + finance Persian/RTL surfaces beyond shells. Drag: hours/branding gaps, no staff UI, finance numbers not trustworthy in fake/noop modes. |
 | **Database** | **70** | Migrations + indexed OLTP model + soft-delete patterns. Drag: no FKs/RLS, orphan coupons, hand migration meta drift (`0003`/`0005`). |
-| **Security** | **58** | OTP + NextAuth + RBAC gates + secret guards + tenant asserts. Drag: no employee lifecycle, no RLS, noop security monitoring, sandbox payment escape hatch, weak local Compose secrets by design. |
-| **Operations** | **42** | Docker Compose for full data plane + optional worker + health/ready. Drag: no CD/DR/APM, worker env gaps (MinIO), ERPNext sidecar operationally manual (Setup Wizard). |
+| **Security** | **60** | OTP + NextAuth + RBAC gates + secret guards + tenant asserts. Drag: no employee lifecycle, no RLS, noop security monitoring, sandbox payment escape hatch, weak local Compose secrets by design. |
+| **Operations** | **45** | Docker Compose for full data plane + optional worker + health/ready. Worker env includes MinIO parity (ADR-151). Drag: no CD/DR/APM, ERPNext sidecar operationally manual. |
 | **ERPNext readiness** | **62** | Matches `docs/integrations/erpnext/readiness-report.md`: adapter + Docker + sync records + finance ACL UI; dual-run soak / recon / AP not done. |
 
 ### Composite MVP readiness
 
-**~62 / 100** for “run a pilot store on staging with sandbox pay + optional ERP.”  
-**~35 / 100** for “hard production Iran with real PSP + trusted books + multi-staff” — blocked by Critical items below.
+**~63 / 100** for “run a pilot store on staging with sandbox pay + optional ERP.”  
+**~37 / 100** for “hard production Iran with real PSP + trusted books + multi-staff” — blocked by Critical items below.
 
 ---
 

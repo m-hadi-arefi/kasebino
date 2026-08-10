@@ -13,6 +13,12 @@ import type { ObjectStoragePort } from "../../minio-storage/index.js";
 import { createStoreAssetUseCases } from "../../modules/store/application/upload-branding-asset.js";
 import { createCatalogUseCases } from "../../modules/catalog/application/use-cases.js";
 import { createInventoryUseCases } from "../../modules/inventory/application/use-cases.js";
+import {
+  createInventoryReserveAdapter,
+  createInventoryReleaseAdapter,
+  DrizzleSyncIdempotency,
+  InMemoryInventorySyncIdempotency,
+} from "../../modules/inventory/infrastructure/index.js";
 import { createCrmUseCases } from "../../modules/crm/application/use-cases.js";
 import {
   createLoyaltyEarnPort,
@@ -89,6 +95,8 @@ import { createMongoRuntime } from "../mongodb/create-mongo-runtime.js";
 import { createMinioRuntime } from "../minio/create-minio-runtime.js";
 import {
   assertProductionCompositionEnv,
+  assertProductionFinancePolicy,
+  assertProductionInventoryWiring,
   assertProductionPaymentGatewayPolicy,
   assertProductionSmsPolicy,
 } from "./production-guards.js";
@@ -215,9 +223,13 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     products: repos.products,
     categories: repos.categories,
   });
+  const syncIdempotency = options.drizzleDb
+    ? new DrizzleSyncIdempotency(options.drizzleDb)
+    : new InMemoryInventorySyncIdempotency();
   const inventory = createInventoryUseCases({
     stockItems: repos.stockItems,
     ...(repos.stockMovements ? { stockMovements: repos.stockMovements } : {}),
+    syncIdempotency,
   });
   const crm = createCrmUseCases({
     memberships: repos.storeMemberships,
@@ -408,13 +420,17 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
         : {}),
     });
 
-  /** ADR-102 — wire sandbox PaymentConfirmPort so markPaid reuses succeeded intents. */
+  /** ADR-102 / ADR-142 — wire payment confirm + real inventory reserve/release. */
+  const inventoryReserve = createInventoryReserveAdapter(inventory);
+  const inventoryRelease = createInventoryReleaseAdapter(inventory);
   const ordering = createOrderingUseCases({
     orders: repos.orders,
     paymentConfirm: createSandboxPaymentConfirmPort({
       payments: repos.payments,
       gateway: paymentGateway,
     }),
+    inventoryReserve,
+    inventoryRelease,
   });
 
   const payments = createPaymentsUseCases({
@@ -549,6 +565,8 @@ export function createAppContext(
   assertProductionCompositionEnv(env);
   assertProductionSmsPolicy(env);
   assertProductionPaymentGatewayPolicy(env);
+  assertProductionInventoryWiring(env, true, true);
+  assertProductionFinancePolicy(env);
 
   const production = getSharedProductionRepositories(env);
   const redis = createRedisRuntime(env);

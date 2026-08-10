@@ -24,7 +24,7 @@ Last updated: 2026-08-09
 | **ADR-148** | Stock movement history UI | Medium | S | — | Proposed |
 | **ADR-149** | Store hours HTTP/UI | Medium | S | — | Proposed |
 | **ADR-150** | Migration hygiene + integrity | Medium | M | Coordinate 145 | Proposed |
-| **ADR-151** | Fail-closed guards + worker MinIO | High | S | After 142 | Proposed |
+| **ADR-151** | Fail-closed guards + worker MinIO parity | High | S | After 142 | Complete |
 | **ADR-152** | Catalog cost + tax boundary | Medium | S | — | Proposed |
 
 ## Human-gated vendors (`adrs/future/`)

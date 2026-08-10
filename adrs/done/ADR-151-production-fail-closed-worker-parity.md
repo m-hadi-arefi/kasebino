@@ -3,14 +3,14 @@
 | Field | Value |
 | --- | --- |
 | ID | ADR-151 |
-| Status | `Proposed` |
+| Status | `Accepted` |
 | Date | 2026-08-09 |
 | Origin | `docs/audit/` Medium #13 + production stubs |
-| Folder | `adrs/tasks/` |
+| Folder | `adrs/done/` |
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -88,11 +88,11 @@ Compose smoke: worker receives MinIO env (parity test extend `docker-compose-par
 
 ## Acceptance Criteria
 
-- [ ] Production boot fails on inventory stubs
-- [ ] Production boot fails on Fake finance reader
-- [ ] Worker Compose includes MinIO vars
-- [ ] docs/audit ops notes updated
-- [ ] Local remaining degraded modes documented
+- [x] Production boot fails on inventory stubs
+- [x] Production boot fails on Fake finance reader
+- [x] Worker Compose includes MinIO vars
+- [x] docs/audit ops notes updated
+- [x] Local remaining degraded modes documented
 
 ## Dependencies
 

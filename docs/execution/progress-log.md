@@ -1,4 +1,4 @@
-﻿# Progress Log
+# Progress Log
 
 Autonomous execution diary. Append-only.
 
@@ -15,6 +15,14 @@ Autonomous execution diary. Append-only.
 ```
 
 ## Entries
+
+### 2026-08-10 — ADR-142 Ordering ↔ Inventory Reserve/Release Wiring — completed
+
+- Plan: `docs/execution/plans/ADR-142.md`
+- Changes: Implemented the `ordering-inventory-adapter` mapping `decrementForPickupPaid` to the `InventoryReservePort` and `restorePickupStock` to the `InventoryReleasePort`, using the `drizzle-sync-idempotency` backed by `stock_movements.note` combined with `source='pickup'`. Composition root wires real adapters in production.
+- Validations: Unit tests verified. Storefront Persian labels ('ناموجود' and `fa.availableQty`) verified.
+- Docs updated: `docs/execution/plans/ADR-142.md` created. STATUS and REORGANIZATION_INDEX updated. Moved ADR-135 through ADR-139 and ADR-142 to `done/`.
+- Next: Continue ard-to-code queue
 
 ### 2026-08-09 — ERPNext capability surfaces Phase 1–4 (ADR-141)
 
@@ -1184,4 +1192,4 @@ Autonomous execution diary. Append-only.
 - Next: run ard-to-code from ADR-001 per roadmap
 
 2 0 2 6 - 0 8 - 1 0 :   C o m p l e t e d   A D R - 1 2 5   ( P r o d u c t i o n   U I   S h e l l   +   P a g e   M i g r a t i o n )   i n c l u d i n g   P l a y w r i g h t   E 2 E   U I   a u d i t   p a s s .  
- 
+ - Completed ADR-151: Enforced production fail-closed guards for accounting and inventory, and ensured worker MinIO parity.

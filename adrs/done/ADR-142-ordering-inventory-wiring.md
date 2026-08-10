@@ -3,14 +3,14 @@
 | Field | Value |
 | --- | --- |
 | ID | ADR-142 |
-| Status | `Proposed` |
+| Status | `Accepted` |
 | Date | 2026-08-09 |
 | Origin | `docs/audit/` (2026-08-09) Critical #1 |
-| Folder | `adrs/tasks/` |
+| Folder | `adrs/done/` |
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -100,12 +100,12 @@ E2E: storefront pay → inventory UI reflects (can follow ADR-117)
 
 ## Acceptance Criteria
 
-- [ ] Production composition does not use inventory stubs
-- [ ] Paying an order decrements `stock_items` and appends movement
-- [ ] Cancel/refund after paid restores stock
-- [ ] Insufficient stock fails markPaid without corrupting payment intent state (document policy)
-- [ ] `MOS_ENV=production` fails boot if stubs injected
-- [ ] Integration test covers happy path + restore
+- [x] Production composition does not use inventory stubs
+- [x] Paying an order decrements `stock_items` and appends movement
+- [x] Cancel/refund after paid restores stock
+- [x] Insufficient stock fails markPaid without corrupting payment intent state (document policy)
+- [x] `MOS_ENV=production` fails boot if stubs injected
+- [x] Integration test covers happy path + restore
 
 ## Dependencies
 

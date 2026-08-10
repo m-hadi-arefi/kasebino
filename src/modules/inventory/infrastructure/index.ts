@@ -7,3 +7,9 @@ export {
   DrizzleStockMovementRepository,
   InMemoryStockMovementRepository,
 } from "./persistence/drizzle-stock-movement-repository.js";
+export { DrizzleSyncIdempotency } from "./persistence/drizzle-sync-idempotency.js";
+
+export {
+  createInventoryReserveAdapter,
+  createInventoryReleaseAdapter,
+} from "./adapters/ordering-inventory-adapter.js";

@@ -1,4 +1,4 @@
-﻿# ADR Reorganization Index
+# ADR Reorganization Index
 
 | Field | Value |
 | --- | --- |
@@ -105,6 +105,12 @@
 | `ADR-089-admin-dashboard.md` |
 | `ADR-090-notifications.md` |
 | `ADR-091-mvp-product-policy-resolutions.md` |
+| `ADR-135-erpnext-role.md` |
+| `ADR-136-erpnext-boundary.md` |
+| `ADR-137-erpnext-data-mapping.md` |
+| `ADR-138-erpnext-sync-architecture.md` |
+| `ADR-139-erpnext-ui-strategy.md` |
+| `ADR-142-ordering-inventory-wiring.md` |
 
 ## future/ (not implemented)
 
@@ -155,6 +161,8 @@
 | `ADR-119-security-hardening-runtime.md` |
 | `ADR-120-adr-status-truth-realignment.md` |
 | `ADR-121-merchant-onboarding-store-setup.md` |
+| `ADR-140-erpnext-runtime-adapter.md` |
+| `ADR-141-erpnext-capability-surfaces.md` |
 
 ## Revision note
 
@@ -169,8 +177,6 @@ User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** 
 | 2026-08-05 | `tasks/` → `done/` | `ADR-092-drizzle-kit-migrations.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-093-drizzle-repositories.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-095-nextauth-app-router-wiring.md` |
-
-
 | 2026-08-05 | `tasks/` → `done/` | `ADR-094-http-api-v1-surface.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-113-rbac-route-enforcement.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-119-security-hardening-runtime.md` |
@@ -197,5 +203,10 @@ User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** 
 | 2026-08-05 | `tasks/` → `done/` | `ADR-123-application-composition-root.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-124-realtime-mqtt-client-runtime.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-071-scalability-stateless.md` |
-2 0 2 6 - 0 8 - 1 0 :   A D R - 1 2 5   m o v e d   f r o m   t a s k s /   t o   d o n e /   ( P r o d u c t i o n   U I   r e d e s i g n   c o m p l e t e d )  
- 
+| 2026-08-10 | `tasks/` → `done/` | `ADR-125-production-ui-shell-page-migration.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-135-erpnext-role.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-136-erpnext-boundary.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-137-erpnext-data-mapping.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-138-erpnext-sync-architecture.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-139-erpnext-ui-strategy.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-142-ordering-inventory-wiring.md` || ADR-151-production-fail-closed-worker-parity.md | tasks/ | done/ |
