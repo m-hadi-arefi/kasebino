@@ -128,6 +128,7 @@ docs/execution/                 ← plans, logs, self-improvement
 docs/integrations/erpnext/      ← ERPNext knowledge + integration boundaries
 docs/templates/                 ← templates
 .cursor/skills/                 ← executable Cursor skills
+.agents/skills/                 ← executable Antigravity skills
 ```
 
 When documents conflict: **Accepted ADR > PRD clarification addenda > architecture docs > ARD details > code**.  

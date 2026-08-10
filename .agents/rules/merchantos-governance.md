@@ -1,0 +1,18 @@
+# MerchantOS Governance
+
+- Product truth: `PRD.md`. Operating manual: `AGENT.md`.
+- **Iranian First:** Product is an Iranian-native retail OS. Obey `docs/rules/iranian-first-development.md`. Before any feature: Persian? RTL? Jalali? تومان? Iranian behavior? Iranian mobile? Pass `docs/checklists/iranian-feature-checklist.md` for user-facing work.
+- Implement features only via ADRs using the `ard-to-code` skill workflow.
+- Obey `docs/rules/*`. Do not skip tests, lint, or typecheck.
+- Any UI requires `uiuxpromax` before implementation (`docs/skills/uiuxpromax-integration.md`); briefs must specify Persian + RTL.
+- Prefer updating `docs/ards/STATUS.md` and `docs/execution/progress-log.md` when completing work units.
+- **ADRs in `/adrs` are architecture source of truth.** Implement via ard-to-code following `docs/architecture/adr-roadmap.md`.
+- Prefer updating `adrs/STATUS.md` and `docs/ards/STATUS.md` when completing work units.
+- Phase 1 is a modular monolith with DDD, events, **PostgreSQL + Drizzle ORM (OLTP only)**, **MongoDB analytics/audit/telemetry plane**, Redis cache-aside, EMQX, MinIO, Docker Compose.
+- **Store-first:** per-store storefront URL/QR/branding/PWA; StoreMembership owns customers; pickup-only MVP; no delivery.
+- Persistence: database design first, then Drizzle schema; repositories only; read `docs/tech/drizzle-orm.md` and `docs/rules/drizzle-rules.md` before PG work. Persian UTF-8 text + search considerations required.
+- Analytics: before planning any ADR, read analytics/audit/mongodb/event-warehouse/observability architectures and complete the telemetry gate. Merchant-facing analytics: Persian + Jalali.
+- Store/customer work: also read storefront-pwa, membership, pickup, QR, location architectures.
+- Forbidden SQL ORMs: Prisma, TypeORM, Sequelize, MikroORM, Objection, others. MongoDB is not an OLTP SoT.
+- Never conflate staff PWA (ADR-022) with store customer PWA (ADR-023).
+- No implementation without covering ADR; no architecture change without ADR update.
