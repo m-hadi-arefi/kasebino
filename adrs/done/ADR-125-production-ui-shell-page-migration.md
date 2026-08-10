@@ -3,10 +3,10 @@
 | Field | Value |
 | --- | --- |
 | ID | ADR-125 |
-| Status | `Proposed` |
+| Status | `Accepted` |
 | Date | 2026-08-06 |
 | Origin | Production-grade frontend redesign (staff + admin + storefront + marketing) |
-| Folder | `adrs/tasks/` |
+| Folder | `adrs/done/` |
 
 ## Status
 

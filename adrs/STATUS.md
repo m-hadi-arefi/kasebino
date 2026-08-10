@@ -132,6 +132,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-132 | ERPNext Inventory Strategy | accepted | complete |
 | ADR-133 | ERPNext Accounting Strategy | accepted | complete |
 | ADR-134 | ERPNext UI Strategy | accepted | complete |
+| ADR-125 | Production UI Shell + Page Migration | accepted | complete |
 
 ## future/ — Not implemented (9)
 
@@ -167,7 +168,6 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-122 | Marketing landing page — **in_progress** (plan `docs/execution/plans/ADR-122.md`; not moved to done this cycle) |
 | ADR-123 | Application composition root / DI — **in_progress** (plan `docs/execution/plans/ADR-123.md`; not moved to done this cycle) |
 | ADR-124 | Realtime MQTT client (merchant) — **in_progress** (plan `docs/execution/plans/ADR-124.md`; not moved to done this cycle) |
-| ADR-125 | Production UI shell + page migration — **in_progress** (plan `docs/execution/plans/ADR-125.md`; tasks `adrs/tasks/ADR-125-production-ui-shell-page-migration.md`) |
 | ADR-135 | ERPNext Role (financial brain) — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
 | ADR-136 | ERPNext Boundary — **Accepted** contract in `tasks/` — verify→done via ADR-146 |
 | ADR-137 | ERPNext Data Mapping — **Accepted** contract in `tasks/` — verify→done via ADR-146 |

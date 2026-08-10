@@ -197,3 +197,5 @@ User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** 
 | 2026-08-05 | `tasks/` → `done/` | `ADR-123-application-composition-root.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-124-realtime-mqtt-client-runtime.md` |
 | 2026-08-05 | `tasks/` → `done/` | `ADR-071-scalability-stateless.md` |
+2 0 2 6 - 0 8 - 1 0 :   A D R - 1 2 5   m o v e d   f r o m   t a s k s /   t o   d o n e /   ( P r o d u c t i o n   U I   r e d e s i g n   c o m p l e t e d )  
+ 

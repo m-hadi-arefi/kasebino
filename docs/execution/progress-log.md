@@ -1183,3 +1183,5 @@ Autonomous execution diary. Append-only.
 - No application code written
 - Next: run ard-to-code from ADR-001 per roadmap
 
+2 0 2 6 - 0 8 - 1 0 :   C o m p l e t e d   A D R - 1 2 5   ( P r o d u c t i o n   U I   S h e l l   +   P a g e   M i g r a t i o n )   i n c l u d i n g   P l a y w r i g h t   E 2 E   U I   a u d i t   p a s s .  
+ 

@@ -8,7 +8,6 @@ Last updated: 2026-08-09
 | ADR-116 | Observability / metrics / alerts | High | L | — | Proposed |
 | ADR-117 | E2E Playwright + perf gates | High | M | Prefer 142 for stock truth | Proposed |
 | ADR-118 | Deploy, backup, DR | High | L | Prefer 116 signals | Proposed |
-| ADR-125 | Production UI shell migration | Medium | M | — | in_progress |
 | ADR-135 | ERPNext role | — | S | Verify → done | Accepted/contract |
 | ADR-136 | ERPNext boundary | — | S | Verify → done | Accepted/contract |
 | ADR-137 | ERPNext data mapping | — | S | Verify → done | Accepted/contract |
