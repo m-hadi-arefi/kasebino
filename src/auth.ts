@@ -18,16 +18,33 @@ const appConfig = createAppAuthConfig({
   merchant: {
     verifyOtp: (input) => runtime().merchant.verifyOtp(input),
     resolveClaims: async (verified) => {
-      const merchant = await getApiContext().repos.merchants.findByOwnerUserId(
+      const api = getApiContext();
+      const merchant = await api.repos.merchants.findByOwnerUserId(
         verified.authUserId,
       );
-      if (!merchant) {
-        return { merchantId: null, roles: [] };
+      if (merchant) {
+        return {
+          merchantId: merchant.id,
+          roles: ["merchant_owner"],
+          storeIds: [],
+        };
       }
-      return {
-        merchantId: merchant.id,
-        roles: ["merchant_owner"],
-      };
+      
+      const staffMemberships = await api.repos.staffMemberships.findByAuthUserId(
+        verified.authUserId,
+      );
+      if (staffMemberships.length > 0) {
+        const active = staffMemberships.find((m: any) => m.membership.status === "active") ?? staffMemberships[0];
+        if (active && active.membership.status === "active") {
+          return {
+            merchantId: active.membership.merchantId,
+            roles: [active.membership.role],
+            storeIds: active.storeScopes.map((s: any) => s.storeId),
+          };
+        }
+      }
+
+      return { merchantId: null, roles: [], storeIds: [] };
     },
     nodeEnv: process.env.NODE_ENV,
   },

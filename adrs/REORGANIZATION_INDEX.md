@@ -111,6 +111,7 @@
 | `ADR-138-erpnext-sync-architecture.md` |
 | `ADR-139-erpnext-ui-strategy.md` |
 | `ADR-142-ordering-inventory-wiring.md` |
+| `ADR-144-merchant-staff-invite-rbac.md` |
 
 ## future/ (not implemented)
 
@@ -209,4 +210,5 @@ User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** 
 | 2026-08-10 | `tasks/` → `done/` | `ADR-137-erpnext-data-mapping.md` |
 | 2026-08-10 | `tasks/` → `done/` | `ADR-138-erpnext-sync-architecture.md` |
 | 2026-08-10 | `tasks/` → `done/` | `ADR-139-erpnext-ui-strategy.md` |
-| 2026-08-10 | `tasks/` → `done/` | `ADR-142-ordering-inventory-wiring.md` || ADR-151-production-fail-closed-worker-parity.md | tasks/ | done/ |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-142-ordering-inventory-wiring.md` |
+| 2026-08-10 | `tasks/` → `done/` | `ADR-144-merchant-staff-invite-rbac.md` |

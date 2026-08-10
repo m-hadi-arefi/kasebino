@@ -39,6 +39,7 @@ export const JWT_CLAIM_KEYS = [
   "sub",
   "merchantId",
   "roles",
+  "storeIds",
   "tokenVersion",
 ] as const;
 
@@ -52,6 +53,7 @@ export type MerchantJwtClaims = {
   sub: string;
   merchantId: string | null;
   roles: readonly string[];
+  storeIds: readonly string[];
   tokenVersion: number;
 };
 
@@ -181,6 +183,9 @@ export function assertRequiredJwtClaims(
   if (!Array.isArray(claims.roles)) {
     throw new Error('JWT claim "roles" must be an array (ADR-033).');
   }
+  if (!Array.isArray(claims.storeIds)) {
+    throw new Error('JWT claim "storeIds" must be an array (ADR-033).');
+  }
   if (
     typeof claims.tokenVersion !== "number" ||
     !Number.isInteger(claims.tokenVersion) ||
@@ -247,11 +252,13 @@ export function buildMerchantJwtClaims(input: {
   tokenVersion: number;
   merchantId?: string | null;
   roles?: readonly string[];
+  storeIds?: readonly string[];
 }): MerchantJwtClaims {
   const claims: MerchantJwtClaims = {
     sub: input.authUserId,
     merchantId: input.merchantId ?? null,
     roles: input.roles ?? [],
+    storeIds: input.storeIds ?? [],
     tokenVersion: input.tokenVersion,
   };
   assertRequiredJwtClaims(claims);

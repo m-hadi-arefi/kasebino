@@ -59,6 +59,8 @@ export {
   customerIdentities,
   customerOtpChallenges,
   merchantOtpChallenges,
+  staffMemberships,
+  staffStoreScopes,
 } from "./identity.js";
 export {
   analyticsCustomerStats,

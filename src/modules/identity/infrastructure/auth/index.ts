@@ -125,11 +125,13 @@ export function createMerchantOtpAuthorize(
         tokenVersion: verified.tokenVersion,
         merchantId: resolved.merchantId ?? null,
         roles: resolved.roles ?? [],
+        storeIds: (resolved as any).storeIds ?? [],
       });
       return {
         id: claims.sub,
         merchantId: claims.merchantId,
         roles: [...claims.roles],
+        storeIds: [...claims.storeIds],
         tokenVersion: claims.tokenVersion,
       };
     } catch {

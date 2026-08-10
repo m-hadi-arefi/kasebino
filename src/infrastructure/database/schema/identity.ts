@@ -142,3 +142,48 @@ export const customerOtpChallenges = pgTable(
     index("customer_otp_challenges_expires_at_idx").on(t.expiresAt),
   ],
 );
+
+/** Merchant staff memberships (RBAC roles). */
+export const staffMemberships = pgTable(
+  "staff_memberships",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    authUserId: uuid("auth_user_id").notNull(),
+    role: varchar("role", { length: 32 }).notNull(),
+    status: varchar("status", { length: 32 }).notNull().default("pending"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    deletedAt: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+  },
+  (t) => [
+    index("staff_memberships_merchant_id_idx").on(t.merchantId),
+    index("staff_memberships_auth_user_id_idx").on(t.authUserId),
+    uniqueIndex("staff_memberships_merchant_user_uq").on(t.merchantId, t.authUserId),
+  ],
+);
+
+/** Store-specific access scopes for staff. */
+export const staffStoreScopes = pgTable(
+  "staff_store_scopes",
+  {
+    staffMembershipId: uuid("staff_membership_id").notNull(),
+    storeId: uuid("store_id").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("staff_store_scopes_membership_store_uq").on(t.staffMembershipId, t.storeId),
+  ],
+);

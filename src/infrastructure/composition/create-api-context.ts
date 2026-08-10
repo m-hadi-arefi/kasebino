@@ -31,6 +31,7 @@ import { createPaymentsUseCases } from "../../modules/payments/application/use-c
 import { createNotificationsUseCases } from "../../modules/notifications/application/use-cases.js";
 import { createMerchantUseCases } from "../../modules/merchant/application/use-cases.js";
 import { createStoreUseCases } from "../../modules/store/application/use-cases.js";
+import { createStaffUseCases } from "../../modules/identity/application/staff-use-cases.js";
 import { createAdminUseCases } from "../../modules/admin/application/use-cases.js";
 import {
   createNoopSecurityMonitoringPort,
@@ -88,6 +89,7 @@ import type {
   AdminActionRepository,
   AdminUserRepository,
 } from "../../modules/admin/domain/repositories.js";
+import type { AuthUserRepository, StaffMembershipRepository } from "../../modules/identity/domain/repositories.js";
 import type { CustomerIdentityRepository } from "../../modules/customer-identity/domain/repositories.js";
 import type { ProductionRepositories } from "../persistence/create-production-repositories.js";
 import type { DrizzleDb } from "../database/drizzle/client.js";
@@ -142,6 +144,8 @@ export type ApiRepositories = {
   externalEntityMappings?: ExternalEntityMappingRepository;
   /** ADR-141 ERPNext sync lifecycle. */
   erpnextSyncRecords?: ErpNextSyncRecordRepository;
+  staffMemberships: StaffMembershipRepository;
+  authUsers: AuthUserRepository;
   /** ADR-126 CompleteSale UoW — present for production Drizzle wiring. */
   txScope?: DrizzleTransactionScope;
 };
@@ -196,6 +200,7 @@ export type ApiContext = {
   merchants: ReturnType<typeof createMerchantUseCases>;
   stores: ReturnType<typeof createStoreUseCases>;
   admin: ReturnType<typeof createAdminUseCases>;
+  staff: ReturnType<typeof createStaffUseCases>;
   /** ADR-106 merchant AN dashboards. */
   analytics: AnalyticsDashboardUseCases;
   analyticsProjection?: AnalyticsProjectionHandler;
@@ -449,6 +454,10 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
   const stores = createStoreUseCases({
     stores: repos.stores,
   });
+  const staff = createStaffUseCases({
+    staffMemberships: repos.staffMemberships,
+    authUsers: repos.authUsers,
+  });
   const storeAssets = options.objectStorage
     ? createStoreAssetUseCases({
         stores: repos.stores,
@@ -516,6 +525,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     merchants,
     stores,
     admin,
+    staff,
     analytics,
     analyticsProjection,
     analyticsCache,
@@ -548,6 +558,8 @@ export function apiReposFromProduction(
     adminUsers: production.adminUsers,
     adminActions: production.adminActions,
     customerIdentities: production.customerIdentities,
+    staffMemberships: production.staffMemberships,
+    authUsers: production.authUsers,
     txScope: production.txScope,
     externalEntityMappings: production.externalEntityMappings,
     erpnextSyncRecords: production.erpnextSyncRecords,

@@ -140,6 +140,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-139 | ERPNext UI Strategy | accepted | complete |
 | ADR-142 | Ordering ↔ inventory wiring | accepted | complete |
 | ADR-151 | Production fail-closed + worker parity | accepted | complete |
+| ADR-144 | Merchant staff invite + roles | accepted | complete |
 
 ## future/ — Not implemented (9)
 
@@ -178,7 +179,6 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-140 | ERPNext Runtime Adapter + Docker — **in_progress** (provider + compose landed; soak = ADR-146) |
 | ADR-141 | ERPNext Capability Surfaces — **in_progress** (UI landed; honesty/retry = ADR-146) |
 | ADR-143 | Production Iranian PSP gateway — **Proposed** Critical (blocked: ADR-084) |
-| ADR-144 | Merchant staff invite + roles — **Proposed** High |
 | ADR-145 | Loyalty online earn + coupons decision — **Proposed** High |
 | ADR-146 | ERPNext dual-run soak + finance honesty — **Proposed** Critical |
 | ADR-147 | Catalog product images — **Proposed** Medium |

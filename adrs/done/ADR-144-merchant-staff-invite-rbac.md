@@ -3,14 +3,14 @@
 | Field | Value |
 | --- | --- |
 | ID | ADR-144 |
-| Status | `Proposed` |
+| Status | `Accepted` |
 | Date | 2026-08-09 |
 | Origin | `docs/audit/` High #5 |
-| Folder | `adrs/tasks/` |
+| Folder | `adrs/done/` |
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 

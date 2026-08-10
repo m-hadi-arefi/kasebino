@@ -35,4 +35,12 @@ export {
   type VerifyMerchantOtpInput,
   type VerifyMerchantOtpResult,
 } from "./merchant-otp-use-cases.js";
+export {
+  createStaffUseCases,
+  type StaffUseCaseDeps,
+  type StaffUseCases,
+  type InviteStaffInput,
+  type UpdateStaffInput,
+  type DeactivateStaffInput,
+} from "./staff-use-cases.js";
 export type { SmsMessage, SmsPort } from "./ports/sms-port.js";

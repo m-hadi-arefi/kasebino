@@ -23,6 +23,7 @@ import { DrizzleStoreMembershipRepository } from "../../modules/crm/infrastructu
 import {
   DrizzleAuthUserRepository,
   DrizzleOtpChallengeRepository,
+  DrizzleStaffMembershipRepository,
 } from "../../modules/identity/infrastructure/persistence/drizzle-repositories.js";
 import { DrizzleStockItemRepository } from "../../modules/inventory/infrastructure/persistence/drizzle-stock-item-repository.js";
 import { DrizzleStockMovementRepository } from "../../modules/inventory/infrastructure/persistence/drizzle-stock-movement-repository.js";
@@ -56,6 +57,7 @@ export type ProductionRepositories = {
   customerIdentities: DrizzleCustomerIdentityRepository;
   customerOtpChallenges: DrizzleCustomerOtpChallengeRepository;
   storeMemberships: DrizzleStoreMembershipRepository;
+  staffMemberships: DrizzleStaffMembershipRepository;
   products: DrizzleProductRepository;
   categories: DrizzleCategoryRepository;
   stockItems: DrizzleStockItemRepository;
@@ -89,6 +91,7 @@ export function createProductionRepositoriesFromDb(
     customerIdentities: new DrizzleCustomerIdentityRepository(db),
     customerOtpChallenges: new DrizzleCustomerOtpChallengeRepository(db),
     storeMemberships: new DrizzleStoreMembershipRepository(txScope),
+    staffMemberships: new DrizzleStaffMembershipRepository(db),
     products: new DrizzleProductRepository(db),
     categories: new DrizzleCategoryRepository(db),
     stockItems: new DrizzleStockItemRepository(txScope),

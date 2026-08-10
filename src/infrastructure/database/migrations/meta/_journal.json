@@ -43,6 +43,13 @@
       "when": 1786260000000,
       "tag": "0005_erpnext_sync_records",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786347081955,
+      "tag": "0006_useful_silver_centurion",
+      "breakpoints": true
     }
   ]
 }
