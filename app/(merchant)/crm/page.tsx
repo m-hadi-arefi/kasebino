@@ -1,14 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/composites/loading-state";
 import { ErrorState } from "@/components/composites/error-state";
+import { MerchantCrmProviders } from "../customers/crm-providers";
 import Link from "next/link";
 
-export default function CrmDashboardPage() {
+export const dynamic = "force-dynamic";
+
+function CrmDashboardContent() {
   const dashboardQuery = useQuery({
     queryKey: ["crm", "dashboard"],
     queryFn: async () => {
@@ -164,5 +168,13 @@ export default function CrmDashboardPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+export default function CrmDashboardPage() {
+  return (
+    <MerchantCrmProviders>
+      <CrmDashboardContent />
+    </MerchantCrmProviders>
   );
 }

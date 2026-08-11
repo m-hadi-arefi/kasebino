@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/composites/loading-state";
 import { ErrorState } from "@/components/composites/error-state";
+import { MerchantCrmProviders } from "../../customers/crm-providers";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 type FollowUp = {
   id: string;
@@ -17,7 +20,7 @@ type FollowUp = {
   status: "OPEN" | "DONE" | "CANCELLED";
 };
 
-export default function FollowUpsPage() {
+function FollowUpsContent() {
   const queryClient = useQueryClient();
 
   const followUpsQuery = useQuery({
@@ -127,5 +130,13 @@ export default function FollowUpsPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function FollowUpsPage() {
+  return (
+    <MerchantCrmProviders>
+      <FollowUpsContent />
+    </MerchantCrmProviders>
   );
 }

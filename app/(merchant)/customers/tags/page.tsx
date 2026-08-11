@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/composites/loading-state";
+import { MerchantCrmProviders } from "../crm-providers";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 type CrmTag = {
   id: string;
@@ -16,7 +19,7 @@ type CrmTag = {
   color: string;
 };
 
-export default function CustomerTagsPage() {
+function CustomerTagsContent() {
   const [tagName, setTagName] = useState("");
   const [tagColor, setTagColor] = useState("blue");
   const queryClient = useQueryClient();
@@ -145,5 +148,13 @@ export default function CustomerTagsPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function CustomerTagsPage() {
+  return (
+    <MerchantCrmProviders>
+      <CustomerTagsContent />
+    </MerchantCrmProviders>
   );
 }

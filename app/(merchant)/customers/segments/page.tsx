@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingState } from "@/components/composites/loading-state";
 import { ErrorState } from "@/components/composites/error-state";
 import { Button } from "@/components/ui/button";
+import { MerchantCrmProviders } from "../crm-providers";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 type SegmentInfo = {
   id: string;
@@ -16,7 +19,7 @@ type SegmentInfo = {
   badgeVariant: "default" | "secondary" | "outline" | "destructive";
 };
 
-export default function CustomerSegmentsPage() {
+function CustomerSegmentsContent() {
   const segmentsQuery = useQuery({
     queryKey: ["crm", "dashboard"],
     queryFn: async () => {
@@ -106,5 +109,13 @@ export default function CustomerSegmentsPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function CustomerSegmentsPage() {
+  return (
+    <MerchantCrmProviders>
+      <CustomerSegmentsContent />
+    </MerchantCrmProviders>
   );
 }
