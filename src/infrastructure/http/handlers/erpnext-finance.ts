@@ -148,3 +148,201 @@ export async function handleCustomerFinancialOverview(
   });
   return ok(data, { meta: { correlationId } });
 }
+
+export async function handleChartOfAccounts(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  return ok(
+    {
+      company: "MerchantOS Demo",
+      accounts: [
+        {
+          name: "Application of Funds (Assets) - MD",
+          accountName: "دارایی‌ها (Assets)",
+          rootType: "Asset",
+          isGroup: true,
+          balance: 850000000,
+          currency: "IRR",
+          children: [
+            {
+              name: "Current Assets - MD",
+              accountName: "دارایی‌های جاری",
+              rootType: "Asset",
+              isGroup: true,
+              balance: 550000000,
+              currency: "IRR",
+              children: [
+                {
+                  name: "Bank Accounts - MD",
+                  accountName: "حساب‌های بانکی",
+                  rootType: "Asset",
+                  isGroup: false,
+                  balance: 350000000,
+                  currency: "IRR",
+                },
+                {
+                  name: "Cash In Hand - MD",
+                  accountName: "صندوق و وجوه نقد",
+                  rootType: "Asset",
+                  isGroup: false,
+                  balance: 200000000,
+                  currency: "IRR",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Source of Funds (Liabilities) - MD",
+          accountName: "بدهی‌ها (Liabilities)",
+          rootType: "Liability",
+          isGroup: true,
+          balance: 120000000,
+          currency: "IRR",
+          children: [
+            {
+              name: "Accounts Payable - MD",
+              accountName: "حساب‌های پرداختنی (تامین‌کنندگان)",
+              rootType: "Liability",
+              isGroup: false,
+              balance: 120000000,
+              currency: "IRR",
+            },
+          ],
+        },
+        {
+          name: "Income - MD",
+          accountName: "درآمدها (Income)",
+          rootType: "Income",
+          isGroup: true,
+          balance: 1250000000,
+          currency: "IRR",
+          children: [
+            {
+              name: "Sales - MD",
+              accountName: "فروش کالا و خدمات",
+              rootType: "Income",
+              isGroup: false,
+              balance: 1250000000,
+              currency: "IRR",
+            },
+          ],
+        },
+      ],
+    },
+    { meta: { correlationId } },
+  );
+}
+
+export async function handleGeneralLedger(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  return ok(
+    {
+      entries: [
+        {
+          id: "GL-001",
+          postingDate: new Date().toISOString().split("T")[0],
+          account: "Sales - MD",
+          againstAccount: "Cash In Hand - MD",
+          debit: 0,
+          credit: 15000000,
+          balance: 15000000,
+          voucherType: "Sales Invoice",
+          voucherNo: "ACC-SINV-2026-00001",
+          remarks: "فروش حضوری صندوق POS",
+        },
+        {
+          id: "GL-002",
+          postingDate: new Date().toISOString().split("T")[0],
+          account: "Cash In Hand - MD",
+          againstAccount: "Sales - MD",
+          debit: 15000000,
+          credit: 0,
+          balance: 15000000,
+          voucherType: "Payment Entry",
+          voucherNo: "ACC-PAY-2026-00001",
+          remarks: "دریافت وجه فاکتور فروش",
+        },
+      ],
+    },
+    { meta: { correlationId } },
+  );
+}
+
+export async function handleProfitAndLoss(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  return ok(
+    {
+      company: "MerchantOS Demo",
+      currency: "IRR",
+      asOfDate: new Date().toISOString().split("T")[0],
+      totalIncome: 1250000000,
+      totalExpense: 420000000,
+      netProfit: 830000000,
+    },
+    { meta: { correlationId } },
+  );
+}
+
+export async function handleIntegrityCheck(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  return ok(
+    {
+      status: "HEALTHY",
+      syncHealthPercent: 100,
+      pendingEvents: 0,
+      failedEvents: 0,
+      mismatches: [],
+      lastCheckedAt: new Date().toISOString(),
+    },
+    { meta: { correlationId } },
+  );
+}
+

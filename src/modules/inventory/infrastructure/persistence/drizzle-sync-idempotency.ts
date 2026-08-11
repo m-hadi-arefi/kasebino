@@ -29,6 +29,7 @@ export class DrizzleSyncIdempotency implements InventorySyncIdempotencyPort {
   }
 
   async markApplied(_syncKey: string): Promise<void> {
+    void _syncKey;
     // No-op: the stock movement insert itself records the syncKey as note.
     // Subsequent hasApplied checks will find it.
   }

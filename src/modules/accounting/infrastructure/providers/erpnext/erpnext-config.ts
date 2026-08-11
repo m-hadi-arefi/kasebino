@@ -66,8 +66,8 @@ export function loadErpNextProviderConfig(
     timeoutMs,
     itemGroup: (env.MOS_ERPNEXT_ITEM_GROUP ?? "Products").trim() || "Products",
     customerGroup:
-      (env.MOS_ERPNEXT_CUSTOMER_GROUP ?? "All Customer Groups").trim() ||
-      "All Customer Groups",
+      (env.MOS_ERPNEXT_CUSTOMER_GROUP ?? "Individual").trim() ||
+      "Individual",
     territory:
       (env.MOS_ERPNEXT_TERRITORY ?? "All Territories").trim() || "All Territories",
     incomeAccount: (env.MOS_ERPNEXT_INCOME_ACCOUNT ?? "").trim() || null,

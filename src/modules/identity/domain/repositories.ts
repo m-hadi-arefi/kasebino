@@ -1,5 +1,6 @@
 import type { AuthUser } from "./auth-user.js";
 import type { OtpChallenge } from "./otp-challenge.js";
+import type { StaffMembership, StaffStoreScope } from "./staff.js";
 
 /** Domain port — Drizzle adapter deferred (ARD-002 persistence). */
 export type OtpChallengeRepository = {
@@ -20,9 +21,9 @@ export type AuthUserRepository = {
 };
 
 export type StaffMembershipRepository = {
-  save(membership: import("./staff.js").StaffMembership, storeScopes: import("./staff.js").StaffStoreScope[]): Promise<void>;
-  update(membership: import("./staff.js").StaffMembership, storeScopes: import("./staff.js").StaffStoreScope[]): Promise<void>;
-  findByMerchantId(merchantId: string): Promise<Array<{ membership: import("./staff.js").StaffMembership, storeScopes: import("./staff.js").StaffStoreScope[] }>>;
-  findById(id: string): Promise<{ membership: import("./staff.js").StaffMembership, storeScopes: import("./staff.js").StaffStoreScope[] } | null>;
-  findByAuthUserId(authUserId: string): Promise<Array<{ membership: import("./staff.js").StaffMembership, storeScopes: import("./staff.js").StaffStoreScope[] }>>;
+  save(membership: StaffMembership, storeScopes: StaffStoreScope[]): Promise<void>;
+  update(membership: StaffMembership, storeScopes: StaffStoreScope[]): Promise<void>;
+  findByMerchantId(merchantId: string): Promise<Array<{ membership: StaffMembership; storeScopes: StaffStoreScope[] }>>;
+  findById(id: string): Promise<{ membership: StaffMembership; storeScopes: StaffStoreScope[] } | null>;
+  findByAuthUserId(authUserId: string): Promise<Array<{ membership: StaffMembership; storeScopes: StaffStoreScope[] }>>;
 };

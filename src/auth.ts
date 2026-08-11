@@ -34,12 +34,12 @@ const appConfig = createAppAuthConfig({
         verified.authUserId,
       );
       if (staffMemberships.length > 0) {
-        const active = staffMemberships.find((m: any) => m.membership.status === "active") ?? staffMemberships[0];
+        const active = staffMemberships.find((m) => m.membership.status === "active") ?? staffMemberships[0];
         if (active && active.membership.status === "active") {
           return {
             merchantId: active.membership.merchantId,
             roles: [active.membership.role],
-            storeIds: active.storeScopes.map((s: any) => s.storeId),
+            storeIds: active.storeScopes.map((s) => s.storeId),
           };
         }
       }

@@ -73,11 +73,11 @@ export default function StaffPage() {
         description: "کارمند با موفقیت غیرفعال شد.",
       });
       loadStaff();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "خطا",
-        description: err.message,
+        description: err instanceof Error ? err.message : "خطای غیرمنتظره",
       });
     }
   };

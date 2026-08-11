@@ -6,8 +6,9 @@ import { requirePermissionFromJwtClaims } from "@/modules/identity/application/a
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const session = (await auth()) as AuthSessionSnapshot;
   if (!session?.user?.merchantId || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,7 +29,7 @@ export async function POST(
   try {
     const api = getApiContext();
     await api.staff.deactivateStaff({
-      staffMembershipId: params.id,
+      staffMembershipId: id,
       merchantId: session.user.merchantId,
     });
 

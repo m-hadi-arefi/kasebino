@@ -14,7 +14,7 @@ import {
 import { notDeleted } from "../../../../infrastructure/persistence/helpers.js";
 import type { AuthUser } from "../../domain/auth-user.js";
 import type { OtpChallenge } from "../../domain/otp-challenge.js";
-import {
+import type {
   AuthUserRepository,
   OtpChallengeRepository,
   StaffMembershipRepository,
@@ -217,7 +217,6 @@ export class DrizzleStaffMembershipRepository implements StaffMembershipReposito
     if (rows.length === 0) return [];
 
     const membershipIds = rows.map((r) => r.id);
-    // @ts-ignore - drizzle in query sometimes has type issues with arrays
     const scopes = await this.db.select().from(staffStoreScopes).where(drizzleInArray(staffStoreScopes.staffMembershipId, membershipIds));
 
     return rows.map((r) => ({
@@ -266,7 +265,6 @@ export class DrizzleStaffMembershipRepository implements StaffMembershipReposito
     if (rows.length === 0) return [];
 
     const membershipIds = rows.map((r) => r.id);
-    // @ts-ignore
     const scopes = await this.db.select().from(staffStoreScopes).where(drizzleInArray(staffStoreScopes.staffMembershipId, membershipIds));
 
     return rows.map((r) => ({

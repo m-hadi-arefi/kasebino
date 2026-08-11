@@ -45,6 +45,11 @@ export function projectItemDoc(
     disabled: opts?.disabled ? 1 : 0,
     description: `MerchantOS product ${input.entityId}`,
   };
+  if (input.priceAmountMinor) {
+    const rate = minorToErpRate(input.priceAmountMinor);
+    doc.valuation_rate = rate;
+    doc.standard_rate = rate;
+  }
   if (input.barcode) {
     doc.barcodes = [{ barcode: input.barcode, barcode_type: "" }];
   }
@@ -84,6 +89,7 @@ export function projectSalesInvoiceDoc(
       qty: line.quantity,
       rate: minorToErpRate(line.unitPriceMinor),
       uom: mapUnitCodeToStockUom(line.unitCode),
+      allow_zero_valuation_rate: 1,
       idx: idx + 1,
     };
     if (updateStock) {

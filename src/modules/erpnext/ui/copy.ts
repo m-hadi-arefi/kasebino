@@ -36,6 +36,21 @@ export const ERPNEXT_FINANCE_UI_COPY_FA = {
   invoices: "فاکتورها",
   payments: "پرداخت‌ها",
   noFinanceAccess: "دسترسی به بخش مالی ندارید",
+  tabDashboard: "داشبورد مالی",
+  tabChartOfAccounts: "کدینگ حساب‌ها",
+  tabGeneralLedger: "دفتر کل",
+  tabProfitLoss: "سود و زیان",
+  tabIntegrity: "سلامت و تطبیق",
+  chartOfAccountsTitle: "درخت کدینگ و حساب‌ها",
+  chartOfAccountsDesc: "ساختار حساب‌های دوبل، دارایی‌ها، بدهی‌ها و درآمدها",
+  generalLedgerTitle: "دفتر کل و ریز گردش حساب‌ها",
+  generalLedgerDesc: "اسناد و تراکنش‌های حسابداری ثبت شده در دفتر کل ERPNext",
+  profitLossTitle: "گزارش سود و زیان (P&L)",
+  profitLossDesc: "خلاصه درآمدهای فروش و هزینه‌های عملیاتی دوره‌ای",
+  integrityTitle: "مرکز تطبیق و سلامت سیستم مالی",
+  integrityDesc: "بررسی همگام‌سازی، شناسایی مغایرت‌ها و تلاش مجدد اسناد معوق",
+  reconcileNow: "شروع تطبیق خودکار",
+  retryProvisioning: "تلاش مجدد راه‌اندازی شرکت مالی",
 } as const;
 
 export const ERPNEXT_UIUX_GATE = {

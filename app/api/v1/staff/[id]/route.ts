@@ -12,8 +12,9 @@ const UpdateStaffInputSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const session = (await auth()) as AuthSessionSnapshot;
   if (!session?.user?.merchantId || !session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,7 +39,7 @@ export async function PATCH(
     const api = getApiContext();
     await api.staff.updateStaff({
       ...input,
-      staffMembershipId: params.id,
+      staffMembershipId: id,
       merchantId: session.user.merchantId,
     });
 

@@ -39,6 +39,9 @@ export type ErpNextAccountingProviderDeps = {
     entityType: string;
     entityId: string;
   }) => Promise<string | null>;
+  /** Optional multi-tenant resolver & connection manager. */
+  tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver;
+  connectionManager?: import("./connection-manager.js").ErpNextConnectionManager;
 };
 
 async function findByEventMarker(
@@ -65,12 +68,38 @@ export class ErpNextAccountingProvider implements AccountingProvider {
   readonly providerId = "erpnext";
   private readonly config: ErpNextProviderConfig;
   private readonly client: ErpNextClient;
-  private readonly resolveExternalId?: ErpNextAccountingProviderDeps["resolveExternalId"];
+  private readonly resolveExternalId?: ErpNextAccountingProviderDeps["resolveExternalId"] | undefined;
+  private readonly tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver | undefined;
+  private readonly connectionManager?: import("./connection-manager.js").ErpNextConnectionManager | undefined;
 
   constructor(deps: ErpNextAccountingProviderDeps) {
     this.config = deps.config;
     this.client = deps.client;
     this.resolveExternalId = deps.resolveExternalId;
+    this.tenantResolver = deps.tenantResolver;
+    this.connectionManager = deps.connectionManager;
+  }
+
+  private async resolveClientAndConfig(merchantId?: string, storeId?: string) {
+    if (merchantId && this.tenantResolver && this.connectionManager) {
+      try {
+        const inputObj = storeId ? { merchantId, storeId } : { merchantId };
+        const tenant = await this.tenantResolver.resolveTenantContext(inputObj);
+        const client = this.connectionManager.getClientForTenant(tenant);
+        const tenantConfig: ErpNextProviderConfig = {
+          ...this.config,
+          baseUrl: tenant.erpnextSiteUrl,
+          company: tenant.erpnextCompany,
+          warehouse: tenant.storeWarehouse || tenant.defaultWarehouse,
+          apiKey: tenant.apiKey || this.config.apiKey,
+          apiSecret: tenant.apiSecret || this.config.apiSecret,
+        };
+        return { client, config: tenantConfig };
+      } catch {
+        // Fall back to default client & config
+      }
+    }
+    return { client: this.client, config: this.config };
   }
 
   async syncProduct(input: SyncProductInput): Promise<AccountingSyncResult> {
@@ -329,6 +358,8 @@ export function createErpNextAccountingProviderFromEnv(
   overrides?: {
     fetchImpl?: typeof fetch;
     resolveExternalId?: ErpNextAccountingProviderDeps["resolveExternalId"];
+    tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver;
+    connectionManager?: import("./connection-manager.js").ErpNextConnectionManager;
   },
 ): ErpNextAccountingProvider {
   const config = loadErpNextProviderConfig(env);
@@ -345,6 +376,12 @@ export function createErpNextAccountingProviderFromEnv(
     client,
     ...(overrides?.resolveExternalId
       ? { resolveExternalId: overrides.resolveExternalId }
+      : {}),
+    ...(overrides?.tenantResolver
+      ? { tenantResolver: overrides.tenantResolver }
+      : {}),
+    ...(overrides?.connectionManager
+      ? { connectionManager: overrides.connectionManager }
       : {}),
   });
 }

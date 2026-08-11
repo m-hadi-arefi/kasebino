@@ -30,16 +30,16 @@ export function AppTopbar({
     >
       {showSidebarTrigger ? (
         <>
-          <SidebarTrigger className="-ms-1 hidden lg:inline-flex" />
-          <Separator orientation="vertical" className="hidden h-6 lg:block" />
+          <SidebarTrigger className="-ms-1 hidden md:inline-flex" />
+          <Separator orientation="vertical" className="hidden h-6 md:block" />
         </>
       ) : null}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {leading}
         {title ? (
-          <p className="truncate text-sm font-medium text-foreground sm:text-base">
+          <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">
             {title}
-          </p>
+          </h1>
         ) : null}
       </div>
       {trailing ? (

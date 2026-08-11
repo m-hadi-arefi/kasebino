@@ -53,11 +53,11 @@ export function InviteStaffDialog({ onInviteSuccess }: { onInviteSuccess: () => 
       });
       setOpen(false);
       onInviteSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: "destructive",
         title: "خطا",
-        description: err.message,
+        description: err instanceof Error ? err.message : "خطای غیرمنتظره",
       });
     } finally {
       setLoading(false);

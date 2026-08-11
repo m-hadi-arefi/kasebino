@@ -5,7 +5,12 @@
 import type { AccountingProvider } from "./ports/accounting-provider.js";
 import { FakeAccountingProvider } from "../infrastructure/providers/fake-accounting-provider.js";
 import { NoopAccountingProvider } from "../infrastructure/providers/noop-accounting-provider.js";
-import { createErpNextAccountingProviderFromEnv } from "../infrastructure/providers/erpnext/index.js";
+import {
+  createErpNextAccountingProviderFromEnv,
+  ErpNextTenantResolver,
+  ErpNextConnectionManager,
+  type TenantIntegrationRepository,
+} from "../infrastructure/providers/erpnext/index.js";
 
 export type AccountingProviderId = "noop" | "fake" | "erpnext";
 
@@ -26,16 +31,24 @@ export function createAccountingProvider(
       entityType: string;
       entityId: string;
     }) => Promise<string | null>;
+    tenantRepo?: TenantIntegrationRepository;
   },
 ): AccountingProvider {
   const id = resolveAccountingProviderId(env);
   if (id === "fake") return new FakeAccountingProvider();
   if (id === "erpnext") {
+    const tenantResolver = opts?.tenantRepo
+      ? new ErpNextTenantResolver(opts.tenantRepo)
+      : undefined;
+    const connectionManager = new ErpNextConnectionManager(opts?.fetchImpl);
+
     return createErpNextAccountingProviderFromEnv(env, {
       ...(opts?.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
       ...(opts?.resolveExternalId
         ? { resolveExternalId: opts.resolveExternalId }
         : {}),
+      ...(tenantResolver ? { tenantResolver } : {}),
+      connectionManager,
     });
   }
   return new NoopAccountingProvider();

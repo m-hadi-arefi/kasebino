@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CanonicalRole } from "../../../rbac/index.js";
 import { normalizeIranianMobile } from "../domain/iranian-phone.js";
 import type { AuthUserRepository, StaffMembershipRepository } from "../domain/repositories.js";
-import type { StaffMembership, StaffStoreScope, StaffStatus } from "../domain/staff.js";
+import type { StaffMembership, StaffStoreScope } from "../domain/staff.js";
 import { createAuthUser } from "../domain/auth-user.js";
 
 export type StaffUseCaseDeps = {

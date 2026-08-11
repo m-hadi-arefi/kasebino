@@ -53,7 +53,12 @@ export {
   outboxEvents,
   processedEvents,
 } from "./platform.js";
-export { externalEntityMappings, erpnextSyncRecords } from "./integrations.js";
+export {
+  externalEntityMappings,
+  erpnextSyncRecords,
+  erpnextTenantIntegrations,
+  storeWarehouseMappings,
+} from "./integrations.js";
 export {
   authUsers,
   customerIdentities,

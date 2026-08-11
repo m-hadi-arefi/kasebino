@@ -104,3 +104,69 @@ export const erpnextSyncRecords = pgTable(
     ),
   ],
 );
+
+/** Tenant-aware ERPNext Connection & Provisioning Table. */
+export const erpnextTenantIntegrations = pgTable(
+  "erpnext_tenant_integrations",
+  {
+    merchantId: uuid("merchant_id").primaryKey(),
+    erpnextSiteUrl: text("erpnext_site_url").notNull(),
+    erpnextCompany: varchar("erpnext_company", { length: 140 }).notNull(),
+    companyAbbr: varchar("company_abbr", { length: 10 }).notNull(),
+    defaultWarehouse: varchar("default_warehouse", { length: 140 }).notNull(),
+    encryptedApiKey: text("encrypted_api_key"),
+    encryptedApiSecret: text("encrypted_api_secret"),
+    provisioningStatus: varchar("provisioning_status", { length: 32 })
+      .notNull()
+      .default("PENDING"), // PENDING | PROVISIONING | READY | FAILED | RETRYING
+    connectionStatus: varchar("connection_status", { length: 32 })
+      .notNull()
+      .default("DISCONNECTED"), // CONNECTED | DISCONNECTED | ERROR
+    lastSyncAt: timestamp("last_sync_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    lastErrorAt: timestamp("last_error_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    lastErrorMessageFa: text("last_error_message_fa"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    index("erpnext_tenant_integrations_status_idx").on(t.provisioningStatus),
+  ],
+);
+
+/** Store Warehouse Mappings for Multi-Store Support. */
+export const storeWarehouseMappings = pgTable(
+  "store_warehouse_mappings",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    storeId: uuid("store_id").notNull(),
+    erpnextWarehouse: varchar("erpnext_warehouse", { length: 140 }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("store_warehouse_mappings_store_uq").on(
+      t.merchantId,
+      t.storeId,
+    ),
+  ],
+);
+

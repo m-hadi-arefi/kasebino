@@ -29,6 +29,14 @@ services:
       MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: ${MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM:-1}
       # Local Docker parity: return OTP in JSON when MOS_ENV=local (also honors explicit flag)
       MOS_RETURN_DEV_OTP: ${MOS_RETURN_DEV_OTP:-}
+      MOS_ACCOUNTING_PROVIDER: ${MOS_ACCOUNTING_PROVIDER:-erpnext}
+      MOS_ERPNEXT_URL: ${MOS_ERPNEXT_INTERNAL_URL:-http://frontend:8080}
+      MOS_ERPNEXT_API_KEY: ${MOS_ERPNEXT_API_KEY:-}
+      MOS_ERPNEXT_API_SECRET: ${MOS_ERPNEXT_API_SECRET:-}
+      MOS_ERPNEXT_COMPANY: ${MOS_ERPNEXT_COMPANY:-MerchantOS Demo}
+      MOS_ERPNEXT_WAREHOUSE: ${MOS_ERPNEXT_WAREHOUSE:-Finished Goods - MD}
+      MOS_ERPNEXT_DEFAULT_CUSTOMER: ${MOS_ERPNEXT_DEFAULT_CUSTOMER:-Cash Customer}
+      MOS_ERPNEXT_CURRENCY: ${MOS_ERPNEXT_CURRENCY:-IRR}
       HOSTNAME: 0.0.0.0
       PORT: "3000"
     depends_on:
@@ -44,6 +52,7 @@ services:
         condition: service_healthy
     networks:
       - merchantos
+      - frappe_network
 
   # ADR-109 — transactional outbox + scheduled jobs (pickup timers / loyalty expiry).
   worker:
@@ -73,6 +82,14 @@ services:
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MOS_ACCOUNTING_PROVIDER: ${MOS_ACCOUNTING_PROVIDER:-erpnext}
+      MOS_ERPNEXT_URL: ${MOS_ERPNEXT_INTERNAL_URL:-http://frontend:8080}
+      MOS_ERPNEXT_API_KEY: ${MOS_ERPNEXT_API_KEY:-}
+      MOS_ERPNEXT_API_SECRET: ${MOS_ERPNEXT_API_SECRET:-}
+      MOS_ERPNEXT_COMPANY: ${MOS_ERPNEXT_COMPANY:-MerchantOS Demo}
+      MOS_ERPNEXT_WAREHOUSE: ${MOS_ERPNEXT_WAREHOUSE:-Finished Goods - MD}
+      MOS_ERPNEXT_DEFAULT_CUSTOMER: ${MOS_ERPNEXT_DEFAULT_CUSTOMER:-Cash Customer}
+      MOS_ERPNEXT_CURRENCY: ${MOS_ERPNEXT_CURRENCY:-IRR}
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,6 +101,7 @@ services:
         condition: service_healthy
     networks:
       - merchantos
+      - frappe_network
 
   postgres:
     # Debian-based image ships C.UTF-8 so Persian (fa) text init is reliable.
@@ -188,6 +206,9 @@ services:
 networks:
   merchantos:
     driver: bridge
+  frappe_network:
+    name: merchantos-erpnext_frappe_network
+    external: true
 
 volumes:
   postgres_data:

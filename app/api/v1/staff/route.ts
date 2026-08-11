@@ -4,7 +4,7 @@ import type { AuthSessionSnapshot } from "@/infrastructure/auth";
 import { getApiContext } from "@/infrastructure/composition";
 import { requirePermissionFromJwtClaims } from "@/modules/identity/application/authorization";
 
-export async function GET(request: Request) {
+export async function GET() {
   const session = (await auth()) as AuthSessionSnapshot;
   if (!session?.user?.merchantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -107,6 +107,7 @@ describe("ADR-033 merchant Auth.js JWT config stub", () => {
       id: "auth-user-1",
       merchantId: null,
       roles: [],
+      storeIds: [],
       tokenVersion: 0,
     });
 
@@ -178,6 +179,7 @@ describe("ADR-033 merchant Auth.js JWT config stub", () => {
         id: "u1",
         merchantId: null,
         roles: [],
+        storeIds: [],
         tokenVersion: 0,
       },
     );

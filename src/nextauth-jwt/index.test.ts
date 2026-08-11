@@ -48,6 +48,7 @@ describe("ADR-033 NextAuth JWT contract", () => {
       "sub",
       "merchantId",
       "roles",
+      "storeIds",
       "tokenVersion",
     ]);
     const claims = buildMerchantJwtClaims({
@@ -58,6 +59,7 @@ describe("ADR-033 NextAuth JWT contract", () => {
       sub: "user-1",
       merchantId: null,
       roles: [],
+      storeIds: [],
       tokenVersion: 0,
     });
     expect(() => assertRequiredJwtClaims(claims)).not.toThrow();
@@ -66,6 +68,7 @@ describe("ADR-033 NextAuth JWT contract", () => {
         sub: "x",
         merchantId: null,
         roles: ["owner"],
+        storeIds: [],
         tokenVersion: 1,
       }),
     ).not.toThrow();
@@ -74,6 +77,7 @@ describe("ADR-033 NextAuth JWT contract", () => {
         sub: "",
         merchantId: null,
         roles: [],
+        storeIds: [],
         tokenVersion: 0,
       }),
     ).toThrow(/sub/);
@@ -82,6 +86,7 @@ describe("ADR-033 NextAuth JWT contract", () => {
         sub: "x",
         merchantId: null,
         roles: [],
+        storeIds: [],
         tokenVersion: -1,
       }),
     ).toThrow(/tokenVersion/);

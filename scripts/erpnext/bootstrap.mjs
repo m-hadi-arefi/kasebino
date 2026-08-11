@@ -59,7 +59,7 @@ async function waitForHttp(url) {
 
 const PY = `
 import frappe
-frappe.init(site="${SITE}")
+frappe.init(site="${SITE}", sites_path="sites")
 frappe.connect()
 frappe.set_user("Administrator")
 
@@ -70,7 +70,23 @@ if not frappe.db.exists("Company", company_name):
         company_name = companies[0]
         print("USING_EXISTING_COMPANY=" + company_name)
     else:
-        print("NO_COMPANY_COMPLETE_SETUP_WIZARD")
+        try:
+            from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
+            setup_complete({
+                "language": "fa",
+                "country": "Iran",
+                "timezone": "Asia/Tehran",
+                "currency": "IRR",
+                "full_name": "Administrator",
+                "email": "admin@example.com",
+                "company_name": company_name,
+                "company_abbr": "MD",
+            })
+            frappe.db.commit()
+            print("CREATED_COMPANY=" + company_name)
+        except Exception as e:
+            print("SETUP_COMPLETE_ERR=" + str(e))
+            print("NO_COMPANY_COMPLETE_SETUP_WIZARD")
 else:
     print("COMPANY=" + company_name)
 
