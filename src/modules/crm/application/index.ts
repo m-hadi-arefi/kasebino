@@ -22,3 +22,11 @@ export {
   type UpsertFromPosPhoneCaptureInput,
   type UpsertFromPosPhoneCaptureResult,
 } from "./use-cases.js";
+export {
+  createCustomerUseCases,
+  type CreateCustomerInput,
+  type Customer360Result,
+  type CustomerUseCaseDeps,
+  type CustomerUseCases,
+  type UpdateCustomerInput,
+} from "./customer-use-cases.js";

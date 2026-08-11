@@ -55,9 +55,12 @@ export function CustomerFinancePanel({ customerId }: { customerId: string }) {
               ) : (
                 <ul className="flex flex-col gap-1">
                   {query.data.invoices.map((inv) => (
-                    <li key={inv.externalId}>
-                      {inv.externalId} · {inv.grandTotal.displayToman} ·{" "}
-                      {formatFinanceJalali(inv.postingDate)}
+                    <li key={inv.externalId} className="flex justify-between items-center bg-muted/30 p-2 rounded">
+                      <span className="font-mono text-xs">{inv.externalId}</span>
+                      <span>{inv.grandTotal.displayToman}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatFinanceJalali(inv.postingDate)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -70,9 +73,12 @@ export function CustomerFinancePanel({ customerId }: { customerId: string }) {
               ) : (
                 <ul className="flex flex-col gap-1">
                   {query.data.payments.map((p) => (
-                    <li key={p.externalId}>
-                      {p.externalId} · {p.amount.displayToman} ·{" "}
-                      {formatFinanceJalali(p.postingDate)}
+                    <li key={p.externalId} className="flex justify-between items-center bg-muted/30 p-2 rounded">
+                      <span className="font-mono text-xs">{p.externalId}</span>
+                      <span className="text-emerald-600">{p.amount.displayToman}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatFinanceJalali(p.postingDate)}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -84,3 +90,4 @@ export function CustomerFinancePanel({ customerId }: { customerId: string }) {
     </section>
   );
 }
+

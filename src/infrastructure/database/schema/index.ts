@@ -73,3 +73,11 @@ export {
   analyticsProjectionEvents,
   analyticsRetentionStats,
 } from "./analytics.js";
+export {
+  crmTags,
+  customerFollowUps,
+  customerInteractions,
+  customerNotes,
+  customerTags,
+  customers,
+} from "./customers.js";

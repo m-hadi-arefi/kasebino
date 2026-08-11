@@ -30,13 +30,24 @@ export type {
 export function resolveFinanceReaderMode(
   env: NodeJS.ProcessEnv = process.env,
 ): "erpnext" | "fake" | "unavailable" {
+  const isProd =
+    (env.NODE_ENV ?? "").trim().toLowerCase() === "production" ||
+    (env.MOS_ENV ?? "").trim().toLowerCase() === "production";
   const accounting = (env.MOS_ACCOUNTING_PROVIDER ?? "noop").trim().toLowerCase();
+
   if (accounting === "erpnext") return "erpnext";
+
+  // Production MUST NEVER use fake finance data
+  if (isProd) {
+    return "unavailable";
+  }
+
   if (accounting === "fake") return "fake";
   if ((env.MOS_FINANCE_READER ?? "").trim().toLowerCase() === "fake") {
     return "fake";
   }
-  // Default local UI readability without live ERP: fake when not configured.
+  // Default local UI readability without live ERP: fake when in local dev mode.
   if ((env.MOS_ENV ?? "").trim().toLowerCase() === "local") return "fake";
   return "unavailable";
 }
+

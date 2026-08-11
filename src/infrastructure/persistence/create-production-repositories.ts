@@ -41,10 +41,18 @@ import { DrizzleStoreRepository } from "../../modules/store/infrastructure/persi
 import { DrizzleExternalEntityMappingRepository } from "../../modules/accounting/infrastructure/persistence/external-entity-mapping-repository.js";
 import { DrizzleErpNextSyncRecordRepository } from "../../modules/erpnext/infrastructure/persistence/sync-record-repository.js";
 import {
+  DrizzleCrmTagRepository,
+  DrizzleCustomerFollowUpRepository,
+  DrizzleCustomerInteractionRepository,
+  DrizzleCustomerNoteRepository,
+  DrizzleCustomerRepository,
+} from "../../modules/crm/infrastructure/persistence/drizzle-customer-repositories.js";
+import {
   DrizzleOutboxStore,
   DrizzleProcessedSet,
 } from "./drizzle-outbox.js";
 import { DrizzleTransactionScope } from "./drizzle-transaction-scope.js";
+
 
 export type ProductionRepositories = {
   db: DrizzleDb;
@@ -75,6 +83,11 @@ export type ProductionRepositories = {
   processedEvents: DrizzleProcessedSet;
   externalEntityMappings: DrizzleExternalEntityMappingRepository;
   erpnextSyncRecords: DrizzleErpNextSyncRecordRepository;
+  customers: DrizzleCustomerRepository;
+  crmTags: DrizzleCrmTagRepository;
+  customerNotes: DrizzleCustomerNoteRepository;
+  customerInteractions: DrizzleCustomerInteractionRepository;
+  customerFollowUps: DrizzleCustomerFollowUpRepository;
 };
 
 export function createProductionRepositoriesFromDb(
@@ -109,8 +122,14 @@ export function createProductionRepositoriesFromDb(
     processedEvents: new DrizzleProcessedSet(db),
     externalEntityMappings: new DrizzleExternalEntityMappingRepository(db),
     erpnextSyncRecords: new DrizzleErpNextSyncRecordRepository(db),
+    customers: new DrizzleCustomerRepository(db),
+    crmTags: new DrizzleCrmTagRepository(db),
+    customerNotes: new DrizzleCustomerNoteRepository(db),
+    customerInteractions: new DrizzleCustomerInteractionRepository(db),
+    customerFollowUps: new DrizzleCustomerFollowUpRepository(db),
   };
 }
+
 
 /** Production path — DATABASE_URL required. Never selects InMemory*. */
 export function createProductionRepositories(

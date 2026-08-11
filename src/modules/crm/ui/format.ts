@@ -36,12 +36,23 @@ export function segmentLabelFa(segment: CrmSegment): string {
       return CRM_UI_COPY_FA.segmentReturning;
     case "lapsed":
       return CRM_UI_COPY_FA.segmentLapsed;
+    case "active":
+      return "فعال";
+    case "inactive":
+      return "غیرفعال";
+    case "high_value":
+      return "پرخرید / VIP";
+    case "frequent":
+      return "خرید مکرر";
+    case "debtors":
+      return "دارای بدهی";
     default: {
       const _exhaustive: never = segment;
       return _exhaustive;
     }
   }
 }
+
 
 export function sourceLabelFa(source: string): string {
   switch (source) {

@@ -11,6 +11,8 @@ export const CRM_ERROR_CODES = [
   "INVALID_SOURCE",
   "MEMBERSHIP_NOT_FOUND",
   "MEMBERSHIP_SUSPENDED",
+  "DUPLICATE_CUSTOMER",
+  "CUSTOMER_NOT_FOUND",
 ] as const;
 
 export type CrmErrorCode = (typeof CRM_ERROR_CODES)[number];
@@ -25,7 +27,10 @@ export const CRM_ERROR_MESSAGES_FA = {
   INVALID_SOURCE: "منبع عضویت معتبر نیست.",
   MEMBERSHIP_NOT_FOUND: "عضویت مشتری یافت نشد.",
   MEMBERSHIP_SUSPENDED: "عضویت مشتری تعلیق شده است.",
+  DUPLICATE_CUSTOMER: "مشتری با این شماره موبایل قبلاً ثبت شده است.",
+  CUSTOMER_NOT_FOUND: "مشتری مورد نظر یافت نشد.",
 } as const satisfies Record<CrmErrorCode, string>;
+
 
 export class CrmDomainError extends Error {
   readonly code: CrmErrorCode;

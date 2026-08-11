@@ -447,7 +447,13 @@ export function createCrmUseCases(deps: CrmUseCaseDeps) {
       new: 0,
       returning: 0,
       lapsed: 0,
+      active: 0,
+      inactive: 0,
+      high_value: 0,
+      frequent: 0,
+      debtors: 0,
     };
+
     for (const item of items) {
       counts[item.engagement.segment] += 1;
     }

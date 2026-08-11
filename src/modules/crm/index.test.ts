@@ -330,7 +330,7 @@ describe("ADR-098 CRM segments + profile history", () => {
       merchantId: "m1",
       storeId: "s1",
     });
-    expect(segments.counts).toEqual({ new: 1, returning: 1, lapsed: 1 });
+    expect(segments.counts).toMatchObject({ new: 1, returning: 1, lapsed: 1 });
     expect(segments.totalActive).toBe(3);
 
     const history = await useCases.listMembershipHistory({
@@ -359,3 +359,159 @@ describe("ADR-098 CRM segments + profile history", () => {
     ).toBe(true);
   });
 });
+
+describe("Kasbino Complete Customer CRM System", () => {
+  it("creates customer and prevents duplicates by phone per merchant", async () => {
+    const {
+      InMemoryCustomerRepository,
+      InMemoryCrmTagRepository,
+      InMemoryCustomerNoteRepository,
+      InMemoryCustomerInteractionRepository,
+      InMemoryCustomerFollowUpRepository,
+    } = await import("./infrastructure/persistence/in-memory-customer-repositories.js");
+    const { InMemorySaleRepository } = await import("../pos/infrastructure/index.js");
+    const { UnavailableFinanceReader } = await import("../erpnext/index.js");
+    const { createCustomerUseCases } = await import("./application/customer-use-cases.js");
+
+    const customers = new InMemoryCustomerRepository();
+    const tags = new InMemoryCrmTagRepository();
+    const notes = new InMemoryCustomerNoteRepository();
+    const interactions = new InMemoryCustomerInteractionRepository();
+    const followUps = new InMemoryCustomerFollowUpRepository();
+    const sales = new InMemorySaleRepository();
+    const financeReader = new UnavailableFinanceReader();
+
+    const crm = createCustomerUseCases({
+      customers,
+      tags,
+      notes,
+      interactions,
+      followUps,
+      sales,
+      financeReader,
+    });
+
+    const c1 = await crm.createCustomer({
+      merchantId: "merchant-a",
+      phone: "09129998877",
+      displayName: "احمد رضایی",
+      customerType: "retail",
+    });
+
+    expect(c1.id).toBeDefined();
+    expect(c1.phoneNational).toBe("09129998877");
+    expect(c1.displayName).toBe("احمد رضایی");
+
+    // Duplicate phone under same merchant should throw
+    await expect(
+      crm.createCustomer({
+        merchantId: "merchant-a",
+        phone: "09129998877",
+        displayName: "احمد تکراری",
+      }),
+    ).rejects.toThrow();
+
+    // Same phone under different merchant is allowed (multi-tenant isolation)
+    const c2 = await crm.createCustomer({
+      merchantId: "merchant-b",
+      phone: "09129998877",
+      displayName: "احمد کسب‌وکار ب",
+    });
+    expect(c2.merchantId).toBe("merchant-b");
+  });
+
+  it("manages customer notes, tags, interactions and follow-ups with tenant isolation", async () => {
+    const {
+      InMemoryCustomerRepository,
+      InMemoryCrmTagRepository,
+      InMemoryCustomerNoteRepository,
+      InMemoryCustomerInteractionRepository,
+      InMemoryCustomerFollowUpRepository,
+    } = await import("./infrastructure/persistence/in-memory-customer-repositories.js");
+    const { InMemorySaleRepository } = await import("../pos/infrastructure/index.js");
+    const { UnavailableFinanceReader } = await import("../erpnext/index.js");
+    const { createCustomerUseCases } = await import("./application/customer-use-cases.js");
+
+    const customers = new InMemoryCustomerRepository();
+    const tags = new InMemoryCrmTagRepository();
+    const notes = new InMemoryCustomerNoteRepository();
+    const interactions = new InMemoryCustomerInteractionRepository();
+    const followUps = new InMemoryCustomerFollowUpRepository();
+    const sales = new InMemorySaleRepository();
+    const financeReader = new UnavailableFinanceReader();
+
+    const crm = createCustomerUseCases({
+      customers,
+      tags,
+      notes,
+      interactions,
+      followUps,
+      sales,
+      financeReader,
+    });
+
+    const customer = await crm.createCustomer({
+      merchantId: "merchant-a",
+      phone: "09121110000",
+      displayName: "سارا محمدی",
+    });
+
+    // Add note
+    const note = await crm.addNote({
+      merchantId: "merchant-a",
+      customerId: customer.id,
+      authorId: "staff-1",
+      authorName: "علی کارمند",
+      content: "مشتری خوش‌برخورد و تمایل به خرید عمده دارد",
+    });
+    expect(note.id).toBeDefined();
+
+    // Add tag
+    const tag = await crm.createTag({
+      merchantId: "merchant-a",
+      name: "VIP",
+      color: "gold",
+    });
+    await crm.assignTag({
+      merchantId: "merchant-a",
+      customerId: customer.id,
+      tagId: tag.id,
+    });
+
+    // Log interaction
+    const interaction = await crm.logInteraction({
+      merchantId: "merchant-a",
+      customerId: customer.id,
+      staffId: "staff-1",
+      staffName: "علی کارمند",
+      type: "call",
+      description: "تماس برای پیگیری سفارش قبل",
+    });
+    expect(interaction.type).toBe("call");
+
+    // Create follow-up
+    const followUp = await crm.createFollowUp({
+      merchantId: "merchant-a",
+      customerId: customer.id,
+      assigneeId: "staff-1",
+      assigneeName: "علی کارمند",
+      description: "پیگیری مانده حساب هفته آینده",
+      dueDate: new Date(Date.now() + 86400000),
+    });
+    expect(followUp.status).toBe("OPEN");
+
+    // Fetch 360 view
+    const c360 = await crm.getCustomer360(customer.id, "merchant-a");
+    expect(c360.customer.id).toBe(customer.id);
+    expect(c360.notes).toHaveLength(1);
+    expect(c360.tags).toHaveLength(1);
+    expect(c360.interactions).toHaveLength(1);
+    expect(c360.followUps).toHaveLength(1);
+
+    // Multi-tenant isolation test: Merchant B CANNOT access Merchant A's Customer 360
+    await expect(
+      crm.getCustomer360(customer.id, "merchant-b"),
+    ).rejects.toThrow();
+  });
+});
+

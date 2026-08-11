@@ -120,6 +120,22 @@ import {
 } from "../../modules/erpnext/index.js";
 import type { ExternalEntityMappingRepository } from "../../modules/accounting/domain/external-entity-mapping.js";
 
+import { createCustomerUseCases } from "../../modules/crm/application/customer-use-cases.js";
+import type {
+  CrmTagRepository,
+  CustomerFollowUpRepository,
+  CustomerInteractionRepository,
+  CustomerNoteRepository,
+  CustomerRepository,
+} from "../../modules/crm/domain/customer-repositories.js";
+import {
+  InMemoryCrmTagRepository,
+  InMemoryCustomerFollowUpRepository,
+  InMemoryCustomerInteractionRepository,
+  InMemoryCustomerNoteRepository,
+  InMemoryCustomerRepository,
+} from "../../modules/crm/infrastructure/persistence/in-memory-customer-repositories.js";
+
 export type ApiRepositories = {
   merchants: MerchantRepository;
   stores: StoreRepository;
@@ -148,6 +164,11 @@ export type ApiRepositories = {
   authUsers: AuthUserRepository;
   /** ADR-126 CompleteSale UoW — present for production Drizzle wiring. */
   txScope?: DrizzleTransactionScope;
+  customers?: CustomerRepository;
+  crmTags?: CrmTagRepository;
+  customerNotes?: CustomerNoteRepository;
+  customerInteractions?: CustomerInteractionRepository;
+  customerFollowUps?: CustomerFollowUpRepository;
 };
 
 export type CreateApiContextOptions = {
@@ -192,6 +213,7 @@ export type ApiContext = {
   catalog: ReturnType<typeof createCatalogUseCases>;
   inventory: ReturnType<typeof createInventoryUseCases>;
   crm: ReturnType<typeof createCrmUseCases>;
+  customerCrm: ReturnType<typeof createCustomerUseCases>;
   loyalty: ReturnType<typeof createLoyaltyUseCases>;
   pos: ReturnType<typeof createPosUseCases>;
   ordering: ReturnType<typeof createOrderingUseCases>;
@@ -214,6 +236,7 @@ export type ApiContext = {
   /** ADR-141 merchant finance ACL (ERPNext-backed reads + sync status). */
   erpnext: ErpNextUseCases;
 };
+
 
 export function createApiContext(options: CreateApiContextOptions): ApiContext {
   const repos = options.repos;
@@ -240,6 +263,37 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     memberships: repos.storeMemberships,
     sales: repos.sales,
   });
+
+  const customerCrm = createCustomerUseCases({
+    customers: repos.customers ?? new InMemoryCustomerRepository(),
+    tags: repos.crmTags ?? new InMemoryCrmTagRepository(),
+    notes: repos.customerNotes ?? new InMemoryCustomerNoteRepository(),
+    interactions:
+      repos.customerInteractions ?? new InMemoryCustomerInteractionRepository(),
+    followUps:
+      repos.customerFollowUps ?? new InMemoryCustomerFollowUpRepository(),
+    sales: repos.sales,
+    financeReader:
+      resolveFinanceReaderMode() === "erpnext"
+        ? new ErpNextFinanceReader({
+            syncRecords:
+              repos.erpnextSyncRecords ??
+              new InMemoryErpNextSyncRecordRepository(),
+          })
+        : resolveFinanceReaderMode() === "fake"
+          ? new FakeFinanceReader({
+              syncRecords: repos.erpnextSyncRecords,
+              mappings: repos.externalEntityMappings,
+            })
+          : new UnavailableFinanceReader(),
+    ...(options.accountingProvider
+      ? { accountingProvider: options.accountingProvider }
+      : {}),
+    ...(repos.externalEntityMappings
+      ? { mappings: repos.externalEntityMappings }
+      : {}),
+  });
+
   const loyalty = createLoyaltyUseCases({
     wallets: repos.wallets,
     rules: repos.pointRules,
@@ -517,6 +571,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     catalog,
     inventory,
     crm,
+    customerCrm,
     loyalty,
     pos,
     ordering,
@@ -563,8 +618,14 @@ export function apiReposFromProduction(
     txScope: production.txScope,
     externalEntityMappings: production.externalEntityMappings,
     erpnextSyncRecords: production.erpnextSyncRecords,
+    customers: production.customers,
+    crmTags: production.crmTags,
+    customerNotes: production.customerNotes,
+    customerInteractions: production.customerInteractions,
+    customerFollowUps: production.customerFollowUps,
   };
 }
+
 
 /**
  * Canonical application composition root (ADR-123 FR-1).
