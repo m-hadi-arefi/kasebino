@@ -43,6 +43,8 @@ export function orderPaidEvent(input: {
   orderId: string;
   merchantId: string;
   storeId: string;
+  membershipId?: string | null;
+  customerId?: string | null;
   totalAmountMinor: string;
   paymentId?: string;
   /** ADR-137 — required for Sales Invoice line projection. */
@@ -58,6 +60,8 @@ export function orderPaidEvent(input: {
       orderId: input.orderId,
       merchantId: input.merchantId,
       storeId: input.storeId,
+      ...(input.membershipId !== undefined ? { membershipId: input.membershipId } : {}),
+      ...(input.customerId !== undefined ? { customerId: input.customerId } : {}),
       totalAmountMinor: input.totalAmountMinor,
       status: "paid" as const,
       ...(input.paymentId !== undefined ? { paymentId: input.paymentId } : {}),

@@ -82,6 +82,7 @@ export type AccountingProvider = {
   readonly providerId: string;
   syncProduct(input: SyncProductInput): Promise<AccountingSyncResult>;
   syncCustomer(input: SyncCustomerInput): Promise<AccountingSyncResult>;
+  syncSupplier(input: AccountingEntityRef & { eventId: string; name: string; phone?: string }): Promise<AccountingSyncResult>;
   recordSale(input: RecordSaleInput): Promise<AccountingSyncResult>;
   recordPayment(input: RecordPaymentInput): Promise<AccountingSyncResult>;
   recordInventoryAdjustment(
@@ -89,4 +90,6 @@ export type AccountingProvider = {
   ): Promise<AccountingSyncResult>;
   recordPurchase(input: AccountingEntityRef & { eventId: string }): Promise<AccountingSyncResult>;
   recordReturn(input: AccountingEntityRef & { eventId: string }): Promise<AccountingSyncResult>;
+  recordExpense(input: AccountingEntityRef & { eventId: string; amountMinor: string }): Promise<AccountingSyncResult>;
+  recordTransfer(input: AccountingEntityRef & { eventId: string; amountMinor: string }): Promise<AccountingSyncResult>;
 };

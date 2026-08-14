@@ -9,6 +9,7 @@ import type { PointsLedgerRepository } from "../../domain/repositories.js";
 export class InMemoryPointsLedgerRepository implements PointsLedgerRepository {
   private readonly byId = new Map<string, PointsLedgerEntry>();
   private readonly earnBySaleId = new Map<string, string>();
+  private readonly earnByOrderId = new Map<string, string>();
   private readonly redeemByReferenceId = new Map<string, string>();
 
   async append(entry: PointsLedgerEntry): Promise<void> {
@@ -26,6 +27,18 @@ export class InMemoryPointsLedgerRepository implements PointsLedgerRepository {
         );
       }
       this.earnBySaleId.set(entry.referenceId, entry.id);
+    }
+    if (
+      entry.entryType === "earn" &&
+      entry.referenceKind === "order" &&
+      entry.referenceId
+    ) {
+      if (this.earnByOrderId.has(entry.referenceId)) {
+        throw new Error(
+          `Earn ledger already exists for order ${entry.referenceId}`,
+        );
+      }
+      this.earnByOrderId.set(entry.referenceId, entry.id);
     }
     if (
       entry.entryType === "redeem" &&
@@ -48,6 +61,12 @@ export class InMemoryPointsLedgerRepository implements PointsLedgerRepository {
 
   async findEarnBySaleId(saleId: string): Promise<PointsLedgerEntry | null> {
     const id = this.earnBySaleId.get(saleId);
+    if (!id) return null;
+    return this.byId.get(id) ?? null;
+  }
+
+  async findEarnByOrderId(orderId: string): Promise<PointsLedgerEntry | null> {
+    const id = this.earnByOrderId.get(orderId);
     if (!id) return null;
     return this.byId.get(id) ?? null;
   }

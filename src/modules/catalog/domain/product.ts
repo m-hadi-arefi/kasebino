@@ -16,6 +16,11 @@ export type Product = {
   categoryId: string | null;
   /** Unit price in IRR minor units (rial). */
   price: Money;
+  /** Optional operational cost in IRR minor units for margin hints (ADR-152). */
+  cost: Money | null;
+  /** MinIO object key for primary product image (ADR-147). */
+  imageObjectKey: string | null;
+  imageUpdatedAt: Date | null;
   deletedAt: Date | null;
   readonly createdAt: Date;
   updatedAt: Date;
@@ -30,6 +35,9 @@ export type CreateProductAggregateInput = {
   barcode: string;
   categoryId?: string | null;
   price: Money;
+  cost?: Money | null;
+  imageObjectKey?: string | null;
+  imageUpdatedAt?: Date | null;
   now?: Date;
 };
 
@@ -46,6 +54,9 @@ export function createProductAggregate(
     barcode: input.barcode,
     categoryId: input.categoryId ?? null,
     price: input.price,
+    cost: input.cost ?? null,
+    imageObjectKey: input.imageObjectKey ?? null,
+    imageUpdatedAt: input.imageUpdatedAt ?? null,
     deletedAt: null,
     createdAt: now,
     updatedAt: now,
@@ -67,6 +78,7 @@ export type ApplyProductUpdateInput = {
   barcode: string;
   categoryId: string | null;
   price: Money;
+  cost?: Money | null;
   now?: Date;
 };
 
@@ -84,6 +96,9 @@ export function applyProductUpdate(
   product.barcode = input.barcode;
   product.categoryId = input.categoryId;
   product.price = input.price;
+  if (input.cost !== undefined) {
+    product.cost = input.cost;
+  }
   product.updatedAt = at;
 }
 

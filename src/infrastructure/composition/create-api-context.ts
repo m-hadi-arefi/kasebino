@@ -59,6 +59,7 @@ import type {
 } from "../../merchant-oltp-analytics/index.js";
 import { PersistInAppNotificationChannel } from "../../modules/notifications/infrastructure/channels/persist-in-app-channel.js";
 import { SandboxPaymentGateway } from "../../modules/payments/infrastructure/gateway/sandbox-payment-gateway.js";
+import { createPaymentGatewayFromEnv } from "../../modules/payments/infrastructure/gateway/payment-gateway-factory.js";
 import { createSandboxPaymentConfirmPort } from "../../modules/payments/infrastructure/ordering/sandbox-payment-confirm-adapter.js";
 import type { PaymentGateway } from "../../modules/payments/application/ports/payment-gateway.js";
 import type { AuditPort, AuditStore } from "../../audit-logging/index.js";
@@ -250,6 +251,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
   const catalog = createCatalogUseCases({
     products: repos.products,
     categories: repos.categories,
+    ...(options.objectStorage ? { objectStorage: options.objectStorage } : {}),
   });
   const syncIdempotency = options.drizzleDb
     ? new DrizzleSyncIdempotency(options.drizzleDb)
@@ -472,12 +474,7 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
   });
 
   const paymentGateway =
-    options.paymentGateway ??
-    new SandboxPaymentGateway({
-      ...(process.env.MOS_PAYMENTS_WEBHOOK_SECRET?.trim()
-        ? { webhookSecret: process.env.MOS_PAYMENTS_WEBHOOK_SECRET.trim() }
-        : {}),
-    });
+    options.paymentGateway ?? createPaymentGatewayFromEnv();
 
   /** ADR-102 / ADR-142 — wire payment confirm + real inventory reserve/release. */
   const inventoryReserve = createInventoryReserveAdapter(inventory);

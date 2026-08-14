@@ -20,6 +20,9 @@ export class NoopAccountingProvider implements AccountingProvider {
   async syncCustomer(): Promise<AccountingSyncResult> {
     return okNoop();
   }
+  async syncSupplier(): Promise<AccountingSyncResult> {
+    return okNoop();
+  }
   async recordSale(): Promise<AccountingSyncResult> {
     return okNoop();
   }
@@ -44,5 +47,11 @@ export class NoopAccountingProvider implements AccountingProvider {
       alreadyApplied: false,
       message: "return_unsupported",
     };
+  }
+  async recordExpense(): Promise<AccountingSyncResult> {
+    return okNoop();
+  }
+  async recordTransfer(): Promise<AccountingSyncResult> {
+    return okNoop();
   }
 }

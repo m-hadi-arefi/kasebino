@@ -19,6 +19,13 @@ export type SaleLine = {
   readonly lineTotalMinor: bigint;
 };
 
+export type SalePaymentItem = {
+  readonly amountMinor: bigint;
+  readonly tenderType: PosTenderType | "credit" | "wallet";
+  readonly accountId?: string;
+  readonly reference?: string;
+};
+
 export type Sale = {
   readonly id: string;
   readonly merchantId: string;
@@ -28,6 +35,7 @@ export type Sale = {
   /** Iranian national mobile captured at checkout. */
   readonly phoneNational: string;
   readonly tenderType: PosTenderType;
+  readonly payments: readonly SalePaymentItem[];
   readonly lines: readonly SaleLine[];
   readonly totalAmountMinor: bigint;
   status: SaleStatus;
@@ -57,6 +65,7 @@ export type CreateCompletedSaleInput = {
   customerId: string | null;
   phoneNational: string;
   tenderType: PosTenderType;
+  payments?: SalePaymentItem[];
   lines: CreateSaleLineInput[];
   idempotencyKey: string;
   now?: Date;
@@ -85,6 +94,17 @@ export function createCompletedSaleAggregate(
     0n,
   );
 
+  const payments: SalePaymentItem[] = input.payments && input.payments.length > 0
+    ? input.payments
+    : [{ amountMinor: totalAmountMinor, tenderType: input.tenderType }];
+
+  const totalPaid = payments.reduce((sum, p) => sum + p.amountMinor, 0n);
+  if (totalPaid !== totalAmountMinor) {
+    throw new Error(
+      `Split payment total (${totalPaid.toString()}) does not match sale total (${totalAmountMinor.toString()})`,
+    );
+  }
+
   return {
     id: input.id,
     merchantId: input.merchantId,
@@ -93,6 +113,7 @@ export function createCompletedSaleAggregate(
     customerId: input.customerId,
     phoneNational: input.phoneNational,
     tenderType: input.tenderType,
+    payments,
     lines,
     totalAmountMinor,
     status: "completed",

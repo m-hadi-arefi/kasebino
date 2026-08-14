@@ -4,6 +4,14 @@
 
 import type { StockMovement } from "../domain/stock-movement.js";
 
+export type ListStockMovementsQueryOptions = {
+  merchantId: string;
+  storeId: string;
+  productId?: string;
+  cursor?: string;
+  limit?: number;
+};
+
 export type StockMovementRepository = {
   append(movement: StockMovement): Promise<void>;
   listByReference(input: {
@@ -11,4 +19,8 @@ export type StockMovementRepository = {
     referenceType: string;
     referenceId: string;
   }): Promise<StockMovement[]>;
+  listMovements(input: ListStockMovementsQueryOptions): Promise<{
+    movements: StockMovement[];
+    nextCursor: string | null;
+  }>;
 };

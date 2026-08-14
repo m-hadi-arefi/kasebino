@@ -110,7 +110,6 @@ describe("ADR-042 Drizzle ORM Exclusive Strategy", () => {
     expect(schema).toMatch(/pointRules|point_rules/);
     expect(schema).toMatch(/wallets/);
     expect(schema).toMatch(/pointsLedger|points_ledger/);
-    expect(schema).toMatch(/coupons/);
     expect(schema).toMatch(/orders/);
     expect(schema).toMatch(/orderLines|order_lines/);
     expect(schema).toMatch(/payments/);

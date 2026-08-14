@@ -2,13 +2,16 @@
  * Drizzle + in-memory stock movement repositories (ADR-126).
  */
 
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
 import { stockMovements } from "../../../../infrastructure/database/schema/inventory.js";
 import type { DrizzleTransactionScope } from "../../../../infrastructure/persistence/drizzle-transaction-scope.js";
 import type { StockMovement } from "../../domain/stock-movement.js";
-import type { StockMovementRepository } from "../../domain/stock-movement-repository.js";
+import type {
+  ListStockMovementsQueryOptions,
+  StockMovementRepository,
+} from "../../domain/stock-movement-repository.js";
 import type { StockMovementReason } from "../../domain/stock-movement.js";
 
 type Row = typeof stockMovements.$inferSelect;
@@ -79,6 +82,45 @@ export class DrizzleStockMovementRepository implements StockMovementRepository {
       );
     return rows.map(toMovement);
   }
+
+  async listMovements(input: ListStockMovementsQueryOptions): Promise<{
+    movements: StockMovement[];
+    nextCursor: string | null;
+  }> {
+    const limit = Math.min(100, Math.max(1, input.limit ?? 20));
+    const conditions = [
+      eq(stockMovements.merchantId, input.merchantId),
+      eq(stockMovements.storeId, input.storeId),
+    ];
+    if (input.productId) {
+      conditions.push(eq(stockMovements.productId, input.productId));
+    }
+    if (input.cursor) {
+      const cursorDate = new Date(input.cursor);
+      if (!isNaN(cursorDate.getTime())) {
+        conditions.push(lt(stockMovements.createdAt, cursorDate));
+      }
+    }
+
+    const rows = await this.db
+      .select()
+      .from(stockMovements)
+      .where(and(...conditions))
+      .orderBy(desc(stockMovements.createdAt), desc(stockMovements.id))
+      .limit(limit + 1);
+
+    const hasMore = rows.length > limit;
+    const resultRows = hasMore ? rows.slice(0, limit) : rows;
+    const nextCursor =
+      hasMore && resultRows.length > 0
+        ? resultRows[resultRows.length - 1]!.createdAt.toISOString()
+        : null;
+
+    return {
+      movements: resultRows.map(toMovement),
+      nextCursor,
+    };
+  }
 }
 
 export class InMemoryStockMovementRepository implements StockMovementRepository {
@@ -99,5 +141,38 @@ export class InMemoryStockMovementRepository implements StockMovementRepository 
         m.referenceType === input.referenceType &&
         m.referenceId === input.referenceId,
     );
+  }
+
+  async listMovements(input: ListStockMovementsQueryOptions): Promise<{
+    movements: StockMovement[];
+    nextCursor: string | null;
+  }> {
+    const limit = Math.min(100, Math.max(1, input.limit ?? 20));
+    let filtered = this.items.filter(
+      (m) =>
+        m.merchantId === input.merchantId &&
+        m.storeId === input.storeId &&
+        (!input.productId || m.productId === input.productId),
+    );
+    filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    if (input.cursor) {
+      const cursorTime = new Date(input.cursor).getTime();
+      if (!isNaN(cursorTime)) {
+        filtered = filtered.filter((m) => m.createdAt.getTime() < cursorTime);
+      }
+    }
+
+    const hasMore = filtered.length > limit;
+    const resultItems = hasMore ? filtered.slice(0, limit) : filtered;
+    const nextCursor =
+      hasMore && resultItems.length > 0
+        ? resultItems[resultItems.length - 1]!.createdAt.toISOString()
+        : null;
+
+    return {
+      movements: resultItems,
+      nextCursor,
+    };
   }
 }

@@ -18,3 +18,7 @@ export {
   type LoyaltyUseCases,
   type RedeemPointsInput,
 } from "./use-cases.js";
+export {
+  createLoyaltyOutboxHandler,
+  type LoyaltyOutboxHandlerOptions,
+} from "./outbox-handler.js";

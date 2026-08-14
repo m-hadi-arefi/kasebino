@@ -257,4 +257,96 @@ describe("ADR-050 Catalog lookupByBarcode / searchByName", () => {
     });
     expect(barcodeGone.product).toBeNull();
   });
+
+  it("ADR-147: uploads primary product image to object storage and clears on delete", async () => {
+    const { InMemoryObjectStorageAdapter } = await import("../../minio-storage/index.js");
+    const objectStorage = new InMemoryObjectStorageAdapter();
+
+    const products = new InMemoryProductRepository();
+    const categories = new InMemoryCategoryRepository();
+    const useCases = createCatalogUseCases({
+      products,
+      categories,
+      objectStorage,
+      idFactory: () => "p-img-1",
+    });
+
+    const { product } = await useCases.createProduct({
+      merchantId: "m1",
+      name: "کالای با تصویر",
+      sku: "SKU-IMG-1",
+      barcode: "6260009990001",
+      priceAmountMinor: 50_000,
+    });
+    expect(product.imageObjectKey).toBeNull();
+
+    const imageBytes = new Uint8Array([137, 80, 78, 71]); // PNG magic bytes
+    const uploaded = await useCases.uploadProductImage({
+      merchantId: "m1",
+      productId: product.id,
+      body: imageBytes,
+      contentType: "image/png",
+    });
+
+    expect(uploaded.product.imageObjectKey).toMatch(/m\/m1\/s\/catalog\/media\//);
+    expect(uploaded.product.imageUpdatedAt).toBeInstanceOf(Date);
+
+    const updatedProduct = await products.findById(product.id);
+    expect(updatedProduct?.imageObjectKey).toBe(uploaded.objectKey);
+
+    // Rejects invalid image type
+    await expect(
+      useCases.uploadProductImage({
+        merchantId: "m1",
+        productId: product.id,
+        body: imageBytes,
+        contentType: "application/pdf",
+      }),
+    ).rejects.toThrow(/فرمت تصویر/);
+
+    // Rejects oversized image (> 5MB)
+    const largeBytes = new Uint8Array(5 * 1024 * 1024 + 1);
+    await expect(
+      useCases.uploadProductImage({
+        merchantId: "m1",
+        productId: product.id,
+        body: largeBytes,
+        contentType: "image/jpeg",
+      }),
+    ).rejects.toThrow(/حجم تصویر/);
+
+    // Delete product image
+    const deleted = await useCases.deleteProductImage({
+      merchantId: "m1",
+      productId: product.id,
+    });
+    expect(deleted.product.imageObjectKey).toBeNull();
+  });
+
+  it("ADR-152: product optional costAmountMinor is persisted and validated", async () => {
+    const { useCases } = createHarness();
+    const { product } = await useCases.createProduct({
+      merchantId: "m-cost",
+      name: "کالای با قیمت خرید",
+      sku: "SKU-COST-1",
+      barcode: "6260000000099",
+      priceAmountMinor: 100000n, // 10,000 تومان
+      costAmountMinor: 70000n, // 7,000 تومان
+    });
+
+    expect(product.cost).not.toBeNull();
+    expect(product.cost?.amountMinor).toBe(70000n);
+
+    // Negative cost rejected
+    await expect(
+      useCases.createProduct({
+        merchantId: "m-cost",
+        name: "کالای قیمت منفی",
+        sku: "SKU-COST-BAD",
+        barcode: "6260000000098",
+        priceAmountMinor: 100000n,
+        costAmountMinor: -500n,
+      }),
+    ).rejects.toBeInstanceOf(CatalogDomainError);
+  });
 });

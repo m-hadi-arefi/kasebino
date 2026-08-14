@@ -171,6 +171,14 @@ export const OUTBOX_CONSUMERS = {
     implementation: "src/modules/accounting/" as const,
     detailAdr: "ADR-126" as const,
   },
+  loyalty_online_earn: {
+    channel: "loyalty_points_ledger" as const,
+    purpose: "online_pickup_order_points_earn",
+    onCriticalPath: false,
+    spineFeed: "loyalty_online_earn" as const,
+    implementation: "src/modules/loyalty/" as const,
+    detailAdr: "ADR-145" as const,
+  },
 } as const;
 
 export type OutboxConsumerName = keyof typeof OUTBOX_CONSUMERS;

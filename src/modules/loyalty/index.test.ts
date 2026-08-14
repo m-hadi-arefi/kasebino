@@ -336,4 +336,85 @@ describe("ADR-010 Loyalty module", () => {
     });
     expect(wallet?.balance).toBe(0);
   });
+
+  it("ADR-145: earnPointsForOrder earns points on online pickup order and is idempotent", async () => {
+    const { useCases, ledger } = createLoyaltyHarness();
+
+    const input = {
+      orderId: "order-100",
+      merchantId: "m1",
+      storeId: "s1",
+      membershipId: "mem-online",
+      customerId: "cust-online",
+      totalAmountMinor: 300_000,
+    };
+
+    const first = await useCases.earnPointsForOrder(input);
+    expect(first.created).toBe(true);
+    expect(first.points).toBe(3);
+    expect(first.wallet.balance).toBe(3);
+    expect(first.event?.eventName).toBe("PointsEarned");
+
+    const foundLedger = await ledger.findEarnByOrderId("order-100");
+    expect(foundLedger).not.toBeNull();
+    expect(foundLedger?.referenceId).toBe("order-100");
+
+    const second = await useCases.earnPointsForOrder(input);
+    expect(second.created).toBe(false);
+    expect(second.points).toBe(0);
+    expect(second.wallet.balance).toBe(3);
+    expect(second.event).toBeNull();
+  });
+
+  it("ADR-145: createLoyaltyOutboxHandler handles OrderPaid event", async () => {
+    const { useCases, ledger } = createLoyaltyHarness();
+    const { createLoyaltyOutboxHandler } = await import("./application/outbox-handler.js");
+    const handler = createLoyaltyOutboxHandler({ useCases });
+
+    const payload = {
+      orderId: "order-200",
+      merchantId: "m1",
+      storeId: "s1",
+      membershipId: "mem-outbox",
+      customerId: "cust-outbox",
+      totalAmountMinor: 200_000,
+    };
+
+    await handler({
+      id: "msg-1",
+      eventId: "evt-1",
+      eventType: "OrderPaid",
+      merchantId: "m1",
+      storeId: "s1",
+      aggregateId: "order-200",
+      aggregateType: "Order",
+      envelope: {
+        eventId: "evt-1",
+        eventType: "OrderPaid",
+        merchantId: "m1",
+        storeId: "s1",
+        aggregateId: "order-200",
+        aggregateType: "Order",
+        payload,
+        payloadVersion: 1,
+        correlationId: "corr-1",
+        causationId: null,
+        occurredAt: new Date(),
+      },
+      payloadVersion: 1,
+      correlationId: "corr-1",
+      causationId: null,
+      occurredAt: new Date(),
+      createdAt: new Date(),
+      publishedAt: null,
+      attemptCount: 1,
+      lastError: null,
+    });
+
+    const wallet = await useCases.getWallet({ membershipId: "mem-outbox" });
+    expect(wallet?.balance).toBe(2);
+
+    const foundLedger = await ledger.findEarnByOrderId("order-200");
+    expect(foundLedger).not.toBeNull();
+  });
 });

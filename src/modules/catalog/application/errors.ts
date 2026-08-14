@@ -15,6 +15,9 @@ export const CATALOG_ERROR_CODES = [
   "INVALID_CATEGORY_NAME",
   "PRODUCT_ALREADY_DELETED",
   "CATEGORY_ALREADY_DELETED",
+  "INVALID_IMAGE_TYPE",
+  "IMAGE_TOO_LARGE",
+  "OBJECT_STORAGE_NOT_CONFIGURED",
 ] as const;
 
 export type CatalogErrorCode = (typeof CATALOG_ERROR_CODES)[number];
@@ -33,6 +36,10 @@ export const CATALOG_ERROR_MESSAGES_FA = {
     "نام دسته‌بندی معتبر نیست. لطفاً نام دسته را وارد کنید.",
   PRODUCT_ALREADY_DELETED: "این کالا قبلاً حذف شده است.",
   CATEGORY_ALREADY_DELETED: "این دسته‌بندی قبلاً حذف شده است.",
+  INVALID_IMAGE_TYPE:
+    "فرمت تصویر معتبر نیست. لطفاً تصویر PNG، JPEG یا WebP انتخاب کنید.",
+  IMAGE_TOO_LARGE: "حجم تصویر بیشتر از حد مجاز است (حداکثر ۵ مگابایت).",
+  OBJECT_STORAGE_NOT_CONFIGURED: "سامانه ذخیره‌سازی فایل پیکربندی نشده است.",
 } as const satisfies Record<CatalogErrorCode, string>;
 
 export class CatalogDomainError extends Error {

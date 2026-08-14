@@ -19,11 +19,17 @@ import {
 } from "../../modules/admin/infrastructure/index.js";
 import { createRecordingSecurityMonitoringPort } from "../../modules/admin/application/ports.js";
 import {
+  createCatalogUseCases,
+} from "../../modules/catalog/application/use-cases.js";
+import {
   InMemoryCategoryRepository,
   InMemoryProductRepository,
 } from "../../modules/catalog/infrastructure/index.js";
 import { InMemoryStoreMembershipRepository } from "../../modules/crm/infrastructure/index.js";
-import { InMemoryStockItemRepository } from "../../modules/inventory/infrastructure/index.js";
+import {
+  InMemoryStockItemRepository,
+  InMemoryStockMovementRepository,
+} from "../../modules/inventory/infrastructure/index.js";
 import {
   InMemoryPointRuleRepository,
   InMemoryPointsLedgerRepository,
@@ -48,7 +54,9 @@ import {
   handleCompleteSale,
   handleCreateProduct,
   handleDeleteProduct,
+  handleDeleteProductImage,
   handleGetStoreQr,
+  handleListStockMovements,
   handlePaymentWebhook,
   handleRefundPayment,
   handleSandboxConfirmPayment,
@@ -56,6 +64,8 @@ import {
   handleStorefrontProducts,
   handleStorefrontProfile,
   handleStorefrontStaticMap,
+  handleUpdateStore,
+  handleUploadProductImage,
   isHttpBinaryResult,
   parseBody,
 } from "./index.js";
@@ -117,6 +127,7 @@ function createTestContext(): {
   const products = new InMemoryProductRepository();
   const categories = new InMemoryCategoryRepository();
   const stockItems = new InMemoryStockItemRepository();
+  const stockMovements = new InMemoryStockMovementRepository();
   const storeMemberships = new InMemoryStoreMembershipRepository();
   const sales = new InMemorySaleRepository();
   const pointRules = new InMemoryPointRuleRepository();
@@ -137,6 +148,7 @@ function createTestContext(): {
       products,
       categories,
       stockItems,
+      stockMovements,
       storeMemberships,
       sales,
       pointRules,
@@ -1436,5 +1448,206 @@ describe("ADR-104 store location map + QR HTTP", () => {
       ?.actions;
     expect(Array.isArray(actions)).toBe(true);
     expect((actions?.length ?? 0) > 0).toBe(true);
+  });
+
+  it("ADR-147: handleUploadProductImage uploads image via HTTP and handleDeleteProductImage clears it", async () => {
+    const { InMemoryObjectStorageAdapter } = await import("../../minio-storage/index.js");
+    const objectStorage = new InMemoryObjectStorageAdapter();
+
+    const { ctx } = createTestContext();
+    ctx.catalog = createCatalogUseCases({
+      products: ctx.repos.products,
+      categories: ctx.repos.categories,
+      objectStorage,
+    });
+
+    const merchant = await ctx.merchants.createMerchant({
+      tradeName: "فروشگاه عکس",
+      slug: "img-shop",
+      ownerUserId: "user-img",
+    });
+    await ctx.merchants.activateMerchant({ merchantId: merchant.merchant.id });
+
+    const created = await ctx.catalog.createProduct({
+      merchantId: merchant.merchant.id,
+      name: "محصول عکاسی",
+      sku: "SKU-HTTP-IMG",
+      barcode: "6260009998881",
+      priceAmountMinor: 100_000,
+    });
+
+    const session = merchantSession(merchant.merchant.id);
+
+    const base64Data = Buffer.from([137, 80, 78, 71]).toString("base64");
+    const uploadRes = await handleUploadProductImage(
+      jsonRequest(
+        "POST",
+        `http://localhost/api/v1/catalog/products/${created.product.id}/image`,
+        {
+          dataBase64: base64Data,
+          contentType: "image/png",
+        },
+      ),
+      ctx,
+      session,
+      created.product.id,
+    );
+
+    expect(uploadRes.status).toBe(200);
+    const body = uploadRes.body as { data: { product: { imageObjectKey: string }; objectKey: string } };
+    expect(body.data.product.imageObjectKey).toMatch(/m\/m1|catalog|media/);
+
+    const deleteRes = await handleDeleteProductImage(
+      jsonRequest(
+        "DELETE",
+        `http://localhost/api/v1/catalog/products/${created.product.id}/image`,
+      ),
+      ctx,
+      session,
+      created.product.id,
+    );
+
+    expect(deleteRes.status).toBe(200);
+    const delBody = deleteRes.body as { data: { product: { imageObjectKey: string | null } } };
+    expect(delBody.data.product.imageObjectKey).toBeNull();
+  });
+
+  it("ADR-148: handleListStockMovements returns Persian reason display and stock movement history", async () => {
+    const { ctx } = createTestContext();
+    const merchant = await ctx.merchants.createMerchant({
+      tradeName: "فروشگاه انبار",
+      slug: "inv-history-shop",
+      ownerUserId: "user-inv",
+    });
+    await ctx.merchants.activateMerchant({ merchantId: merchant.merchant.id });
+
+    await ctx.inventory.adjustStock({
+      merchantId: merchant.merchant.id,
+      storeId: "store-inv-1",
+      productId: "prod-inv-1",
+      delta: 15,
+      reason: "initial_stock",
+      createIfMissing: true,
+    });
+
+    const session = merchantSession(merchant.merchant.id);
+    const res = await handleListStockMovements(
+      {
+        method: "GET",
+        url: `http://localhost/api/v1/inventory/movements?storeId=store-inv-1&productId=prod-inv-1`,
+        headers: { get: () => null },
+        json: async () => ({}),
+        text: async () => "",
+      },
+      ctx,
+      session,
+    );
+
+    expect(res.status).toBe(200);
+    const body = res.body as { data: { items: Array<{ reasonDisplayFa: string; quantityDelta: number }> } };
+    expect(body.data.items).toHaveLength(1);
+    expect(body.data.items[0]?.quantityDelta).toBe(15);
+    expect(body.data.items[0]?.reasonDisplayFa).toBe("اصلاح دستی موجودی");
+  });
+
+  it("ADR-149: handleUpdateStore updates weekly store hours via PATCH", async () => {
+    const { ctx } = createTestContext();
+    const merchant = await ctx.merchants.createMerchant({
+      tradeName: "فروشگاه ساعت کاری",
+      slug: "hours-shop",
+      ownerUserId: "user-hrs",
+    });
+    await ctx.merchants.activateMerchant({ merchantId: merchant.merchant.id });
+
+    const store = await ctx.stores.createStore({
+      merchantId: merchant.merchant.id,
+      slug: "hours-branch",
+      displayName: "شعبه ساعت کاری",
+      address: {
+        line1: "خیابان ولیعصر",
+        city: "تهران",
+        province: "تهران",
+        latitude: 35.6892,
+        longitude: 51.389,
+      },
+    });
+
+    const session = merchantSession(merchant.merchant.id);
+    const updateRes = await handleUpdateStore(
+      jsonRequest("PATCH", `http://localhost/api/v1/stores/${store.store.id}`, {
+        hours: {
+          saturday: { open: "08:30", close: "21:30" },
+          friday: null,
+        },
+      }),
+      ctx,
+      session,
+      store.store.id,
+    );
+
+    expect(updateRes.status).toBe(200);
+    const body = updateRes.body as { data: { store: { hours: { saturday: { open: string; close: string }; friday: null } } } };
+    expect(body.data.store.hours.saturday).toEqual({ open: "08:30", close: "21:30" });
+    expect(body.data.store.hours.friday).toBeNull();
+  });
+
+  it("ADR-152: handleCreateProduct persists costAmountMinor for merchant and publicStorefront strips cost fields", async () => {
+    const { ctx } = createTestContext();
+    const merchant = await ctx.merchants.createMerchant({
+      tradeName: "فروشگاه محصولات هزینه",
+      slug: "cost-shop",
+      ownerUserId: "user-cost",
+    });
+    await ctx.merchants.activateMerchant({ merchantId: merchant.merchant.id });
+    const store = await ctx.stores.createStore({
+      merchantId: merchant.merchant.id,
+      slug: "cost-branch",
+      displayName: "شعبه هزینه",
+      address: {
+        line1: "خیابان ولیعصر",
+        city: "تهران",
+        province: "تهران",
+        latitude: 35.6892,
+        longitude: 51.389,
+      },
+    });
+    const session = merchantSession(merchant.merchant.id);
+
+    const createRes = await handleCreateProduct(
+      jsonRequest("POST", "http://localhost/api/v1/catalog/products", {
+        name: "شیر کم چرب",
+        sku: "MILK-COST-01",
+        barcode: "6261111111111",
+        priceAmountMinor: 500000,
+        costAmountMinor: 350000,
+        merchantId: merchant.merchant.id,
+      }),
+      ctx,
+      session,
+    );
+
+    expect(createRes.status).toBe(201);
+    const body = createRes.body as { data: { product: { costAmountMinor: string | null; costDisplayToman: string | null } } };
+    expect(body.data.product.costAmountMinor).toBe("350000");
+    expect(body.data.product.costDisplayToman).toBe("۳۵٬۰۰۰ تومان");
+
+    // Public storefront endpoint strictly strips cost fields
+    const publicRes = await handleStorefrontProducts(
+      {
+        method: "GET",
+        url: `http://localhost/api/v1/storefront/${store.store.slug}/products`,
+        headers: { get: () => null },
+        json: async () => ({}),
+        text: async () => "",
+      },
+      ctx,
+      store.store.slug,
+    );
+
+    expect(publicRes.status).toBe(200);
+    const publicBody = publicRes.body as { data: { products: Array<Record<string, unknown>> } };
+    expect(publicBody.data.products).toHaveLength(1);
+    expect(publicBody.data.products[0]).not.toHaveProperty("costAmountMinor");
+    expect(publicBody.data.products[0]).not.toHaveProperty("costDisplayToman");
   });
 });

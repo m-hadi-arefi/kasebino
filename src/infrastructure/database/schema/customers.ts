@@ -7,6 +7,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   index,
   pgTable,
@@ -43,6 +44,9 @@ export const customers = pgTable(
       .notNull()
       .default("phone"),
     notes: text("notes"),
+    /** Customer AR Debt Balance in minor IRR units (positive = customer owes merchant) */
+    balanceMinor: bigint("balance_minor", { mode: "bigint" }).notNull().default(0n),
+    creditLimitMinor: bigint("credit_limit_minor", { mode: "bigint" }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "date" }),
@@ -56,6 +60,32 @@ export const customers = pgTable(
     index("customers_merchant_id_phone_national_idx").on(
       t.merchantId,
       t.phoneNational,
+    ),
+  ],
+);
+
+/** Customer Accounts Receivable (AR) Transaction Ledger */
+export const customerTransactions = pgTable(
+  "customer_transactions",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    customerId: uuid("customer_id").notNull(),
+    /** sale_credit | payment | refund | advance | adjustment */
+    transactionType: varchar("transaction_type", { length: 30 }).notNull(),
+    amountMinor: bigint("amount_minor", { mode: "bigint" }).notNull(),
+    balanceAfterMinor: bigint("balance_after_minor", { mode: "bigint" }).notNull(),
+    referenceType: varchar("reference_type", { length: 50 }),
+    referenceId: varchar("reference_id", { length: 128 }),
+    description: text("description"),
+    createdBy: uuid("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  },
+  (t) => [
+    index("customer_tx_merchant_customer_idx").on(
+      t.merchantId,
+      t.customerId,
+      t.createdAt,
     ),
   ],
 );

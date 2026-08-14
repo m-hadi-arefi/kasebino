@@ -67,11 +67,29 @@ const createStoreSchema = z.object({
   merchantId: z.string().optional(),
 });
 
+const dayHoursSchema = z
+  .object({
+    open: z.string().min(1),
+    close: z.string().min(1),
+  })
+  .nullable();
+
+const hoursSchema = z.object({
+  saturday: dayHoursSchema.optional(),
+  sunday: dayHoursSchema.optional(),
+  monday: dayHoursSchema.optional(),
+  tuesday: dayHoursSchema.optional(),
+  wednesday: dayHoursSchema.optional(),
+  thursday: dayHoursSchema.optional(),
+  friday: dayHoursSchema.optional(),
+});
+
 const updateStoreSchema = z.object({
   address: addressSchema.optional(),
   displayName: z.string().min(1).optional(),
   primaryColor: z.string().nullable().optional(),
   logoObjectKey: z.string().nullable().optional(),
+  hours: hoursSchema.optional(),
 });
 
 export type HttpBinaryHandlerResult = {
@@ -317,6 +335,46 @@ export async function handleUpdateStore(
           ...(parsed.data.address!.displayAddress !== undefined
             ? { displayAddress: parsed.data.address!.displayAddress }
             : {}),
+        },
+      }),
+    );
+    if (!ran.ok) return ran.result;
+    current = ran.data.store;
+  }
+
+  if (parsed.data.hours !== undefined) {
+    const ran = await runUseCase(correlationId, () =>
+      ctx.stores.updateHours({
+        storeId,
+        hours: {
+          saturday:
+            parsed.data.hours!.saturday !== undefined
+              ? parsed.data.hours!.saturday
+              : current.hours.saturday,
+          sunday:
+            parsed.data.hours!.sunday !== undefined
+              ? parsed.data.hours!.sunday
+              : current.hours.sunday,
+          monday:
+            parsed.data.hours!.monday !== undefined
+              ? parsed.data.hours!.monday
+              : current.hours.monday,
+          tuesday:
+            parsed.data.hours!.tuesday !== undefined
+              ? parsed.data.hours!.tuesday
+              : current.hours.tuesday,
+          wednesday:
+            parsed.data.hours!.wednesday !== undefined
+              ? parsed.data.hours!.wednesday
+              : current.hours.wednesday,
+          thursday:
+            parsed.data.hours!.thursday !== undefined
+              ? parsed.data.hours!.thursday
+              : current.hours.thursday,
+          friday:
+            parsed.data.hours!.friday !== undefined
+              ? parsed.data.hours!.friday
+              : current.hours.friday,
         },
       }),
     );

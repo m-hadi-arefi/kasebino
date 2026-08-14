@@ -10,6 +10,7 @@ import type { Category } from "../../modules/catalog/domain/category.js";
 import type { Merchant } from "../../modules/merchant/domain/merchant.js";
 import type { Store } from "../../modules/store/domain/store.js";
 import type { StockItem } from "../../modules/inventory/domain/stock-item.js";
+import type { StockMovement } from "../../modules/inventory/domain/stock-movement.js";
 import type { StoreMembership } from "../../modules/crm/domain/store-membership.js";
 import type { MembershipEngagementStats } from "../../modules/crm/domain/segments.js";
 import type { Sale } from "../../modules/pos/domain/sale.js";
@@ -18,6 +19,38 @@ import type { PaymentIntent } from "../../modules/payments/domain/payment-intent
 import type { Notification } from "../../modules/notifications/domain/notification.js";
 import type { PointRule } from "../../modules/loyalty/domain/point-rule.js";
 import type { Wallet } from "../../modules/loyalty/domain/wallet.js";
+
+export const STOCK_MOVEMENT_REASONS_FA: Record<string, string> = {
+  sale: "فروش حضوری",
+  return: "مرجوعی کالا",
+  adjustment: "اصلاح دستی موجودی",
+  transfer: "انتقال انبار",
+  receipt: "ورودی انبار",
+  damage: "ضایعات / خرابی",
+  purchase: "خرید از تامین‌کننده",
+  pickup_paid: "تحویل سفارش آنلاین",
+  pickup_restore: "بازگشت سفارش لغو شده",
+};
+
+export function stockMovementDto(movement: StockMovement) {
+  return {
+    id: movement.id,
+    merchantId: movement.merchantId,
+    storeId: movement.storeId,
+    productId: movement.productId,
+    stockItemId: movement.stockItemId,
+    quantityDelta: movement.quantityDelta,
+    unitCode: movement.unitCode,
+    reason: movement.reason,
+    reasonDisplayFa: STOCK_MOVEMENT_REASONS_FA[movement.reason] ?? movement.reason,
+    referenceType: movement.referenceType,
+    referenceId: movement.referenceId,
+    source: movement.source,
+    note: movement.note,
+    occurredAt: movement.occurredAt.toISOString(),
+    createdAt: movement.createdAt.toISOString(),
+  };
+}
 
 function iso(d: Date | null | undefined): string | null {
   return d ? d.toISOString() : null;
@@ -34,6 +67,10 @@ export function productDto(product: Product) {
     categoryId: product.categoryId,
     priceAmountMinor: product.price.amountMinor.toString(),
     priceDisplayToman: formatTomanDisplay(product.price),
+    costAmountMinor: product.cost ? product.cost.amountMinor.toString() : null,
+    costDisplayToman: product.cost ? formatTomanDisplay(product.cost) : null,
+    imageObjectKey: product.imageObjectKey ?? null,
+    imageUpdatedAt: iso(product.imageUpdatedAt),
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
   };
@@ -54,6 +91,8 @@ export function publicProductDto(
     categoryId: product.categoryId,
     priceAmountMinor: product.price.amountMinor.toString(),
     priceDisplayToman: formatTomanDisplay(product.price),
+    imageObjectKey: product.imageObjectKey ?? null,
+    imageUpdatedAt: iso(product.imageUpdatedAt),
     availableQuantity,
     inStock: availableQuantity > 0,
   };

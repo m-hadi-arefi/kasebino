@@ -43,6 +43,10 @@ export type PointsLedgerRepository = {
    */
   findEarnBySaleId(saleId: string): Promise<PointsLedgerEntry | null>;
   /**
+   * Idempotency for earn-on-order: unique earn per order reference (ADR-145).
+   */
+  findEarnByOrderId(orderId: string): Promise<PointsLedgerEntry | null>;
+  /**
    * Idempotency for POS redeem when referenceId is supplied.
    */
   findRedeemByReferenceId(

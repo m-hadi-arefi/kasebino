@@ -12,8 +12,10 @@
  */
 
 import {
+  bigint,
   boolean,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -88,5 +90,63 @@ export const merchantSettings = pgTable(
       t.key,
     ),
     index("merchant_settings_merchant_id_idx").on(t.merchantId),
+  ],
+);
+
+export const merchantSubscriptions = pgTable(
+  "merchant_subscriptions",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    /** pilot | free | pro | enterprise */
+    planCode: varchar("plan_code", { length: 32 }).notNull().default("pilot"),
+    /** Basis points transaction fee (e.g. 0 for pilot, 150 = 1.5%). Default 0. */
+    feeBps: integer("fee_bps").notNull().default(0),
+    /** JSON array of enabled feature flag keys. */
+    featuresJson: text("features_json"),
+    startsAt: timestamp("starts_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("merchant_subscriptions_merchant_id_uq").on(t.merchantId),
+    index("merchant_subscriptions_plan_code_idx").on(t.planCode),
+  ],
+);
+
+export const merchantCreditLedger = pgTable(
+  "merchant_credit_ledger",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id").notNull(),
+    /** IRR minor units (rial). Delta amount: positive for topup, negative for usage. */
+    amountMinor: bigint("amount_minor", { mode: "bigint" }).notNull(),
+    /** topup | sms_campaign | system_grant | adjustment */
+    reason: varchar("reason", { length: 64 }).notNull(),
+    referenceId: varchar("reference_id", { length: 128 }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    index("merchant_credit_ledger_merchant_id_idx").on(t.merchantId),
+    index("merchant_credit_ledger_merchant_created_idx").on(
+      t.merchantId,
+      t.createdAt,
+    ),
   ],
 );

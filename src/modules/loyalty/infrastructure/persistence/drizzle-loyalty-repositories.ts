@@ -268,6 +268,21 @@ export class DrizzlePointsLedgerRepository implements PointsLedgerRepository {
     return rows[0] ? toLedger(rows[0]) : null;
   }
 
+  async findEarnByOrderId(orderId: string): Promise<PointsLedgerEntry | null> {
+    const rows = await this.db
+      .select()
+      .from(pointsLedger)
+      .where(
+        and(
+          eq(pointsLedger.entryType, "earn"),
+          eq(pointsLedger.referenceKind, "order"),
+          eq(pointsLedger.referenceId, orderId),
+        ),
+      )
+      .limit(1);
+    return rows[0] ? toLedger(rows[0]) : null;
+  }
+
   async findRedeemByReferenceId(
     referenceId: string,
   ): Promise<PointsLedgerEntry | null> {

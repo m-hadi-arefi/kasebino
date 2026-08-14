@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { AuthSessionSnapshot } from "../../auth/session-guard.js";
 import type { ApiContext } from "../../composition/create-api-context.js";
-import { stockItemDto } from "../dtos.js";
+import { stockItemDto, stockMovementDto } from "../dtos.js";
 import { runUseCase } from "../domain-error.js";
 import { enqueueDomainEvent } from "../enqueue-domain-event.js";
 import {
@@ -159,4 +159,57 @@ export async function handleAdjustInventory(
   }
 
   return ok({ item: stockItemDto(ran.data.stockItem) });
+}
+
+export async function handleListStockMovements(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "GET") {
+    return methodNotAllowed(correlationId, "GET");
+  }
+  const searchParams = new URL(request.url).searchParams;
+  const storeId = searchParams.get("storeId")?.trim() ?? "";
+  if (!storeId) {
+    return fail({
+      code: "VALIDATION_ERROR",
+      correlationId,
+      status: 400,
+      messageFa: "شناسه فروشگاه (storeId) الزامی است.",
+    });
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    {
+      permission: "inventory.read",
+      resourceStoreId: storeId,
+    },
+  );
+  if (!auth.ok) return auth.result;
+
+  const productId = searchParams.get("productId")?.trim() || undefined;
+  const cursor = searchParams.get("cursor")?.trim() || undefined;
+  const rawLimit = searchParams.get("limit");
+  const limit =
+    rawLimit && !isNaN(Number(rawLimit)) ? Number(rawLimit) : undefined;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.inventory.listStockMovements({
+      merchantId: auth.actor.merchantId,
+      storeId,
+      productId,
+      cursor,
+      limit,
+    }),
+  );
+  if (!ran.ok) return ran.result;
+
+  return ok({
+    items: ran.data.movements.map(stockMovementDto),
+    nextCursor: ran.data.nextCursor,
+  });
 }

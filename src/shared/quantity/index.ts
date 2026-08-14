@@ -11,6 +11,13 @@ export const MERCHANTOS_UNIT_CODES = [
   "kg",
   "g",
   "box",
+  "pack",
+  "carton",
+  "meter",
+  "liter",
+  "bottle",
+  "pair",
+  "dozen",
 ] as const;
 
 export type MerchantOsUnitCode = (typeof MERCHANTOS_UNIT_CODES)[number];
@@ -27,6 +34,13 @@ export const UNITS: Record<MerchantOsUnitCode, UnitOfMeasure> = {
   kg: { code: "kg", scale: 3, labelFa: "کیلوگرم" },
   g: { code: "g", scale: 0, labelFa: "گرم" },
   box: { code: "box", scale: 0, labelFa: "جعبه" },
+  pack: { code: "pack", scale: 0, labelFa: "بسته" },
+  carton: { code: "carton", scale: 0, labelFa: "کارتن" },
+  meter: { code: "meter", scale: 2, labelFa: "متر" },
+  liter: { code: "liter", scale: 3, labelFa: "لیتر" },
+  bottle: { code: "bottle", scale: 0, labelFa: "بطری" },
+  pair: { code: "pair", scale: 0, labelFa: "جفت" },
+  dozen: { code: "dozen", scale: 0, labelFa: "دست / جین" },
 };
 
 /**

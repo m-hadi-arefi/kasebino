@@ -20,7 +20,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 
 ---
 
-## done/ — Fully implemented as ADR contracts (111)
+## done/ — Fully implemented as ADR contracts (117)
 
 | ID | Title | Decision | ADR impl |
 | --- | --- | --- | --- |
@@ -141,6 +141,12 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-142 | Ordering ↔ inventory wiring | accepted | complete |
 | ADR-151 | Production fail-closed + worker parity | accepted | complete |
 | ADR-144 | Merchant staff invite + roles | accepted | complete |
+| ADR-145 | Loyalty online earn + coupons decision | accepted | complete |
+| ADR-147 | Catalog product images | accepted | complete |
+| ADR-148 | Inventory movement history | accepted | complete |
+| ADR-149 | Store hours HTTP/UI | accepted | complete |
+| ADR-150 | DB migration hygiene + integrity | accepted | complete |
+| ADR-152 | Catalog cost + tax boundary | accepted | complete |
 
 ## future/ — Not implemented (9)
 
@@ -179,13 +185,8 @@ Expanded to implementation-ready form 2026-08-05 (release-readiness audit). Adde
 | ADR-140 | ERPNext Runtime Adapter + Docker — **in_progress** (provider + compose landed; soak = ADR-146) |
 | ADR-141 | ERPNext Capability Surfaces — **in_progress** (UI landed; honesty/retry = ADR-146) |
 | ADR-143 | Production Iranian PSP gateway — **Proposed** Critical (blocked: ADR-084) |
-| ADR-145 | Loyalty online earn + coupons decision — **Proposed** High |
 | ADR-146 | ERPNext dual-run soak + finance honesty — **Proposed** Critical |
-| ADR-147 | Catalog product images — **Proposed** Medium |
-| ADR-148 | Inventory movement history — **Proposed** Medium |
-| ADR-149 | Store hours HTTP/UI — **Proposed** Medium |
-| ADR-150 | DB migration hygiene + integrity — **Proposed** Medium |
-| ADR-152 | Catalog cost + tax boundary — **Proposed** Medium |
+| ADR-153 | Feature flags & merchant plans — **in_progress** (plan `docs/execution/plans/ADR-153.md`) |
 | ADR-115 | Production SMS adapter — **Proposed** Critical (promoted from future/; blocked: ADR-083) |
 | ADR-116 | Observability runtime — **Proposed** High (promoted from future/) |
 | ADR-117 | E2E Playwright / perf — **Proposed** High (promoted from future/) |

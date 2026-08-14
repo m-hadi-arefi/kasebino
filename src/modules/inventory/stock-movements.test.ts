@@ -189,4 +189,72 @@ describe("ADR-126 stock movements + sale integrity helpers", () => {
       }),
     ).toHaveLength(1);
   });
+
+  it("ADR-148: listStockMovements filters by store and product with cursor pagination", async () => {
+    const stockItems = new InMemoryStockItemRepository();
+    const stockMovements = new InMemoryStockMovementRepository();
+    const inventory = createInventoryUseCases({
+      stockItems,
+      stockMovements,
+    });
+
+    await inventory.adjustStock({
+      merchantId: "m1",
+      storeId: "s1",
+      productId: "p1",
+      delta: 10,
+      reason: "initial_stock",
+      createIfMissing: true,
+    });
+
+    await inventory.decrementForSale({
+      merchantId: "m1",
+      storeId: "s1",
+      productId: "p1",
+      quantity: 3,
+      sameTransaction: true,
+      saleId: "sale-101",
+    });
+
+    await inventory.adjustStock({
+      merchantId: "m1",
+      storeId: "s1",
+      productId: "p2",
+      delta: 5,
+      reason: "initial_stock",
+      createIfMissing: true,
+    });
+
+    // Query all movements for store s1
+    const allS1 = await inventory.listStockMovements({
+      merchantId: "m1",
+      storeId: "s1",
+    });
+    expect(allS1.movements).toHaveLength(3);
+
+    // Query filtered by productId p1
+    const p1Only = await inventory.listStockMovements({
+      merchantId: "m1",
+      storeId: "s1",
+      productId: "p1",
+    });
+    expect(p1Only.movements).toHaveLength(2);
+    expect(p1Only.movements.map((m) => m.productId)).toEqual(["p1", "p1"]);
+
+    // Pagination limit 1
+    const page1 = await inventory.listStockMovements({
+      merchantId: "m1",
+      storeId: "s1",
+      limit: 1,
+    });
+    expect(page1.movements).toHaveLength(1);
+    expect(page1.nextCursor).not.toBeNull();
+
+    // Tenant isolation: foreign merchant gets empty list
+    const foreign = await inventory.listStockMovements({
+      merchantId: "m2",
+      storeId: "s1",
+    });
+    expect(foreign.movements).toHaveLength(0);
+  });
 });

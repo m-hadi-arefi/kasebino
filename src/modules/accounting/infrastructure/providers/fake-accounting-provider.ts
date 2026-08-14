@@ -36,6 +36,9 @@ export class FakeAccountingProvider implements AccountingProvider {
   async syncCustomer(input: SyncCustomerInput): Promise<AccountingSyncResult> {
     return this.apply("syncCustomer", input.eventId);
   }
+  async syncSupplier(input: { eventId: string }): Promise<AccountingSyncResult> {
+    return this.apply("syncSupplier", input.eventId);
+  }
   async recordSale(input: RecordSaleInput): Promise<AccountingSyncResult> {
     return this.apply("recordSale", input.eventId);
   }
@@ -47,20 +50,16 @@ export class FakeAccountingProvider implements AccountingProvider {
   ): Promise<AccountingSyncResult> {
     return this.apply("recordInventoryAdjustment", input.eventId);
   }
-  async recordPurchase(): Promise<AccountingSyncResult> {
-    return {
-      ok: false,
-      externalId: null,
-      alreadyApplied: false,
-      message: "purchase_unsupported",
-    };
+  async recordPurchase(input: { eventId: string }): Promise<AccountingSyncResult> {
+    return this.apply("recordPurchase", input.eventId);
   }
-  async recordReturn(): Promise<AccountingSyncResult> {
-    return {
-      ok: false,
-      externalId: null,
-      alreadyApplied: false,
-      message: "return_unsupported",
-    };
+  async recordReturn(input: { eventId: string }): Promise<AccountingSyncResult> {
+    return this.apply("recordReturn", input.eventId);
+  }
+  async recordExpense(input: { eventId: string }): Promise<AccountingSyncResult> {
+    return this.apply("recordExpense", input.eventId);
+  }
+  async recordTransfer(input: { eventId: string }): Promise<AccountingSyncResult> {
+    return this.apply("recordTransfer", input.eventId);
   }
 }

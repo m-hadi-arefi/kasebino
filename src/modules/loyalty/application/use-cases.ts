@@ -62,8 +62,8 @@ export type EarnForOrderInput = {
   merchantId: string;
   storeId: string;
   membershipId: string;
-  customerId: string;
-  totalAmountMinor: bigint;
+  customerId?: string;
+  totalAmountMinor: bigint | number;
 };
 
 export type RedeemPointsInput = {
@@ -314,6 +314,14 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
         throw new LoyaltyDomainError("INVALID_MEMBERSHIP");
       }
 
+      const existingEntry = await deps.ledger.findEarnByOrderId(input.orderId);
+      if (existingEntry) {
+        const existingWallet = await deps.wallets.findById(existingEntry.walletId);
+        if (existingWallet) {
+          return { wallet: existingWallet, points: 0, created: false, event: null };
+        }
+      }
+
       const at = nowFn();
       const rule = await ensureRule(
         deps,
@@ -322,7 +330,7 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
         idFactory,
         at,
       );
-      const points = calculateEarnPoints(input.totalAmountMinor, rule);
+      const points = calculateEarnPoints(BigInt(input.totalAmountMinor), rule);
       const wallet = await ensureWallet(
         deps,
         {

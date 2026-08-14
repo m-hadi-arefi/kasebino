@@ -31,6 +31,12 @@ import type {
   ProductRepository,
 } from "../domain/repositories.js";
 import { CatalogDomainError } from "./errors.js";
+import {
+  MINIO_BUCKETS,
+  buildObjectKey,
+  putValidatedObject,
+  type ObjectStoragePort,
+} from "../../../minio-storage/index.js";
 
 const NAME_MAX = 200;
 const SKU_MAX = 64;
@@ -42,6 +48,7 @@ const SKU_PATTERN = /^[0-9A-Za-z\-_.]+$/;
 export type CatalogUseCaseDeps = {
   products: ProductRepository;
   categories: CategoryRepository;
+  objectStorage?: ObjectStoragePort;
   now?: () => Date;
   idFactory?: () => string;
 };
@@ -62,6 +69,8 @@ export type CreateProductInput = {
   barcode: string;
   /** IRR minor units (rial). Number or bigint. */
   priceAmountMinor: number | bigint;
+  /** Optional operational cost in IRR minor units for margin hints (ADR-152). */
+  costAmountMinor?: number | bigint | null;
   description?: string | null;
   categoryId?: string | null;
 };
@@ -89,6 +98,7 @@ export type UpdateProductInput = {
   sku: string;
   barcode: string;
   priceAmountMinor: number | bigint;
+  costAmountMinor?: number | bigint | null;
   description?: string | null;
   categoryId?: string | null;
 };
@@ -185,6 +195,17 @@ function requirePrice(amountMinor: number | bigint): Money {
   }
 }
 
+function optionalCost(amountMinor?: number | bigint | null): Money | null {
+  if (amountMinor === undefined || amountMinor === null) {
+    return null;
+  }
+  try {
+    return moneyFromMinor(amountMinor);
+  } catch {
+    throw new CatalogDomainError("INVALID_PRICE");
+  }
+}
+
 function optionalDescription(
   raw: string | null | undefined,
 ): string | null {
@@ -226,6 +247,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
     const sku = requireSku(input.sku);
     const barcode = requireBarcode(input.barcode);
     const price = requirePrice(input.priceAmountMinor);
+    const cost = optionalCost(input.costAmountMinor);
     const description = optionalDescription(input.description);
 
     let categoryId: string | null = null;
@@ -266,6 +288,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
       sku,
       barcode,
       price,
+      cost,
       description,
       categoryId,
       now: at,
@@ -332,6 +355,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
     const sku = requireSku(input.sku);
     const barcode = requireBarcode(input.barcode);
     const price = requirePrice(input.priceAmountMinor);
+    const cost = input.costAmountMinor !== undefined ? optionalCost(input.costAmountMinor) : undefined;
     const description = optionalDescription(input.description);
 
     let categoryId: string | null = null;
@@ -389,6 +413,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
       barcode,
       categoryId,
       price,
+      cost,
       now: at,
     });
     await deps.products.update(product);
@@ -500,6 +525,101 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
     return { products };
   }
 
+  async function uploadProductImage(input: {
+    merchantId: string;
+    productId: string;
+    body: Uint8Array;
+    contentType: string;
+    filename?: string;
+  }): Promise<{ product: Product; objectKey: string }> {
+    const merchantId = input.merchantId.trim();
+    const product = await deps.products.findById(input.productId);
+    if (!product || product.merchantId !== merchantId) {
+      throw new CatalogDomainError("PRODUCT_NOT_FOUND");
+    }
+    if (product.deletedAt !== null) {
+      throw new CatalogDomainError("PRODUCT_ALREADY_DELETED");
+    }
+
+    if (!deps.objectStorage) {
+      throw new CatalogDomainError("OBJECT_STORAGE_NOT_CONFIGURED");
+    }
+
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!ALLOWED_TYPES.includes(input.contentType.toLowerCase())) {
+      throw new CatalogDomainError("INVALID_IMAGE_TYPE");
+    }
+
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (input.body.length > MAX_SIZE) {
+      throw new CatalogDomainError("IMAGE_TOO_LARGE");
+    }
+
+    const ext =
+      input.contentType === "image/png"
+        ? "png"
+        : input.contentType === "image/webp"
+          ? "webp"
+          : input.contentType === "image/gif"
+            ? "gif"
+            : "jpg";
+    const filename = input.filename?.trim() || `product-${product.id}-primary.${ext}`;
+    const objectKey = buildObjectKey({
+      merchantId,
+      storeId: "catalog",
+      kind: MINIO_BUCKETS.media,
+      filename: filename.replace(/[/\\]/g, "_"),
+    });
+
+    await putValidatedObject(deps.objectStorage, {
+      bucket: MINIO_BUCKETS.media,
+      objectKey,
+      body: input.body,
+      contentType: input.contentType,
+    });
+
+    const at = now();
+    product.imageObjectKey = objectKey;
+    product.imageUpdatedAt = at;
+    product.updatedAt = at;
+    await deps.products.update(product);
+
+    return { product, objectKey };
+  }
+
+  async function deleteProductImage(input: {
+    merchantId: string;
+    productId: string;
+  }): Promise<{ product: Product }> {
+    const merchantId = input.merchantId.trim();
+    const product = await deps.products.findById(input.productId);
+    if (!product || product.merchantId !== merchantId) {
+      throw new CatalogDomainError("PRODUCT_NOT_FOUND");
+    }
+    if (product.deletedAt !== null) {
+      throw new CatalogDomainError("PRODUCT_ALREADY_DELETED");
+    }
+
+    if (product.imageObjectKey && deps.objectStorage) {
+      try {
+        await deps.objectStorage.deleteObject({
+          bucket: MINIO_BUCKETS.media,
+          objectKey: product.imageObjectKey,
+        });
+      } catch {
+        // Best-effort delete object from MinIO
+      }
+    }
+
+    const at = now();
+    product.imageObjectKey = null;
+    product.imageUpdatedAt = at;
+    product.updatedAt = at;
+    await deps.products.update(product);
+
+    return { product };
+  }
+
   return {
     createCategory,
     createProduct,
@@ -509,6 +629,8 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
     softDeleteCategoryById,
     lookupByBarcode,
     searchByName,
+    uploadProductImage,
+    deleteProductImage,
   };
 }
 

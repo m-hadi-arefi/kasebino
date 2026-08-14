@@ -209,6 +209,8 @@ export function createOrderingUseCases(deps: OrderingUseCaseDeps) {
           orderId: order.id,
           merchantId: order.merchantId,
           storeId: order.storeId,
+          membershipId: order.membershipId,
+          customerId: order.customerId,
           totalAmountMinor: moneyString(order.totalAmountMinor),
           paymentId: payment.paymentId,
           idempotencyKey: order.idempotencyKey,

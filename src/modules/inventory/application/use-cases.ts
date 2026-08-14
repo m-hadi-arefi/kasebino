@@ -481,12 +481,37 @@ export function createInventoryUseCases(deps: InventoryUseCaseDeps) {
     throw new InventoryDomainError("OFFLINE_STOCK_REJECTED");
   }
 
+  async function listStockMovements(input: {
+    merchantId: string;
+    storeId: string;
+    productId?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<{
+    movements: import("../domain/stock-movement.js").StockMovement[];
+    nextCursor: string | null;
+  }> {
+    const merchantId = input.merchantId.trim();
+    const storeId = input.storeId.trim();
+    if (!deps.stockMovements) {
+      return { movements: [], nextCursor: null };
+    }
+    return deps.stockMovements.listMovements({
+      merchantId,
+      storeId,
+      productId: input.productId?.trim() || undefined,
+      cursor: input.cursor?.trim() || undefined,
+      limit: input.limit,
+    });
+  }
+
   return {
     adjustStock,
     decrementForSale,
     decrementForPickupPaid,
     restorePickupStock,
     rejectOfflineStockConflict,
+    listStockMovements,
   };
 }
 

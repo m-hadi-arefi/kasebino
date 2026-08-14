@@ -24,6 +24,7 @@ const createProductSchema = z.object({
   sku: z.string().min(1),
   barcode: z.string().min(1),
   priceAmountMinor: z.union([z.number().int().nonnegative(), z.string()]),
+  costAmountMinor: z.union([z.number().int().nonnegative(), z.string()]).nullable().optional(),
   description: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
   merchantId: z.string().optional(),
@@ -34,6 +35,7 @@ const updateProductSchema = z.object({
   sku: z.string().min(1),
   barcode: z.string().min(1),
   priceAmountMinor: z.union([z.number().int().nonnegative(), z.string()]),
+  costAmountMinor: z.union([z.number().int().nonnegative(), z.string()]).nullable().optional(),
   description: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
   merchantId: z.string().optional(),
@@ -164,6 +166,14 @@ export async function handleCreateProduct(
       sku: parsed.data.sku,
       barcode: parsed.data.barcode,
       priceAmountMinor,
+      ...(parsed.data.costAmountMinor !== undefined
+        ? {
+            costAmountMinor:
+              parsed.data.costAmountMinor !== null
+                ? parsePriceMinor(parsed.data.costAmountMinor)
+                : null,
+          }
+        : {}),
       ...(parsed.data.description !== undefined
         ? { description: parsed.data.description }
         : {}),
@@ -234,6 +244,14 @@ export async function handleUpdateProduct(
       sku: parsed.data.sku,
       barcode: parsed.data.barcode,
       priceAmountMinor,
+      ...(parsed.data.costAmountMinor !== undefined
+        ? {
+            costAmountMinor:
+              parsed.data.costAmountMinor !== null
+                ? parsePriceMinor(parsed.data.costAmountMinor)
+                : null,
+          }
+        : {}),
       ...(parsed.data.description !== undefined
         ? { description: parsed.data.description }
         : {}),
@@ -468,4 +486,97 @@ export async function handleDeleteCategory(
   );
   if (!ran.ok) return ran.result;
   return ok({ category: categoryDto(ran.data.category) });
+}
+
+const uploadProductImageSchema = z.object({
+  dataBase64: z.string(),
+  contentType: z.string(),
+  filename: z.string().optional(),
+});
+
+export async function handleUploadProductImage(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+  productId: string,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "POST") {
+    return methodNotAllowed(correlationId, "POST");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    {
+      permission: "merchant.write",
+    },
+  );
+  if (!auth.ok) return auth.result;
+
+  const parsed = await parseBody(
+    request,
+    uploadProductImageSchema,
+    correlationId,
+  );
+  if (!parsed.ok) return parsed.result;
+
+  let bodyBytes: Uint8Array;
+  try {
+    bodyBytes = Uint8Array.from(Buffer.from(parsed.data.dataBase64, "base64"));
+  } catch {
+    return fail({
+      code: "VALIDATION_ERROR",
+      correlationId,
+      status: 400,
+      messageFa: "داده تصویر نامعتبر است.",
+    });
+  }
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.catalog.uploadProductImage({
+      merchantId: auth.actor.merchantId,
+      productId,
+      body: bodyBytes,
+      contentType: parsed.data.contentType,
+      ...(parsed.data.filename ? { filename: parsed.data.filename } : {}),
+    }),
+  );
+  if (!ran.ok) return ran.result;
+
+  return ok({
+    product: productDto(ran.data.product),
+    objectKey: ran.data.objectKey,
+  });
+}
+
+export async function handleDeleteProductImage(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+  productId: string,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "DELETE") {
+    return methodNotAllowed(correlationId, "DELETE");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    {
+      permission: "merchant.write",
+    },
+  );
+  if (!auth.ok) return auth.result;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.catalog.deleteProductImage({
+      merchantId: auth.actor.merchantId,
+      productId,
+    }),
+  );
+  if (!ran.ok) return ran.result;
+
+  return ok({ product: productDto(ran.data.product) });
 }

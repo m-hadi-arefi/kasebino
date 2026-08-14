@@ -43,7 +43,7 @@ export { storeMemberships } from "./memberships.js";
 export { categories, products } from "./catalog.js";
 export { stockItems, stockMovements } from "./inventory.js";
 export { saleLines, sales } from "./sales.js";
-export { coupons, pointRules, pointsLedger, wallets } from "./loyalty.js";
+export { pointRules, pointsLedger, wallets } from "./loyalty.js";
 export { orderLines, orders } from "./orders.js";
 export { payments } from "./payments.js";
 export { notifications } from "./notifications.js";
@@ -79,5 +79,47 @@ export {
   customerInteractions,
   customerNotes,
   customerTags,
+  customerTransactions,
   customers,
-} from "./customers.js";
+} from "./customers.js";
+export {
+  bankAccounts,
+  cashClosings,
+  cashRegisters,
+  expenseCategories,
+  expenses,
+  fundTransfers,
+  operationalAccounts,
+  operationalTransactions,
+} from "./accounting.js";
+export { supplierTransactions, suppliers } from "./suppliers.js";
+export { purchaseItems, purchasePayments, purchases } from "./purchases.js";
+export {
+  costLayerConsumptions,
+  inventoryCostLayers,
+  inventoryValuationSettings,
+  stockCountItems,
+  stockCounts,
+  stockTransferItems,
+  stockTransfers,
+  wasteRecords,
+} from "./inventory_costing.js";
+export {
+  priceHistory,
+  productChannelVisibility,
+  productPrices,
+  productUnits,
+} from "./product_extensions.js";
+export {
+  commissionRules,
+  commissions,
+  discountRules,
+  permissions,
+  posTerminals,
+  returnItems,
+  returns,
+  saleDiscounts,
+  salePayments,
+  taxRates,
+  taxSettings,
+} from "./sales_extended.js";

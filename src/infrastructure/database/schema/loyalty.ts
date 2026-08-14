@@ -121,34 +121,4 @@ export const pointsLedger = pgTable(
   ],
 );
 
-/**
- * Coupons stub table (ARD-009) — domain foundations deferred; API later.
- */
-export const coupons = pgTable(
-  "coupons",
-  {
-    id: uuid("id").primaryKey(),
-    merchantId: uuid("merchant_id").notNull(),
-    storeId: uuid("store_id"),
-    code: varchar("code", { length: 64 }).notNull(),
-    /** Persian display title UTF-8 */
-    titleFa: text("title_fa").notNull(),
-    active: boolean("active").notNull(),
-    createdAt: timestamp("created_at", {
-      withTimezone: true,
-      mode: "date",
-    }).notNull(),
-    updatedAt: timestamp("updated_at", {
-      withTimezone: true,
-      mode: "date",
-    }).notNull(),
-    deletedAt: timestamp("deleted_at", {
-      withTimezone: true,
-      mode: "date",
-    }),
-  },
-  (t) => [
-    uniqueIndex("coupons_merchant_id_code_uq").on(t.merchantId, t.code),
-    index("coupons_merchant_id_store_id_idx").on(t.merchantId, t.storeId),
-  ],
-);
+

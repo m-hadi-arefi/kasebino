@@ -16,6 +16,81 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
+### 2026-08-12 — ADR-152 Catalog Cost and Tax Presentation Boundary — completed
+
+- Plan: `docs/execution/plans/ADR-152.md`
+- Changes:
+  - Added `cost_amount_minor` (bigint nullable) to `products` schema in `src/infrastructure/database/schema/catalog.ts` and created Drizzle migration `0009_catalog_product_cost.sql`.
+  - Updated `Product` aggregate and repositories (`DrizzleProductRepository` & `InMemoryProductRepository`) to map `cost`.
+  - Updated `createProduct` and `updateProduct` use cases to accept and validate `costAmountMinor` (>= 0).
+  - Updated `productDto` to expose `costAmountMinor` & `costDisplayToman` (IRR / تومان) for merchant management.
+  - Enforced margin secrecy by verifying `publicProductDto` strictly omits cost fields.
+- Validations: `npx vitest run src/modules/catalog/index.test.ts`, `src/infrastructure/http/index.test.ts` passed (100% green). Iranian First checklist passed.
+- Docs updated: `adrs/done/ADR-152-catalog-cost-tax-boundary.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+### 2026-08-12 — ADR-150 Database Migration Hygiene & Integrity Hardening — completed
+
+- Plan: `docs/execution/plans/ADR-150.md`
+- Changes:
+  - Verified Drizzle Kit schema drift gate (`npm run db:check` / `drizzle-kit check`) running 100% green without error.
+  - Verified CI step `db:check` in `.github/workflows/ci.yml`.
+  - Verified `0007_drop_coupons.sql` clean orphan removal and `0008_catalog_product_images.sql` migration journal integrity.
+- Validations: `npm run db:check`, `npx vitest run src/infrastructure/database/migrations.test.ts` passed (100% green).
+- Docs updated: `adrs/done/ADR-150-database-migration-hygiene-integrity.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+### 2026-08-12 — ADR-149 Store Hours HTTP & Merchant UI — completed
+
+- Plan: `docs/execution/plans/ADR-149.md`
+- Changes:
+  - Added `dayHoursSchema` and `hoursSchema` Zod validation to `updateStoreSchema` in `src/infrastructure/http/handlers/merchants-stores.ts`.
+  - Updated `handleUpdateStore` handler to execute `ctx.stores.updateHours` when `hours` schedule payload is provided.
+  - Verified `storeDto` includes store `hours` object.
+- Validations: `npx vitest run src/modules/store/index.test.ts`, `src/infrastructure/http/index.test.ts`, `src/drizzle-orm-strategy/index.test.ts` all passed (100% green). Iranian First checklist passed.
+- Docs updated: `adrs/done/ADR-149-store-hours-http-ui.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+### 2026-08-12 — ADR-148 Inventory Movement History API & Merchant UI — completed
+
+- Plan: `docs/execution/plans/ADR-148.md`
+- Changes:
+  - Added `ListStockMovementsQueryOptions` and `listMovements` query method to `StockMovementRepository` interface.
+  - Implemented `listMovements` in `InMemoryStockMovementRepository` and `DrizzleStockMovementRepository` with store, product, cursor, and limit filters.
+  - Implemented `listStockMovements` use case in `src/modules/inventory/application/use-cases.ts`.
+  - Added `STOCK_MOVEMENT_REASONS_FA` Persian reason mapping dictionary and `stockMovementDto` in `src/infrastructure/http/dtos.ts`.
+  - Implemented `handleListStockMovements` HTTP handler for `GET /api/v1/inventory/movements` in `src/infrastructure/http/handlers/inventory.ts`.
+- Validations: `npx vitest run src/modules/inventory/stock-movements.test.ts`, `src/infrastructure/http/index.test.ts`, `src/drizzle-orm-strategy/index.test.ts` all passed (100% green). Iranian First checklist passed.
+- Docs updated: `adrs/done/ADR-148-inventory-movement-history.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+### 2026-08-12 — ADR-147 Catalog Product Images Runtime — completed
+
+- Plan: `docs/execution/plans/ADR-147.md`
+- Changes:
+  - Added `image_object_key` and `image_updated_at` columns to `products` table in `src/infrastructure/database/schema/catalog.ts` and generated Drizzle migration `0008_catalog_product_images.sql`.
+  - Updated `Product` domain aggregate type and repository mappings in Drizzle and in-memory repositories.
+  - Implemented `uploadProductImage` and `deleteProductImage` use cases with mime validation (JPEG, PNG, WebP, GIF), 5MB size cap, and MinIO storage integration.
+  - Implemented `handleUploadProductImage` (JSON base64 API) and `handleDeleteProductImage` HTTP handlers in `src/infrastructure/http/handlers/catalog.ts`.
+  - Added `imageObjectKey` and `imageUpdatedAt` to `productDto` and `publicProductDto`.
+- Validations: `npx vitest run src/modules/catalog/index.test.ts`, `src/infrastructure/http/index.test.ts`, `src/drizzle-orm-strategy/index.test.ts` all passed (100% green). Iranian First checklist passed.
+- Docs updated: `adrs/done/ADR-147-catalog-product-images.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+### 2026-08-12 — ADR-145 Loyalty Online Earn & Coupons Decision — completed
+
+- Plan: `docs/execution/plans/ADR-145.md`
+- Changes:
+  - Added `findEarnByOrderId` to `PointsLedgerRepository` interface and implemented it in `InMemoryPointsLedgerRepository` and `DrizzlePointsLedgerRepository`.
+  - Updated `earnPointsForOrder` in `src/modules/loyalty/application/use-cases.ts` to check `findEarnByOrderId` for idempotency before crediting points.
+  - Added `membershipId` and `customerId` to `orderPaidEvent` payload and `markPaid` in `src/modules/ordering/`.
+  - Created `createLoyaltyOutboxHandler` in `src/modules/loyalty/application/outbox-handler.ts` and registered `loyalty_online_earn` in `OUTBOX_CONSUMERS` and `create-outbox-runtime.ts`.
+  - Dropped orphan `coupons` table and schema definition via Drizzle migration `0007_drop_coupons.sql`.
+- Validations: `npx vitest run src/modules/loyalty/index.test.ts`, `src/drizzle-orm-strategy/index.test.ts`, `src/modules/ordering/index.test.ts`, `src/workers/outbox-worker.test.ts` all passed (100% green). Iranian First checklist passed.
+- Docs updated: `adrs/done/ADR-145-loyalty-online-earn-coupons.md` moved to `done/`; `STATUS.md` and `REORGANIZATION_INDEX.md` updated.
+- Next: Continue ard-to-code queue.
+
+
 ### 2026-08-10 — ADR-142 Ordering ↔ Inventory Reserve/Release Wiring — completed
 
 - Plan: `docs/execution/plans/ADR-142.md`

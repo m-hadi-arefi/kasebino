@@ -32,9 +32,10 @@ import {
   getMinioRuntime,
 } from "../infrastructure/minio/index.js";
 import {
+  createLoyaltyOutboxHandler,
   createLoyaltyUseCases,
   runLoyaltyPointsExpiryJob,
-} from "../modules/loyalty/application/use-cases.js";
+} from "../modules/loyalty/index.js";
 import { createNotificationsOutboxHandler } from "../modules/notifications/application/outbox-handler.js";
 import { createNotificationsUseCases } from "../modules/notifications/application/use-cases.js";
 import { PersistInAppNotificationChannel } from "../modules/notifications/infrastructure/channels/persist-in-app-channel.js";
@@ -265,6 +266,14 @@ export function createOutboxWorkerRuntime(
       provider: accountingProvider,
       mappings: repos.externalEntityMappings,
       syncRecords: repos.erpnextSyncRecords,
+    });
+    const loyalty = createLoyaltyUseCases({
+      wallets: repos.wallets,
+      rules: repos.pointRules,
+      ledger: repos.pointsLedger,
+    });
+    handlers.loyalty_online_earn = createLoyaltyOutboxHandler({
+      useCases: loyalty,
     });
   }
 

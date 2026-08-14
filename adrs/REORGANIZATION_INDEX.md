@@ -212,3 +212,9 @@ User confirmed MerchantOS ADR DoD = **contracts + domain + tests**. **69 ADRs** 
 | 2026-08-10 | `tasks/` → `done/` | `ADR-139-erpnext-ui-strategy.md` |
 | 2026-08-10 | `tasks/` → `done/` | `ADR-142-ordering-inventory-wiring.md` |
 | 2026-08-10 | `tasks/` → `done/` | `ADR-144-merchant-staff-invite-rbac.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-145-loyalty-online-earn-coupons.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-147-catalog-product-images.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-148-inventory-movement-history.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-149-store-hours-http-ui.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-150-database-migration-hygiene-integrity.md` |
+| 2026-08-12 | `tasks/` → `done/` | `ADR-152-catalog-cost-tax-boundary.md` |
