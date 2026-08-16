@@ -2,7 +2,7 @@
  * Expenses Application Use-Cases & Repository Interface (MerchantOS Phase 4).
  */
 
-import {
+import type {
   Expense,
   ExpenseCategory,
   ExpenseCategoryId,

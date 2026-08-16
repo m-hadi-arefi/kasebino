@@ -2,12 +2,12 @@
  * In-Memory Supplier Repository Implementation for unit testing (MerchantOS Phase 1).
  */
 
-import {
+import type {
   ListSuppliersFilter,
   RecordSupplierTransactionInput,
   SupplierRepository,
 } from "../domain/repositories.js";
-import {
+import type {
   CreateSupplierInput,
   Supplier,
   SupplierId,
@@ -72,20 +72,20 @@ export class InMemorySupplierRepository implements SupplierRepository {
       id,
       merchantId: input.merchantId,
       name: input.name,
-      contactName: input.contactName,
-      phone: input.phone,
-      email: input.email,
-      address: input.address,
-      city: input.city,
-      province: input.province,
-      nationalId: input.nationalId,
-      taxId: input.taxId,
+      ...(input.contactName !== undefined ? { contactName: input.contactName } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone } : {}),
+      ...(input.email !== undefined ? { email: input.email } : {}),
+      ...(input.address !== undefined ? { address: input.address } : {}),
+      ...(input.city !== undefined ? { city: input.city } : {}),
+      ...(input.province !== undefined ? { province: input.province } : {}),
+      ...(input.nationalId !== undefined ? { nationalId: input.nationalId } : {}),
+      ...(input.taxId !== undefined ? { taxId: input.taxId } : {}),
       balanceMinor: 0n,
-      creditLimitMinor: input.creditLimitMinor,
+      ...(input.creditLimitMinor !== undefined ? { creditLimitMinor: input.creditLimitMinor } : {}),
       tags: input.tags ?? [],
-      notes: input.notes,
+      ...(input.notes !== undefined ? { notes: input.notes } : {}),
       isActive: true,
-      erpnextSupplierId: input.erpnextSupplierId,
+      ...(input.erpnextSupplierId !== undefined ? { erpnextSupplierId: input.erpnextSupplierId } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -130,7 +130,12 @@ export class InMemorySupplierRepository implements SupplierRepository {
     }
 
     const newBalance = supplier.balanceMinor + balanceDelta;
-    await this.update(input.merchantId, input.supplierId, { balanceMinor: newBalance } as any);
+    const updatedSupplier: Supplier = {
+      ...supplier,
+      balanceMinor: newBalance,
+      updatedAt: new Date(),
+    };
+    this.suppliers.set(this.getKey(input.merchantId, input.supplierId), updatedSupplier);
 
     const tx: SupplierTransaction = {
       id: crypto.randomUUID(),
@@ -139,10 +144,10 @@ export class InMemorySupplierRepository implements SupplierRepository {
       transactionType: input.transactionType,
       amountMinor: input.amountMinor,
       balanceAfterMinor: newBalance,
-      referenceType: input.referenceType,
-      referenceId: input.referenceId,
-      description: input.description,
-      createdBy: input.createdBy,
+      ...(input.referenceType !== undefined ? { referenceType: input.referenceType } : {}),
+      ...(input.referenceId !== undefined ? { referenceId: input.referenceId } : {}),
+      ...(input.description !== undefined ? { description: input.description } : {}),
+      ...(input.createdBy !== undefined ? { createdBy: input.createdBy } : {}),
       createdAt: new Date(),
     };
 

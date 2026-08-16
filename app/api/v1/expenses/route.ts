@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
   InMemoryExpenseRepository,
   RecordExpenseUseCase,
-} from "../../../../src/modules/expenses/index.ts";
+} from "@/modules/expenses/index";
 
 const repo = new InMemoryExpenseRepository();
 const recordUC = new RecordExpenseUseCase(repo);
@@ -19,7 +20,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const expense = await recordUC.execute(body);
     return NextResponse.json(expense, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "خطای سرور";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

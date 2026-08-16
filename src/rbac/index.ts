@@ -84,6 +84,251 @@ export const PERMISSIONS = [
 
 export type Permission = (typeof PERMISSIONS)[number];
 
+export const PERMISSION_DOMAINS = {
+  pos: {
+    labelFa: "صندوق و فروش",
+    descriptionFa: "مدیریت صندوق، ثبت فروش و سفارشات حضوری",
+  },
+  crm: {
+    labelFa: "مشتریان (CRM)",
+    descriptionFa: "مشاهده، ثبت و مدیریت پرونده و رفتار مشتریان",
+  },
+  loyalty: {
+    labelFa: "باشگاه وفاداری",
+    descriptionFa: "تنظیمات امتیازدهی و باشگاه مشتریان",
+  },
+  inventory: {
+    labelFa: "کالا و انبارداری",
+    descriptionFa: "مشاهده و مدیریت کاتالوگ محصولات و موجودی انبار",
+  },
+  finance: {
+    labelFa: "امور مالی و حسابداری",
+    descriptionFa: "گزارشات مالی، اسناد و ترازهای حسابداری",
+  },
+  purchase: {
+    labelFa: "خرید و فاکتورها",
+    descriptionFa: "ثبت فاکتورهای خرید و تامین کالا",
+  },
+  supplier: {
+    labelFa: "تامین‌کنندگان",
+    descriptionFa: "اطلاعات و طرف حساب‌های تامین‌کننده",
+  },
+  store: {
+    labelFa: "فروشگاه و شعب",
+    descriptionFa: "اطلاعات و پیکربندی شعب و فروشگاه‌ها",
+  },
+  pickup: {
+    labelFa: "تحویل حضوری",
+    descriptionFa: "مدیریت فرآیند تحویل کالا به مشتری",
+  },
+  merchant: {
+    labelFa: "مدیریت کسب‌وکار",
+    descriptionFa: "تنظیمات کسب‌وکار، مدیریت کارمندان و اشتراک",
+  },
+  customer: {
+    labelFa: "حساب مشتری",
+    descriptionFa: "دسترسی‌های خودکار مشتریان فروشگاه",
+  },
+  admin: {
+    labelFa: "مدیریت پلتفرم",
+    descriptionFa: "دسترسی‌های سطح ارشد سامانه",
+  },
+} as const;
+
+export type PermissionDomain = keyof typeof PERMISSION_DOMAINS;
+
+export type PermissionDefinition = {
+  key: Permission;
+  domain: PermissionDomain;
+  domainLabelFa: string;
+  labelFa: string;
+  descriptionFa: string;
+  isPlatformOnly?: boolean;
+  isCustomerOnly?: boolean;
+};
+
+export const PERMISSION_CATALOG: Record<Permission, PermissionDefinition> = {
+  "merchant.read": {
+    key: "merchant.read",
+    domain: "merchant",
+    domainLabelFa: PERMISSION_DOMAINS.merchant.labelFa,
+    labelFa: "مشاهده اطلاعات کسب‌وکار",
+    descriptionFa: "امکان مشاهده داشبورد و اطلاعات پایه کسب‌وکار",
+  },
+  "merchant.write": {
+    key: "merchant.write",
+    domain: "merchant",
+    domainLabelFa: PERMISSION_DOMAINS.merchant.labelFa,
+    labelFa: "ویرایش اطلاعات کسب‌وکار",
+    descriptionFa: "امکان ویرایش مشخصات و تنظیمات عمومی کسب‌وکار",
+  },
+  "merchant.billing": {
+    key: "merchant.billing",
+    domain: "merchant",
+    domainLabelFa: PERMISSION_DOMAINS.merchant.labelFa,
+    labelFa: "مدیریت اشتراک و صورتحساب",
+    descriptionFa: "مشاهده و تمدید اشتراک‌ها و گزارش‌های مالی پنل",
+  },
+  "merchant.settings_destructive": {
+    key: "merchant.settings_destructive",
+    domain: "merchant",
+    domainLabelFa: PERMISSION_DOMAINS.merchant.labelFa,
+    labelFa: "تنظیمات حساس و حذف",
+    descriptionFa: "دسترسی به عملیات برگشت‌ناپذیر و تنظیمات حساس کسب‌وکار",
+  },
+  "merchant.staff_manage": {
+    key: "merchant.staff_manage",
+    domain: "merchant",
+    domainLabelFa: PERMISSION_DOMAINS.merchant.labelFa,
+    labelFa: "مدیریت کارمندان و نقش‌ها",
+    descriptionFa: "افزودن، ویرایش و مدیریت نقش‌ها و دسترسی‌های پرسنل",
+  },
+  "store.read": {
+    key: "store.read",
+    domain: "store",
+    domainLabelFa: PERMISSION_DOMAINS.store.labelFa,
+    labelFa: "مشاهده فروشگاه‌ها و شعب",
+    descriptionFa: "مشاهده مشخصات و وضعیت شعب فروشگاهی",
+  },
+  "store.write": {
+    key: "store.write",
+    domain: "store",
+    domainLabelFa: PERMISSION_DOMAINS.store.labelFa,
+    labelFa: "مدیریت و ایجاد شعب",
+    descriptionFa: "ایجاد، ویرایش و پیکربندی شعب و تنظیمات فروشگاه",
+  },
+  "pos.sale": {
+    key: "pos.sale",
+    domain: "pos",
+    domainLabelFa: PERMISSION_DOMAINS.pos.labelFa,
+    labelFa: "ثبت فروش در صندوق (POS)",
+    descriptionFa: "استفاده از پایانه فروش، ثبت فاکتور و دریافت وجه",
+  },
+  "pickup.manage": {
+    key: "pickup.manage",
+    domain: "pickup",
+    domainLabelFa: PERMISSION_DOMAINS.pickup.labelFa,
+    labelFa: "مدیریت تحویل حضوری",
+    descriptionFa: "تایید و تحویل سفارشات ثبت‌شده به مشتریان",
+  },
+  "inventory.read": {
+    key: "inventory.read",
+    domain: "inventory",
+    domainLabelFa: PERMISSION_DOMAINS.inventory.labelFa,
+    labelFa: "مشاهده کاتالوگ و موجودی",
+    descriptionFa: "مشاهده لیست کالاها، قیمت‌ها و موجودی شعب",
+  },
+  "inventory.write": {
+    key: "inventory.write",
+    domain: "inventory",
+    domainLabelFa: PERMISSION_DOMAINS.inventory.labelFa,
+    labelFa: "مدیریت کالا و انبارگردانی",
+    descriptionFa: "تعریف محصول جدید، تغییر قیمت و اصلاح موجودی انبار",
+  },
+  "crm.read": {
+    key: "crm.read",
+    domain: "crm",
+    domainLabelFa: PERMISSION_DOMAINS.crm.labelFa,
+    labelFa: "مشاهده مشتریان و سوابق",
+    descriptionFa: "مشاهده لیست مشتریان، سابقه خرید و یادداشت‌ها",
+  },
+  "crm.write": {
+    key: "crm.write",
+    domain: "crm",
+    domainLabelFa: PERMISSION_DOMAINS.crm.labelFa,
+    labelFa: "مدیریت و ویرایش مشتریان",
+    descriptionFa: "ثبت مشتری جدید، پیگیری‌ها، برچسب‌گذاری و یادداشت",
+  },
+  "loyalty.read": {
+    key: "loyalty.read",
+    domain: "loyalty",
+    domainLabelFa: PERMISSION_DOMAINS.loyalty.labelFa,
+    labelFa: "مشاهده قوانین و امتیازات وفاداری",
+    descriptionFa: "مشاهده کیف پول و وضعیت باشگاه مشتریان",
+  },
+  "loyalty.write": {
+    key: "loyalty.write",
+    domain: "loyalty",
+    domainLabelFa: PERMISSION_DOMAINS.loyalty.labelFa,
+    labelFa: "پیکربندی باشگاه وفاداری",
+    descriptionFa: "تنظیم و ویرایش قوانین پاداش، کش‌بک و سناریوهای وفاداری",
+  },
+  "finance.view": {
+    key: "finance.view",
+    domain: "finance",
+    domainLabelFa: PERMISSION_DOMAINS.finance.labelFa,
+    labelFa: "مشاهده اسناد و گزارشات مالی",
+    descriptionFa: "دسترسی به دفاتر حسابداری، تراز و صورت سود و زیان",
+  },
+  "finance.manage": {
+    key: "finance.manage",
+    domain: "finance",
+    domainLabelFa: PERMISSION_DOMAINS.finance.labelFa,
+    labelFa: "ثبت و مدیریت اسناد مالی",
+    descriptionFa: "ثبت هزینه‌ها، انتقال وجوه و بستن صندوق روزانه",
+  },
+  "purchase.view": {
+    key: "purchase.view",
+    domain: "purchase",
+    domainLabelFa: PERMISSION_DOMAINS.purchase.labelFa,
+    labelFa: "مشاهده فاکتورهای خرید",
+    descriptionFa: "مشاهده اسناد خرید کالا و فاکتورهای تامین",
+  },
+  "purchase.manage": {
+    key: "purchase.manage",
+    domain: "purchase",
+    domainLabelFa: PERMISSION_DOMAINS.purchase.labelFa,
+    labelFa: "ثبت و ویرایش فاکتورهای خرید",
+    descriptionFa: "ثبت خرید جدید و بروزرسانی حساب‌های بستانکاری",
+  },
+  "supplier.view": {
+    key: "supplier.view",
+    domain: "supplier",
+    domainLabelFa: PERMISSION_DOMAINS.supplier.labelFa,
+    labelFa: "مشاهده تامین‌کنندگان",
+    descriptionFa: "مشاهده فهرست تامین‌کنندگان و مانده حساب طرف‌حساب‌ها",
+  },
+  "customer.self": {
+    key: "customer.self",
+    domain: "customer",
+    domainLabelFa: PERMISSION_DOMAINS.customer.labelFa,
+    labelFa: "دسترسی شخصی مشتری",
+    descriptionFa: "پروفایل اختصاصی مشتری فروشگاه",
+    isCustomerOnly: true,
+  },
+  "admin.platform": {
+    key: "admin.platform",
+    domain: "admin",
+    domainLabelFa: PERMISSION_DOMAINS.admin.labelFa,
+    labelFa: "مدیریت کل پلتفرم",
+    descriptionFa: "دسترسی سطح مدیر ارشد پلتفرم کاسبینو",
+    isPlatformOnly: true,
+  },
+};
+
+/**
+ * Validates that all permissions to be assigned to a custom role are allowed
+ * for the actor (e.g. merchants cannot assign platform or customer-only permissions).
+ */
+export function assertAssignablePermissions(
+  actorRoles: readonly string[],
+  permissionsToAssign: readonly Permission[],
+): void {
+  const isPlatformAdmin = normalizeRoles(actorRoles).includes("platform_admin");
+  for (const perm of permissionsToAssign) {
+    if (!PERMISSIONS.includes(perm)) {
+      throw new AuthorizationError("FORBIDDEN", { permission: perm });
+    }
+    const def = PERMISSION_CATALOG[perm];
+    if (def?.isPlatformOnly && !isPlatformAdmin) {
+      throw new AuthorizationError("FORBIDDEN", { permission: perm });
+    }
+    if (def?.isCustomerOnly && !isPlatformAdmin) {
+      throw new AuthorizationError("FORBIDDEN", { permission: perm });
+    }
+  }
+}
+
 /** Full merchant-owner set (all merchant + store ops; not platform admin). */
 const MERCHANT_OWNER_PERMISSIONS: readonly Permission[] = [
   "merchant.read",
@@ -195,6 +440,8 @@ export type AuthContext = {
   sub: string;
   merchantId: string | null;
   roles: readonly string[];
+  /** Optional pre-resolved effective permissions (dynamic custom roles). */
+  permissions?: readonly Permission[];
   /** Store memberships for store_employee scope; owner may omit (all stores). */
   storeIds?: readonly string[];
   tokenVersion?: number;
@@ -306,6 +553,9 @@ export function hasPermission(
   ctx: AuthContext,
   permission: Permission,
 ): boolean {
+  if (ctx.permissions && ctx.permissions.includes(permission)) {
+    return true;
+  }
   return permissionsForRoles(ctx.roles).has(permission);
 }
 
@@ -339,12 +589,17 @@ export function authorize(ctx: AuthContext, input: AuthorizeInput): void {
   }
 
   const roles = normalizeRoles(ctx.roles);
-  const isPlatformAdmin = roles.includes("platform_admin");
-  const isCustomer = roles.includes("customer");
+  const isPlatformAdmin = roles.includes("platform_admin") || (ctx.permissions?.includes("admin.platform") ?? false);
+  const isCustomer =
+    (roles.includes("customer") || ctx.roles.includes("customer")) &&
+    roles.length === 1 &&
+    (!ctx.permissions || ctx.permissions.every((p) => p === "customer.self"));
   const isStaff =
     roles.includes("merchant_owner") ||
     roles.includes("store_manager") ||
-    roles.includes("store_employee");
+    roles.includes("store_employee") ||
+    (ctx.roles.length > 0 && !isCustomer && !isPlatformAdmin) ||
+    (ctx.permissions !== undefined && ctx.permissions.some((p) => p !== "customer.self" && p !== "admin.platform"));
 
   if (
     input.permission !== "customer.self" &&
@@ -389,8 +644,8 @@ export function authorize(ctx: AuthContext, input: AuthorizeInput): void {
   }
 
   if (
-    (roles.includes("store_employee") || roles.includes("store_manager")) &&
     !roles.includes("merchant_owner") &&
+    !isPlatformAdmin &&
     requiresStoreScopeForEmployee(input.permission)
   ) {
     const storeId = input.resourceStoreId;
@@ -544,6 +799,8 @@ export const RBAC = {
   roles: CANONICAL_ROLES,
   aliases: ROLE_ALIASES,
   permissions: PERMISSIONS,
+  catalog: PERMISSION_CATALOG,
+  domains: PERMISSION_DOMAINS,
   matrix: ROLE_PERMISSION_MATRIX,
   storeScopedPermissions: STORE_SCOPED_PERMISSIONS,
   denyMessagesFa: AUTHZ_ERROR_MESSAGES_FA,

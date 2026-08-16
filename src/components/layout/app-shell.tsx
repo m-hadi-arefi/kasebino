@@ -68,9 +68,9 @@ export function AppShell({
             />
             <div
               className={cn(
-                "mx-auto w-full flex-1 px-4 py-6 sm:px-6",
+                "mx-auto w-full flex-1 px-4 py-6 sm:px-6 lg:px-8",
                 "pb-24 md:pb-8",
-                "max-w-6xl",
+                "max-w-7xl",
               )}
             >
               {children}

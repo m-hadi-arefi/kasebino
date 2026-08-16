@@ -18,6 +18,7 @@ import type {
   StockItemRepository,
 } from "../domain/repositories.js";
 import type { StockMovementRepository } from "../domain/stock-movement-repository.js";
+import type { StockMovement } from "../domain/stock-movement.js";
 import {
   applyStockDelta,
   createStockItemAggregate,
@@ -488,7 +489,7 @@ export function createInventoryUseCases(deps: InventoryUseCaseDeps) {
     cursor?: string;
     limit?: number;
   }): Promise<{
-    movements: import("../domain/stock-movement.js").StockMovement[];
+    movements: StockMovement[];
     nextCursor: string | null;
   }> {
     const merchantId = input.merchantId.trim();
@@ -496,12 +497,14 @@ export function createInventoryUseCases(deps: InventoryUseCaseDeps) {
     if (!deps.stockMovements) {
       return { movements: [], nextCursor: null };
     }
+    const productId = input.productId?.trim();
+    const cursor = input.cursor?.trim();
     return deps.stockMovements.listMovements({
       merchantId,
       storeId,
-      productId: input.productId?.trim() || undefined,
-      cursor: input.cursor?.trim() || undefined,
-      limit: input.limit,
+      ...(productId ? { productId } : {}),
+      ...(cursor ? { cursor } : {}),
+      ...(input.limit !== undefined ? { limit: input.limit } : {}),
     });
   }
 

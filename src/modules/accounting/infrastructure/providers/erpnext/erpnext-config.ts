@@ -18,6 +18,8 @@ export type ErpNextProviderConfig = {
   territory: string;
   incomeAccount: string | null;
   cashAccount: string | null;
+  expenseAccount?: string | null | undefined;
+  bankAccount?: string | null | undefined;
 };
 
 export class ErpNextConfigError extends Error {

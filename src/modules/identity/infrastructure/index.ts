@@ -3,11 +3,13 @@ export { MockSmsAdapter } from "./sms/mock-sms-adapter.js";
 export {
   InMemoryAuthUserRepository,
   InMemoryOtpChallengeRepository,
+  InMemoryRoleRepository,
   InMemoryStaffMembershipRepository,
 } from "./persistence/in-memory-repositories.js";
 export {
   DrizzleAuthUserRepository,
   DrizzleOtpChallengeRepository,
+  DrizzleRoleRepository,
   DrizzleStaffMembershipRepository,
 } from "./persistence/drizzle-repositories.js";
 export {

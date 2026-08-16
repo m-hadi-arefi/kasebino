@@ -7,6 +7,7 @@
  */
 
 import {
+  boolean,
   index,
   integer,
   pgTable,
@@ -187,3 +188,68 @@ export const staffStoreScopes = pgTable(
     uniqueIndex("staff_store_scopes_membership_store_uq").on(t.staffMembershipId, t.storeId),
   ],
 );
+
+/** Tenant and system roles */
+export const roles = pgTable(
+  "roles",
+  {
+    id: uuid("id").primaryKey(),
+    merchantId: uuid("merchant_id"),
+    name: varchar("name", { length: 100 }).notNull(),
+    code: varchar("code", { length: 50 }),
+    description: text("description"),
+    isSystem: boolean("is_system").notNull().default(false),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    deletedAt: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
+  },
+  (t) => [
+    index("roles_merchant_id_idx").on(t.merchantId),
+    index("roles_name_idx").on(t.merchantId, t.name),
+  ],
+);
+
+/** Dynamic role-to-permission mapping */
+export const rolePermissions = pgTable(
+  "role_permissions",
+  {
+    id: uuid("id").primaryKey(),
+    roleId: uuid("role_id").notNull(),
+    permission: varchar("permission", { length: 50 }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    index("role_permissions_role_id_idx").on(t.roleId),
+    uniqueIndex("role_permissions_role_permission_uq").on(t.roleId, t.permission),
+  ],
+);
+
+/** Staff membership to roles mapping (multi-role support) */
+export const staffRoles = pgTable(
+  "staff_roles",
+  {
+    staffMembershipId: uuid("staff_membership_id").notNull(),
+    roleId: uuid("role_id").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (t) => [
+    index("staff_roles_membership_id_idx").on(t.staffMembershipId),
+    uniqueIndex("staff_roles_membership_role_uq").on(t.staffMembershipId, t.roleId),
+  ],
+);
+

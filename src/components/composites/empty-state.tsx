@@ -27,12 +27,12 @@ export function EmptyState({
     <div
       role="status"
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card px-6 py-12 text-center shadow-sm",
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-card px-6 py-14 text-center shadow-sm",
         className,
       )}
     >
-      <div className="flex size-12 items-center justify-center rounded-full bg-accent text-primary">
-        {icon ?? <Inbox className="size-6" aria-hidden />}
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-surface-container-high text-primary">
+        {icon ?? <Inbox className="size-7" aria-hidden />}
       </div>
       <div className="space-y-1">
         <p className="text-base font-medium text-foreground">{title}</p>

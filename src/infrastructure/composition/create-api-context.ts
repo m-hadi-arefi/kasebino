@@ -30,8 +30,24 @@ import { createOrderingUseCases } from "../../modules/ordering/application/use-c
 import { createPaymentsUseCases } from "../../modules/payments/application/use-cases.js";
 import { createNotificationsUseCases } from "../../modules/notifications/application/use-cases.js";
 import { createMerchantUseCases } from "../../modules/merchant/application/use-cases.js";
+import { createSubscriptionUseCases } from "../../modules/merchant/application/subscription-use-cases.js";
+import {
+  InMemoryMerchantCreditLedgerRepository,
+  InMemoryMerchantSubscriptionRepository,
+} from "../../modules/merchant/infrastructure/persistence/in-memory-subscription-repository.js";
+import type {
+  MerchantCreditLedgerRepository,
+  MerchantSubscriptionRepository,
+} from "../../modules/merchant/domain/repositories.js";
 import { createStoreUseCases } from "../../modules/store/application/use-cases.js";
 import { createStaffUseCases } from "../../modules/identity/application/staff-use-cases.js";
+import { createRoleUseCases } from "../../modules/identity/application/role-use-cases.js";
+import {
+  InMemoryStaffMembershipRepository,
+  InMemoryAuthUserRepository,
+  InMemoryRoleRepository,
+} from "../../modules/identity/infrastructure/persistence/in-memory-repositories.js";
+import type { RoleRepository } from "../../modules/identity/domain/repositories.js";
 import { createAdminUseCases } from "../../modules/admin/application/use-cases.js";
 import {
   createNoopSecurityMonitoringPort,
@@ -58,7 +74,6 @@ import type {
   SalesCountersPort,
 } from "../../merchant-oltp-analytics/index.js";
 import { PersistInAppNotificationChannel } from "../../modules/notifications/infrastructure/channels/persist-in-app-channel.js";
-import { SandboxPaymentGateway } from "../../modules/payments/infrastructure/gateway/sandbox-payment-gateway.js";
 import { createPaymentGatewayFromEnv } from "../../modules/payments/infrastructure/gateway/payment-gateway-factory.js";
 import { createSandboxPaymentConfirmPort } from "../../modules/payments/infrastructure/ordering/sandbox-payment-confirm-adapter.js";
 import type { PaymentGateway } from "../../modules/payments/application/ports/payment-gateway.js";
@@ -161,8 +176,9 @@ export type ApiRepositories = {
   externalEntityMappings?: ExternalEntityMappingRepository;
   /** ADR-141 ERPNext sync lifecycle. */
   erpnextSyncRecords?: ErpNextSyncRecordRepository;
-  staffMemberships: StaffMembershipRepository;
-  authUsers: AuthUserRepository;
+  staffMemberships?: StaffMembershipRepository;
+  roles?: RoleRepository;
+  authUsers?: AuthUserRepository;
   /** ADR-126 CompleteSale UoW — present for production Drizzle wiring. */
   txScope?: DrizzleTransactionScope;
   customers?: CustomerRepository;
@@ -170,6 +186,8 @@ export type ApiRepositories = {
   customerNotes?: CustomerNoteRepository;
   customerInteractions?: CustomerInteractionRepository;
   customerFollowUps?: CustomerFollowUpRepository;
+  merchantSubscriptions?: MerchantSubscriptionRepository;
+  merchantCreditLedger?: MerchantCreditLedgerRepository;
 };
 
 export type CreateApiContextOptions = {
@@ -221,9 +239,11 @@ export type ApiContext = {
   payments: ReturnType<typeof createPaymentsUseCases>;
   notifications: ReturnType<typeof createNotificationsUseCases>;
   merchants: ReturnType<typeof createMerchantUseCases>;
+  subscriptions: ReturnType<typeof createSubscriptionUseCases>;
   stores: ReturnType<typeof createStoreUseCases>;
   admin: ReturnType<typeof createAdminUseCases>;
   staff: ReturnType<typeof createStaffUseCases>;
+  roles: ReturnType<typeof createRoleUseCases>;
   /** ADR-106 merchant AN dashboards. */
   analytics: AnalyticsDashboardUseCases;
   analyticsProjection?: AnalyticsProjectionHandler;
@@ -284,8 +304,8 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
           })
         : resolveFinanceReaderMode() === "fake"
           ? new FakeFinanceReader({
-              syncRecords: repos.erpnextSyncRecords,
-              mappings: repos.externalEntityMappings,
+              ...(repos.erpnextSyncRecords ? { syncRecords: repos.erpnextSyncRecords } : {}),
+              ...(repos.externalEntityMappings ? { mappings: repos.externalEntityMappings } : {}),
             })
           : new UnavailableFinanceReader(),
     ...(options.accountingProvider
@@ -502,12 +522,26 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
   const merchants = createMerchantUseCases({
     merchants: repos.merchants,
   });
+  const subscriptions = createSubscriptionUseCases({
+    merchants: repos.merchants,
+    subscriptions:
+      repos.merchantSubscriptions ??
+      new InMemoryMerchantSubscriptionRepository(),
+    credits:
+      repos.merchantCreditLedger ??
+      new InMemoryMerchantCreditLedgerRepository(),
+  });
   const stores = createStoreUseCases({
     stores: repos.stores,
   });
+  const roles = createRoleUseCases({
+    roles: repos.roles ?? new InMemoryRoleRepository(),
+  });
   const staff = createStaffUseCases({
-    staffMemberships: repos.staffMemberships,
-    authUsers: repos.authUsers,
+    staffMemberships:
+      repos.staffMemberships ?? new InMemoryStaffMembershipRepository(),
+    authUsers: repos.authUsers ?? new InMemoryAuthUserRepository(),
+    roles: repos.roles ?? new InMemoryRoleRepository(),
   });
   const storeAssets = options.objectStorage
     ? createStoreAssetUseCases({
@@ -575,9 +609,11 @@ export function createApiContext(options: CreateApiContextOptions): ApiContext {
     payments,
     notifications,
     merchants,
+    subscriptions,
     stores,
     admin,
     staff,
+    roles,
     analytics,
     analyticsProjection,
     analyticsCache,
@@ -594,6 +630,8 @@ export function apiReposFromProduction(
 ): ApiRepositories {
   return {
     merchants: production.merchants,
+    merchantSubscriptions: production.merchantSubscriptions,
+    merchantCreditLedger: production.merchantCreditLedger,
     stores: production.stores,
     products: production.products,
     categories: production.categories,
@@ -611,6 +649,7 @@ export function apiReposFromProduction(
     adminActions: production.adminActions,
     customerIdentities: production.customerIdentities,
     staffMemberships: production.staffMemberships,
+    roles: production.roles,
     authUsers: production.authUsers,
     txScope: production.txScope,
     externalEntityMappings: production.externalEntityMappings,

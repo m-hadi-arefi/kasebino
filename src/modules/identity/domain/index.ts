@@ -23,4 +23,16 @@ export {
 export type {
   AuthUserRepository,
   OtpChallengeRepository,
+  RoleRepository,
+  StaffMembershipRepository,
 } from "./repositories.js";
+export type {
+  Role,
+  RoleWithPermissions,
+  StaffMembership,
+  StaffStoreScope,
+  StaffRoleAssignment,
+  StaffMemberWithDetails,
+  StaffStatus,
+} from "./staff.js";
+

@@ -67,7 +67,7 @@ export function DashboardAnalyticsWidgets() {
       <p className="text-sm text-muted-foreground">
         {fa.cacheHint} · {fa.jalaliHint}
       </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={BarChart3}
           title={overview.data?.titleFa ?? fa.overviewTitle}
@@ -130,7 +130,6 @@ export function DashboardAnalyticsWidgets() {
               ? `${fa.rangeLabel}: ${formatAnalyticsJalaliDay(retention.data.range.fromDay)} — ${formatAnalyticsJalaliDay(retention.data.range.toDay)}`
               : undefined
           }
-          className="sm:col-span-2 lg:col-span-1"
         />
       </div>
     </div>

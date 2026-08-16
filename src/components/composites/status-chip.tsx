@@ -10,13 +10,13 @@ const VARIANT_BY_STATUS: Record<
   StatusChipKey,
   NonNullable<BadgeProps["variant"]>
 > = {
-  active: "default",
+  active: "secondary",
   suspended: "destructive",
-  pending: "secondary",
-  cancelled: "outline",
-  ready: "default",
-  preparing: "secondary",
-  completed: "outline",
+  pending: "outline",
+  cancelled: "destructive",
+  ready: "secondary",
+  preparing: "outline",
+  completed: "secondary",
 };
 
 export type StatusChipProps = {
@@ -35,14 +35,22 @@ export function StatusChip({ status, className, label }: StatusChipProps) {
       ? VARIANT_BY_STATUS[status as StatusChipKey]
       : "secondary";
 
+  const dotColor =
+    variant === "secondary"
+      ? "bg-secondary"
+      : variant === "destructive"
+        ? "bg-destructive"
+        : "bg-muted-foreground";
+
   return (
     <Badge
       variant={variant}
       dir="rtl"
       lang="fa"
-      className={cn("min-h-8 px-3 text-xs font-medium", className)}
+      className={cn("min-h-7 px-2.5 py-0.5 text-xs font-medium gap-1.5", className)}
       data-status={status}
     >
+      <span className={cn("size-1.5 rounded-full shrink-0", dotColor)} aria-hidden />
       {text}
     </Badge>
   );

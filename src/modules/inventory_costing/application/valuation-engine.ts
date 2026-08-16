@@ -2,7 +2,7 @@
  * Inventory Valuation Engine (FIFO / LIFO / Weighted Average) (MerchantOS Phase 2).
  */
 
-import { AllocationResult, CostLayer, ValuationMethod } from "../domain/cost-layer.js";
+import type { AllocationResult, CostLayer, ValuationMethod } from "../domain/cost-layer.js";
 
 export class CostLayerValuationEngine {
   /**

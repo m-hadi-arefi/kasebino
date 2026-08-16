@@ -50,8 +50,8 @@ describe("ERPNext Multi-Tenant Proxy & Provisioning (ADR-126)", () => {
   it("provisions ERPNext company & default warehouse idempotently", async () => {
     const mockClient = {
       getList: vi.fn().mockResolvedValue([]),
-      createDoc: vi.fn().mockImplementation(async (doctype: string, doc: any) => ({
-        name: doc.company_name || doc.warehouse_name || "DOC-001",
+      createDoc: vi.fn().mockImplementation(async (_doctype: string, doc: Record<string, unknown>) => ({
+        name: (doc.company_name as string) || (doc.warehouse_name as string) || "DOC-001",
       })),
     } as unknown as ErpNextClient;
 

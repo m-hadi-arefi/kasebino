@@ -2,8 +2,8 @@
  * Supplier Use-Cases (MerchantOS Phase 1).
  */
 
-import { ListSuppliersFilter, SupplierRepository } from "../domain/repositories.js";
-import { CreateSupplierInput, Supplier, SupplierId, UpdateSupplierInput } from "../domain/supplier.js";
+import type { ListSuppliersFilter, SupplierRepository } from "../domain/repositories.js";
+import type { CreateSupplierInput, Supplier, SupplierId, UpdateSupplierInput } from "../domain/supplier.js";
 
 export class CreateSupplierUseCase {
   constructor(private readonly repo: SupplierRepository) {}

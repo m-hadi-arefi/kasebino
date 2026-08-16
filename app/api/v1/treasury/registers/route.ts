@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
   CloseCashRegisterUseCase,
   InMemoryTreasuryRepository,
-} from "../../../../../src/modules/treasury/index.ts";
+} from "@/modules/treasury/index";
 
 const repo = new InMemoryTreasuryRepository();
 const closeUC = new CloseCashRegisterUseCase(repo);
@@ -23,7 +24,8 @@ export async function POST(req: NextRequest) {
     }
     const register = await repo.createCashRegister(body);
     return NextResponse.json(register, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "خطای سرور";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

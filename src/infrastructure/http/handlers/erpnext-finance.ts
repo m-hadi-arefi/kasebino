@@ -163,86 +163,10 @@ export async function handleChartOfAccounts(
   );
   if (!authed.ok) return authed.result;
 
-  return ok(
-    {
-      company: "MerchantOS Demo",
-      accounts: [
-        {
-          name: "Application of Funds (Assets) - MD",
-          accountName: "دارایی‌ها (Assets)",
-          rootType: "Asset",
-          isGroup: true,
-          balance: 850000000,
-          currency: "IRR",
-          children: [
-            {
-              name: "Current Assets - MD",
-              accountName: "دارایی‌های جاری",
-              rootType: "Asset",
-              isGroup: true,
-              balance: 550000000,
-              currency: "IRR",
-              children: [
-                {
-                  name: "Bank Accounts - MD",
-                  accountName: "حساب‌های بانکی",
-                  rootType: "Asset",
-                  isGroup: false,
-                  balance: 350000000,
-                  currency: "IRR",
-                },
-                {
-                  name: "Cash In Hand - MD",
-                  accountName: "صندوق و وجوه نقد",
-                  rootType: "Asset",
-                  isGroup: false,
-                  balance: 200000000,
-                  currency: "IRR",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Source of Funds (Liabilities) - MD",
-          accountName: "بدهی‌ها (Liabilities)",
-          rootType: "Liability",
-          isGroup: true,
-          balance: 120000000,
-          currency: "IRR",
-          children: [
-            {
-              name: "Accounts Payable - MD",
-              accountName: "حساب‌های پرداختنی (تامین‌کنندگان)",
-              rootType: "Liability",
-              isGroup: false,
-              balance: 120000000,
-              currency: "IRR",
-            },
-          ],
-        },
-        {
-          name: "Income - MD",
-          accountName: "درآمدها (Income)",
-          rootType: "Income",
-          isGroup: true,
-          balance: 1250000000,
-          currency: "IRR",
-          children: [
-            {
-              name: "Sales - MD",
-              accountName: "فروش کالا و خدمات",
-              rootType: "Income",
-              isGroup: false,
-              balance: 1250000000,
-              currency: "IRR",
-            },
-          ],
-        },
-      ],
-    },
-    { meta: { correlationId } },
-  );
+  const data = await ctx.erpnext.getChartOfAccounts({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
 }
 
 export async function handleGeneralLedger(
@@ -259,37 +183,34 @@ export async function handleGeneralLedger(
   );
   if (!authed.ok) return authed.result;
 
-  return ok(
-    {
-      entries: [
-        {
-          id: "GL-001",
-          postingDate: new Date().toISOString().split("T")[0],
-          account: "Sales - MD",
-          againstAccount: "Cash In Hand - MD",
-          debit: 0,
-          credit: 15000000,
-          balance: 15000000,
-          voucherType: "Sales Invoice",
-          voucherNo: "ACC-SINV-2026-00001",
-          remarks: "فروش حضوری صندوق POS",
-        },
-        {
-          id: "GL-002",
-          postingDate: new Date().toISOString().split("T")[0],
-          account: "Cash In Hand - MD",
-          againstAccount: "Sales - MD",
-          debit: 15000000,
-          credit: 0,
-          balance: 15000000,
-          voucherType: "Payment Entry",
-          voucherNo: "ACC-PAY-2026-00001",
-          remarks: "دریافت وجه فاکتور فروش",
-        },
-      ],
-    },
-    { meta: { correlationId } },
-  );
+  const url = new URL(request.url);
+  const filters: {
+    account?: string;
+    fromDate?: string;
+    toDate?: string;
+    party?: string;
+    voucherNo?: string;
+    limit?: number;
+  } = {};
+
+  const account = url.searchParams.get("account");
+  if (account) filters.account = account;
+  const fromDate = url.searchParams.get("fromDate");
+  if (fromDate) filters.fromDate = fromDate;
+  const toDate = url.searchParams.get("toDate");
+  if (toDate) filters.toDate = toDate;
+  const party = url.searchParams.get("party");
+  if (party) filters.party = party;
+  const voucherNo = url.searchParams.get("voucherNo");
+  if (voucherNo) filters.voucherNo = voucherNo;
+  const limit = url.searchParams.get("limit");
+  if (limit) filters.limit = Number(limit);
+
+  const data = await ctx.erpnext.getGeneralLedger({
+    merchantId: authed.actor.merchantId,
+    ...(Object.keys(filters).length > 0 ? { filters } : {}),
+  });
+  return ok(data, { meta: { correlationId } });
 }
 
 export async function handleProfitAndLoss(
@@ -306,17 +227,90 @@ export async function handleProfitAndLoss(
   );
   if (!authed.ok) return authed.result;
 
-  return ok(
-    {
-      company: "MerchantOS Demo",
-      currency: "IRR",
-      asOfDate: new Date().toISOString().split("T")[0],
-      totalIncome: 1250000000,
-      totalExpense: 420000000,
-      netProfit: 830000000,
-    },
-    { meta: { correlationId } },
+  const data = await ctx.erpnext.getProfitAndLoss({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
+}
+
+export async function handleBalanceSheet(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
   );
+  if (!authed.ok) return authed.result;
+
+  const data = await ctx.erpnext.getBalanceSheet({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
+}
+
+export async function handleTrialBalance(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  const data = await ctx.erpnext.getTrialBalance({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
+}
+
+export async function handlePayables(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  const data = await ctx.erpnext.getPayables({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
+}
+
+export async function handleReceivables(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  const data = await ctx.erpnext.getReceivables({
+    merchantId: authed.actor.merchantId,
+  });
+  return ok(data, { meta: { correlationId } });
 }
 
 export async function handleIntegrityCheck(
@@ -333,13 +327,29 @@ export async function handleIntegrityCheck(
   );
   if (!authed.ok) return authed.result;
 
+  const syncList = await ctx.erpnext.listSyncRecords({
+    merchantId: authed.actor.merchantId,
+    limit: 500,
+  });
+  const pending = syncList.records.filter((r) => r.status === "pending").length;
+  const failed = syncList.records.filter((r) => r.status === "failed").length;
+  const synced = syncList.records.filter((r) => r.status === "synced").length;
+  const total = syncList.records.length;
+  const healthPercent = total > 0 ? Math.round((synced / total) * 100) : 100;
+
   return ok(
     {
-      status: "HEALTHY",
-      syncHealthPercent: 100,
-      pendingEvents: 0,
-      failedEvents: 0,
-      mismatches: [],
+      status: failed > 0 ? "DEGRADED" : "HEALTHY",
+      syncHealthPercent: healthPercent,
+      pendingEvents: pending,
+      failedEvents: failed,
+      mismatches: syncList.records
+        .filter((r) => r.status === "failed")
+        .map((r) => ({
+          entityType: r.entityType,
+          entityId: r.entityId,
+          reason: r.errorMessageFa ?? "خطای همگام‌سازی",
+        })),
       lastCheckedAt: new Date().toISOString(),
     },
     { meta: { correlationId } },

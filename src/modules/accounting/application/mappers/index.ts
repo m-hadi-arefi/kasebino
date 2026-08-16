@@ -4,10 +4,15 @@
  */
 
 import type {
+  RecordExpenseInput,
   RecordPaymentInput,
+  RecordPurchaseInput,
+  RecordReturnInput,
   RecordSaleInput,
+  RecordTransferInput,
   SyncCustomerInput,
   SyncProductInput,
+  SyncSupplierInput,
 } from "../ports/accounting-provider.js";
 
 export function mapProductToAccountingSync(input: {
@@ -174,4 +179,212 @@ export function mapStockReasonToAccountingMovementType(
     default:
       return "ADJUSTMENT";
   }
+}
+
+export function mapSupplierToAccountingSync(input: {
+  eventId: string;
+  merchantId: string;
+  storeId?: string | null;
+  supplierId: string;
+  name: string;
+  phone?: string | null;
+  taxId?: string | null;
+  supplierGroup?: string | null;
+  address?: string | null;
+}): SyncSupplierInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.storeId ?? null,
+    entityType: "supplier",
+    entityId: input.supplierId,
+    name: input.name,
+    phone: input.phone ?? null,
+    taxId: input.taxId ?? null,
+    supplierGroup: input.supplierGroup ?? null,
+    address: input.address ?? null,
+  };
+}
+
+export function mapPurchaseToAccountingRecord(input: {
+  eventId: string;
+  merchantId: string;
+  storeId?: string | null | undefined;
+  purchaseId: string;
+  supplierName: string;
+  supplierId?: string | null | undefined;
+  idempotencyKey?: string | undefined;
+  invoiceNumber?: string | null | undefined;
+  postingDate: Date | string;
+  dueDate?: Date | string | null | undefined;
+  totalAmountMinor: bigint | string;
+  currency?: "IRR" | undefined;
+  remarks?: string | undefined;
+  lines: readonly {
+    productId: string;
+    quantity: number;
+    unitCode?: string | undefined;
+    unitCostMinor: bigint | string;
+    lineTotalMinor: bigint | string;
+    itemCode?: string | undefined;
+  }[];
+}): RecordPurchaseInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.storeId ?? null,
+    entityType: "purchase",
+    entityId: input.purchaseId,
+    purchaseId: input.purchaseId,
+    supplierName: input.supplierName,
+    supplierId: input.supplierId ?? null,
+    idempotencyKey: input.idempotencyKey ?? input.purchaseId,
+    invoiceNumber: input.invoiceNumber ?? null,
+    postingDate:
+      typeof input.postingDate === "string"
+        ? input.postingDate
+        : input.postingDate.toISOString(),
+    dueDate: input.dueDate
+      ? typeof input.dueDate === "string"
+        ? input.dueDate
+        : input.dueDate.toISOString()
+      : null,
+    totalAmountMinor: String(input.totalAmountMinor),
+    currency: input.currency ?? "IRR",
+    ...(input.remarks !== undefined ? { remarks: input.remarks } : {}),
+    lines: input.lines.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      unitCode: line.unitCode ?? "piece",
+      unitCostMinor: String(line.unitCostMinor),
+      lineTotalMinor: String(line.lineTotalMinor),
+      ...(line.itemCode !== undefined ? { itemCode: line.itemCode } : {}),
+    })),
+  };
+}
+
+export function mapReturnToAccountingRecord(input: {
+  eventId: string;
+  merchantId: string;
+  storeId?: string | null | undefined;
+  returnId: string;
+  originalSaleOrOrderId: string;
+  idempotencyKey?: string | undefined;
+  returnNumber?: string | undefined;
+  customerName?: string | undefined;
+  customerId?: string | null | undefined;
+  totalAmountMinor: bigint | string;
+  currency?: "IRR" | undefined;
+  reason?: string | undefined;
+  occurredAt: Date | string;
+  lines: readonly {
+    productId: string;
+    quantity: number;
+    unitCode?: string | undefined;
+    unitPriceMinor: bigint | string;
+    lineTotalMinor: bigint | string;
+    itemCode?: string | undefined;
+  }[];
+}): RecordReturnInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.storeId ?? null,
+    entityType: "return",
+    entityId: input.returnId,
+    returnId: input.returnId,
+    originalSaleOrOrderId: input.originalSaleOrOrderId,
+    idempotencyKey: input.idempotencyKey ?? input.returnId,
+    ...(input.returnNumber !== undefined ? { returnNumber: input.returnNumber } : {}),
+    ...(input.customerName !== undefined ? { customerName: input.customerName } : {}),
+    customerId: input.customerId ?? null,
+    totalAmountMinor: String(input.totalAmountMinor),
+    currency: input.currency ?? "IRR",
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+    occurredAt:
+      typeof input.occurredAt === "string"
+        ? input.occurredAt
+        : input.occurredAt.toISOString(),
+    lines: input.lines.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      unitCode: line.unitCode ?? "piece",
+      unitPriceMinor: String(line.unitPriceMinor),
+      lineTotalMinor: String(line.lineTotalMinor),
+      ...(line.itemCode !== undefined ? { itemCode: line.itemCode } : {}),
+    })),
+  };
+}
+
+export function mapExpenseToAccountingRecord(input: {
+  eventId: string;
+  merchantId: string;
+  storeId?: string | null | undefined;
+  expenseId: string;
+  categoryId?: string | null | undefined;
+  categoryName?: string | null | undefined;
+  amountMinor: bigint | string;
+  currency?: "IRR" | undefined;
+  paymentMethod?: "cash" | "bank" | string | undefined;
+  expenseDate: Date | string;
+  description?: string | null | undefined;
+  accountId?: string | null | undefined;
+}): RecordExpenseInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.storeId ?? null,
+    entityType: "expense",
+    entityId: input.expenseId,
+    expenseId: input.expenseId,
+    categoryId: input.categoryId ?? null,
+    categoryName: input.categoryName ?? null,
+    amountMinor: String(input.amountMinor),
+    currency: input.currency ?? "IRR",
+    paymentMethod: input.paymentMethod ?? "cash",
+    expenseDate:
+      typeof input.expenseDate === "string"
+        ? input.expenseDate
+        : input.expenseDate.toISOString(),
+    description: input.description ?? null,
+    accountId: input.accountId ?? null,
+  };
+}
+
+export function mapTransferToAccountingRecord(input: {
+  eventId: string;
+  merchantId: string;
+  fromStoreId: string;
+  toStoreId: string;
+  transferId: string;
+  occurredAt: Date | string;
+  remarks?: string | undefined;
+  lines: readonly {
+    productId: string;
+    quantity: number;
+    unitCode?: string | undefined;
+    itemCode?: string | undefined;
+  }[];
+}): RecordTransferInput {
+  return {
+    eventId: input.eventId,
+    merchantId: input.merchantId,
+    storeId: input.fromStoreId,
+    entityType: "stock_transfer",
+    entityId: input.transferId,
+    transferId: input.transferId,
+    fromStoreId: input.fromStoreId,
+    toStoreId: input.toStoreId,
+    occurredAt:
+      typeof input.occurredAt === "string"
+        ? input.occurredAt
+        : input.occurredAt.toISOString(),
+    ...(input.remarks !== undefined ? { remarks: input.remarks } : {}),
+    lines: input.lines.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      unitCode: line.unitCode ?? "piece",
+      ...(line.itemCode !== undefined ? { itemCode: line.itemCode } : {}),
+    })),
+  };
 }

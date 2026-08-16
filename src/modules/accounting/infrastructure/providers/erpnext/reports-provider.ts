@@ -55,6 +55,27 @@ export type FinancialStatementResult = {
   totalEquity?: number | undefined;
 };
 
+export type TrialBalanceRow = {
+  account: string;
+  accountName: string;
+  openingDebit: number;
+  openingCredit: number;
+  debit: number;
+  credit: number;
+  closingDebit: number;
+  closingCredit: number;
+};
+
+export type TrialBalanceResult = {
+  company: string;
+  currency: string;
+  reportName: string;
+  asOfDate: string;
+  rows: TrialBalanceRow[];
+  totalDebit: number;
+  totalCredit: number;
+};
+
 export class ErpNextReportsProvider {
   /**
    * Fetch hierarchical Chart of Accounts for a tenant company.
@@ -87,7 +108,7 @@ export class ErpNextReportsProvider {
         accountNumber: raw.account_number ? String(raw.account_number) : undefined,
         parentAccount: raw.parent_account ? String(raw.parent_account) : undefined,
         accountType: raw.account_type ? String(raw.account_type) : undefined,
-        rootType: (raw.root_type as any) || "Asset",
+        rootType: (raw.root_type as "Asset" | "Liability" | "Equity" | "Income" | "Expense") || "Asset",
         isGroup: Boolean(raw.is_group),
         balance: 0, // Calculated dynamically or from GL summary
         currency: "IRR",
@@ -122,7 +143,7 @@ export class ErpNextReportsProvider {
       limit?: number;
     },
   ): Promise<GeneralLedgerRow[]> {
-    const glFilters: Array<[string, string, any]> = [
+    const glFilters: Array<[string, string, string | number]> = [
       ["company", "=", tenant.erpnextCompany],
       ["is_cancelled", "=", 0],
     ];
@@ -236,6 +257,122 @@ export class ErpNextReportsProvider {
       totalIncome,
       totalExpense,
       netProfit,
+    };
+  }
+
+  /**
+   * Fetch Balance Sheet Statement summary from ERPNext.
+   */
+  async getBalanceSheet(
+    client: ErpNextClient,
+    tenant: TenantContext,
+  ): Promise<FinancialStatementResult> {
+    const glRows = await this.getGeneralLedger(client, tenant, { limit: 1000 });
+    let totalAsset = 0;
+    let totalLiability = 0;
+    let totalEquity = 0;
+
+    for (const row of glRows) {
+      if (
+        row.account.includes("Asset") ||
+        row.account.includes("Bank") ||
+        row.account.includes("Cash") ||
+        row.account.includes("Receivable") ||
+        row.account.includes("Stock")
+      ) {
+        totalAsset += row.debit - row.credit;
+      } else if (
+        row.account.includes("Liability") ||
+        row.account.includes("Payable")
+      ) {
+        totalLiability += row.credit - row.debit;
+      } else if (
+        row.account.includes("Equity") ||
+        row.account.includes("Capital")
+      ) {
+        totalEquity += row.credit - row.debit;
+      }
+    }
+
+    return {
+      company: tenant.erpnextCompany,
+      currency: "IRR",
+      reportName: "ترازنامه (Balance Sheet)",
+      asOfDate: new Date().toISOString().split("T")[0] ?? "",
+      rows: [
+        {
+          account: "Asset",
+          accountName: "دارایی‌ها",
+          indent: 0,
+          yearToDate: totalAsset,
+        },
+        {
+          account: "Liability",
+          accountName: "بدهی‌ها",
+          indent: 0,
+          yearToDate: totalLiability,
+        },
+        {
+          account: "Equity",
+          accountName: "حقوق صاحبان سهام",
+          indent: 0,
+          yearToDate: totalEquity,
+        },
+      ],
+      totalAsset,
+      totalLiability,
+      totalEquity,
+    };
+  }
+
+  /**
+   * Fetch Trial Balance summary from ERPNext.
+   */
+  async getTrialBalance(
+    client: ErpNextClient,
+    tenant: TenantContext,
+  ): Promise<TrialBalanceResult> {
+    const glRows = await this.getGeneralLedger(client, tenant, { limit: 1000 });
+    const accountMap = new Map<string, { debit: number; credit: number }>();
+
+    for (const row of glRows) {
+      const existing = accountMap.get(row.account) ?? { debit: 0, credit: 0 };
+      existing.debit += row.debit;
+      existing.credit += row.credit;
+      accountMap.set(row.account, existing);
+    }
+
+    const rows: TrialBalanceRow[] = [];
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    for (const [account, amounts] of accountMap.entries()) {
+      const net = amounts.debit - amounts.credit;
+      const closingDebit = net > 0 ? net : 0;
+      const closingCredit = net < 0 ? Math.abs(net) : 0;
+      totalDebit += amounts.debit;
+      totalCredit += amounts.credit;
+
+      rows.push({
+        account,
+        accountName: account,
+        openingDebit: 0,
+        openingCredit: 0,
+        debit: amounts.debit,
+        credit: amounts.credit,
+        closingDebit,
+        closingCredit,
+      });
+    }
+
+    return {
+      company: tenant.erpnextCompany,
+      currency: "IRR",
+      reportName: "تراز آزمایشی (Trial Balance)",
+      asOfDate: new Date().toISOString().split("T")[0] ?? "",
+      rows,
+      totalDebit,
+      totalCredit,
     };
   }
 

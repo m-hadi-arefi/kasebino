@@ -2,8 +2,8 @@
  * In-Memory Expense Repository Implementation (MerchantOS Phase 4).
  */
 
-import { ExpenseRepository } from "../application/expense-use-cases.js";
-import {
+import type { ExpenseRepository } from "../application/expense-use-cases.js";
+import type {
   Expense,
   ExpenseCategory,
   ExpenseCategoryId,
@@ -40,7 +40,7 @@ export class InMemoryExpenseRepository implements ExpenseRepository {
       id,
       merchantId: input.merchantId,
       name: input.name,
-      accountId: input.accountId,
+      ...(input.accountId !== undefined ? { accountId: input.accountId } : {}),
       isSystem: false,
       sortOrder: input.sortOrder ?? 0,
       isActive: true,
@@ -73,15 +73,15 @@ export class InMemoryExpenseRepository implements ExpenseRepository {
     const expense: Expense = {
       id,
       merchantId: input.merchantId,
-      storeId: input.storeId,
+      ...(input.storeId !== undefined ? { storeId: input.storeId } : {}),
       categoryId: input.categoryId,
       amountMinor: input.amountMinor,
       paymentMethod: input.paymentMethod,
       accountId: input.accountId,
       expenseDate: input.expenseDate,
-      description: input.description,
+      ...(input.description !== undefined ? { description: input.description } : {}),
       attachments: input.attachments ?? [],
-      createdBy: input.createdBy,
+      ...(input.createdBy !== undefined ? { createdBy: input.createdBy } : {}),
       createdAt: now,
       updatedAt: now,
     };

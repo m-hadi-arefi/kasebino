@@ -3,7 +3,7 @@ import {
   CloseCashRegisterUseCase,
   InMemoryTreasuryRepository,
   TransferFundsUseCase,
-} from "./index.ts";
+} from "./index.js";
 
 describe("Treasury Module (Cash Registers, Closing Variance, Fund Transfers)", () => {
   it("opens cash register, closes register and calculates variance correctly", async () => {

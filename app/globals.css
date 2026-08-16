@@ -1,6 +1,6 @@
 /*
- * MerchantOS design tokens (ADR-020 / ADR-125).
- * Direction: modern Iranian retail utility — daylight shop-counter clarity.
+ * MerchantOS design tokens (ADR-020 / ADR-125 / Stitch Migration #15997651493991153782).
+ * Direction: modern Iranian retail utility — Stitch Quiet Tech palette (#0f172a, #006c53, #0f6b63).
  * Avoid purple-on-white AI defaults and cream/terracotta clichés.
  */
 @import "tailwindcss";
@@ -12,30 +12,56 @@
 @source "../middleware.ts";
 
 :root {
-  /* Raw values (Iranian retail utility — teal primary, cool daylight) */
-  --mos-bg: #f3f5f7;
+  /* Stitch Design System Palette (Kasebino MerchantOS) */
+  --mos-bg: #f7f9fb;
   --mos-surface: #ffffff;
-  --mos-fg: #142033;
-  --mos-muted: #5b677a;
-  --mos-primary: #0f6b63;
-  --mos-primary-fg: #f7fbfa;
-  --mos-success: #1f7a45;
-  --mos-warning: #b45309;
-  --mos-danger: #b42318;
-  --mos-border: #d5dce5;
-  --mos-radius-sm: 0.375rem;
-  --mos-radius-md: 0.5rem;
-  --mos-radius-lg: 0.75rem;
-  --mos-shadow-sm: 0 1px 2px rgb(20 32 51 / 0.06);
-  --mos-shadow-md: 0 4px 12px rgb(20 32 51 / 0.08);
+  --mos-surface-container-lowest: #ffffff;
+  --mos-surface-container-low: #f2f4f6;
+  --mos-surface-container: #eceef0;
+  --mos-surface-container-high: #e6e8ea;
+  --mos-surface-container-highest: #e0e3e5;
 
-  /* Design-system.md public CSS variables */
+  --mos-fg: #191c1e;
+  --mos-muted: #45464d;
+  
+  --mos-primary: #0f172a;               /* Deep authoritative navy / near-black */
+  --mos-primary-fg: #ffffff;
+  --mos-primary-container: #131b2e;
+  --mos-on-primary-container: #7c839b;
+  
+  --mos-secondary: #006c53;             /* Growth & transaction emerald */
+  --mos-secondary-fg: #ffffff;
+  --mos-secondary-container: #60f8cb;
+  --mos-on-secondary-container: #007057;
+
+  --mos-tertiary: #001a42;
+  --mos-tertiary-container: #d8e2ff;
+
+  --mos-success: #006c53;
+  --mos-warning: #b45309;
+  --mos-danger: #ba1a1a;
+  --mos-danger-container: #ffdad6;
+
+  --mos-border: #e0e3e5;
+  --mos-border-subtle: #c6c6cd;
+
+  --mos-radius-sm: 0.25rem;  /* 4px */
+  --mos-radius-md: 0.5rem;   /* 8px */
+  --mos-radius-lg: 1rem;     /* 16px */
+  --mos-radius-full: 9999px;
+
+  --mos-shadow-sm: 0px 4px 20px rgba(15, 23, 42, 0.05);
+  --mos-shadow-md: 0px 10px 32px rgba(15, 23, 42, 0.12);
+
+  /* Design-system public CSS variables */
   --color-bg: var(--mos-bg);
   --color-surface: var(--mos-surface);
   --color-fg: var(--mos-fg);
   --color-muted: var(--mos-muted);
   --color-primary: var(--mos-primary);
   --color-primary-fg: var(--mos-primary-fg);
+  --color-secondary: var(--mos-secondary);
+  --color-secondary-fg: var(--mos-secondary-fg);
   --color-success: var(--mos-success);
   --color-warning: var(--mos-warning);
   --color-danger: var(--mos-danger);
@@ -57,7 +83,7 @@
   --density-pos-tap-min: 2.75rem; /* 44px */
   --density-analytical-tap-min: 2.5rem;
 
-  /* shadcn-compatible aliases (ADR-114 / ADR-125) */
+  /* shadcn-compatible aliases */
   --background: var(--color-bg);
   --foreground: var(--color-fg);
   --card: var(--color-surface);
@@ -66,26 +92,26 @@
   --popover-foreground: var(--color-fg);
   --primary: var(--color-primary);
   --primary-foreground: var(--color-primary-fg);
-  --secondary: #e2e8ef;
-  --secondary-foreground: var(--color-fg);
-  --muted: #e8edf2;
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-fg);
+  --muted: var(--mos-surface-container-low);
   --muted-foreground: var(--color-muted);
-  --accent: #dce8e6;
+  --accent: var(--mos-surface-container-high);
   --accent-foreground: var(--color-fg);
   --destructive: var(--color-danger);
-  --destructive-foreground: #fef7f6;
+  --destructive-foreground: #ffffff;
   --border: var(--color-border);
-  --input: var(--color-border);
+  --input: var(--mos-surface-container-low);
   --ring: var(--color-primary);
   --radius: var(--radius-md);
 
-  /* Sidebar tokens mapped to MerchantOS teal daylight */
+  /* Sidebar tokens mapped to Stitch surface & primary */
   --sidebar: var(--mos-surface);
   --sidebar-foreground: var(--mos-fg);
   --sidebar-primary: var(--mos-primary);
   --sidebar-primary-foreground: var(--mos-primary-fg);
-  --sidebar-accent: #dce8e6;
-  --sidebar-accent-foreground: var(--mos-fg);
+  --sidebar-accent: var(--mos-surface-container-low);
+  --sidebar-accent-foreground: var(--mos-primary);
   --sidebar-border: var(--mos-border);
   --sidebar-ring: var(--mos-primary);
 }
@@ -93,14 +119,29 @@
 @theme inline {
   --color-bg: var(--mos-bg);
   --color-surface: var(--mos-surface);
+  --color-surface-container-lowest: var(--mos-surface-container-lowest);
+  --color-surface-container-low: var(--mos-surface-container-low);
+  --color-surface-container: var(--mos-surface-container);
+  --color-surface-container-high: var(--mos-surface-container-high);
+  --color-surface-container-highest: var(--mos-surface-container-highest);
+
   --color-fg: var(--mos-fg);
   --color-muted: var(--mos-muted);
   --color-primary: var(--mos-primary);
   --color-primary-fg: var(--mos-primary-fg);
+  --color-primary-container: var(--mos-primary-container);
+  --color-on-primary-container: var(--mos-on-primary-container);
+  --color-secondary: var(--mos-secondary);
+  --color-secondary-fg: var(--mos-secondary-fg);
+  --color-secondary-container: var(--mos-secondary-container);
+  --color-on-secondary-container: var(--mos-on-secondary-container);
+  --color-tertiary: var(--mos-tertiary);
+  --color-tertiary-container: var(--mos-tertiary-container);
   --color-success: var(--mos-success);
   --color-warning: var(--mos-warning);
   --color-danger: var(--mos-danger);
   --color-border: var(--mos-border);
+  --color-border-subtle: var(--mos-border-subtle);
 
   --color-background: var(--mos-bg);
   --color-foreground: var(--mos-fg);
@@ -109,19 +150,19 @@
   --color-popover: var(--mos-surface);
   --color-popover-foreground: var(--mos-fg);
   --color-primary-foreground: var(--mos-primary-fg);
-  --color-secondary: #e2e8ef;
-  --color-secondary-foreground: var(--mos-fg);
-  --color-accent: #dce8e6;
+  --color-secondary-foreground: var(--mos-secondary-fg);
+  --color-accent: var(--mos-surface-container-high);
   --color-accent-foreground: var(--mos-fg);
   --color-muted-foreground: var(--mos-muted);
   --color-destructive: var(--mos-danger);
-  --color-destructive-foreground: #fef7f6;
+  --color-destructive-foreground: #ffffff;
   --color-ring: var(--mos-primary);
-  --color-input: var(--mos-border);
+  --color-input: var(--mos-surface-container-low);
 
   --radius-sm: var(--mos-radius-sm);
   --radius-md: var(--mos-radius-md);
   --radius-lg: var(--mos-radius-lg);
+  --radius-full: var(--mos-radius-full);
 
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);

@@ -337,7 +337,7 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
           merchantId: input.merchantId,
           storeId: input.storeId,
           membershipId: input.membershipId,
-          customerId: input.customerId,
+          customerId: input.customerId ?? input.membershipId,
         },
         idFactory,
         at,

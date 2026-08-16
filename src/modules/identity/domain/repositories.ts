@@ -1,6 +1,12 @@
+import type { Permission } from "../../../rbac/index.js";
 import type { AuthUser } from "./auth-user.js";
 import type { OtpChallenge } from "./otp-challenge.js";
-import type { StaffMembership, StaffStoreScope } from "./staff.js";
+import type {
+  Role,
+  RoleWithPermissions,
+  StaffMembership,
+  StaffStoreScope,
+} from "./staff.js";
 
 /** Domain port — Drizzle adapter deferred (ARD-002 persistence). */
 export type OtpChallengeRepository = {
@@ -20,10 +26,51 @@ export type AuthUserRepository = {
   save(user: AuthUser): Promise<void>;
 };
 
-export type StaffMembershipRepository = {
-  save(membership: StaffMembership, storeScopes: StaffStoreScope[]): Promise<void>;
-  update(membership: StaffMembership, storeScopes: StaffStoreScope[]): Promise<void>;
-  findByMerchantId(merchantId: string): Promise<Array<{ membership: StaffMembership; storeScopes: StaffStoreScope[] }>>;
-  findById(id: string): Promise<{ membership: StaffMembership; storeScopes: StaffStoreScope[] } | null>;
-  findByAuthUserId(authUserId: string): Promise<Array<{ membership: StaffMembership; storeScopes: StaffStoreScope[] }>>;
+export type RoleRepository = {
+  save(role: Role, permissions: Permission[]): Promise<void>;
+  update(role: Role, permissions: Permission[]): Promise<void>;
+  delete(roleId: string, merchantId: string): Promise<void>;
+  findById(id: string): Promise<RoleWithPermissions | null>;
+  findByMerchantId(merchantId: string): Promise<RoleWithPermissions[]>;
+  findAllSystemRoles(): Promise<RoleWithPermissions[]>;
+  findRolesWithPermissions(roleIds: string[]): Promise<RoleWithPermissions[]>;
 };
+
+export type StaffMembershipRepository = {
+  save(
+    membership: StaffMembership,
+    storeScopes: StaffStoreScope[],
+    roleIds?: string[],
+  ): Promise<void>;
+  update(
+    membership: StaffMembership,
+    storeScopes: StaffStoreScope[],
+    roleIds?: string[],
+  ): Promise<void>;
+  findByMerchantId(
+    merchantId: string,
+  ): Promise<
+    Array<{
+      membership: StaffMembership;
+      roleIds: string[];
+      storeScopes: StaffStoreScope[];
+    }>
+  >;
+  findById(
+    id: string,
+  ): Promise<{
+    membership: StaffMembership;
+    roleIds: string[];
+    storeScopes: StaffStoreScope[];
+  } | null>;
+  findByAuthUserId(
+    authUserId: string,
+  ): Promise<
+    Array<{
+      membership: StaffMembership;
+      roleIds: string[];
+      storeScopes: StaffStoreScope[];
+    }>
+  >;
+};
+

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isMerchantSession } from "@/infrastructure/auth/session-guard";
+import { getApiContext } from "@/infrastructure/composition";
 import { PageHeader } from "@/components/composites/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,6 +19,11 @@ export default async function FinancePurchasesPage() {
     redirect("/login?callbackUrl=/finance/purchases");
   }
 
+  const ctx = getApiContext();
+  const merchantId = session.user.merchantId;
+  const payRes = await ctx.erpnext.getPayables({ merchantId });
+  const pay = payRes.payables;
+
   return (
     <div className="flex flex-col gap-6" dir="rtl">
       <PageHeader
@@ -33,24 +39,24 @@ export default async function FinancePurchasesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-            120,000,000 تومان
+            {pay.totalPayable.displayToman}
           </CardContent>
         </Card>
         <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200">
           <CardHeader className="py-3">
             <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-300">
-              خرید کل این ماه
+              تعداد فاکتورهای پرداختنی
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-            420,000,000 تومان
+            {pay.invoices.length} فاکتور
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>فاکتورهای خرید (Purchase Invoices)</CardTitle>
+          <CardTitle>فاکتورهای خرید و بدهی (Purchase Invoices)</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -59,20 +65,34 @@ export default async function FinancePurchasesPage() {
                 <TableHead className="text-right">شماره فاکتور خرید</TableHead>
                 <TableHead className="text-right">تامین‌کننده</TableHead>
                 <TableHead className="text-right">تاریخ ثبت</TableHead>
-                <TableHead className="text-right">مبلغ کل (تومان)</TableHead>
-                <TableHead className="text-right">مانده بدهی (تومان)</TableHead>
+                <TableHead className="text-right">مبلغ کل</TableHead>
+                <TableHead className="text-right">مانده بدهی</TableHead>
                 <TableHead className="text-right">وضعیت</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="font-mono text-xs font-semibold">ACC-PINV-2026-00001</TableCell>
-                <TableCell>شرکت پخش سراسری البرز</TableCell>
-                <TableCell>{new Date().toLocaleDateString("fa-IR")}</TableCell>
-                <TableCell className="font-mono font-semibold">120,000,000</TableCell>
-                <TableCell className="font-mono text-amber-600 font-semibold">120,000,000</TableCell>
-                <TableCell><Badge variant="outline" className="border-amber-500 text-amber-600">پرداخت نشده (Unpaid)</Badge></TableCell>
-              </TableRow>
+              {pay.invoices.length > 0 ? (
+                pay.invoices.map((inv) => (
+                  <TableRow key={inv.invoiceNo}>
+                    <TableCell className="font-mono text-xs font-semibold">{inv.invoiceNo}</TableCell>
+                    <TableCell>{inv.supplier}</TableCell>
+                    <TableCell>{inv.postingDate}</TableCell>
+                    <TableCell className="font-mono font-semibold">{inv.grandTotal.displayToman}</TableCell>
+                    <TableCell className="font-mono text-amber-600 font-semibold">{inv.outstandingAmount.displayToman}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="border-amber-500 text-amber-600">
+                        پرداخت نشده
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                    هیچ فاکتور خرید معوقی یافت نشد
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

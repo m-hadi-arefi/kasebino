@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isMerchantSession } from "@/infrastructure/auth/session-guard";
+import { getApiContext } from "@/infrastructure/composition";
 import { PageHeader } from "@/components/composites/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,6 +19,19 @@ export default async function FinanceSalesPage() {
     redirect("/login?callbackUrl=/finance/sales");
   }
 
+  const ctx = getApiContext();
+  const merchantId = session.user.merchantId;
+
+  const [dashRes, recRes, invRes] = await Promise.all([
+    ctx.erpnext.getFinanceDashboard({ merchantId }),
+    ctx.erpnext.getReceivables({ merchantId }),
+    ctx.erpnext.listFinanceInvoices({ merchantId, limit: 50 }),
+  ]);
+
+  const dash = dashRes.summary;
+  const rec = recRes.receivables;
+  const invoices = invRes.invoices;
+
   return (
     <div className="flex flex-col gap-6" dir="rtl">
       <PageHeader
@@ -33,7 +47,7 @@ export default async function FinanceSalesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-            1,250,000,000 تومان
+            {dash.monthRevenue.displayToman}
           </CardContent>
         </Card>
         <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200">
@@ -43,17 +57,17 @@ export default async function FinanceSalesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-            350,000,000 تومان
+            {rec.totalReceivable.displayToman}
           </CardContent>
         </Card>
         <Card className="bg-amber-50/50 dark:bg-amber-950/20 border-amber-200">
           <CardHeader className="py-3">
             <CardTitle className="text-sm font-medium text-amber-800 dark:text-amber-300">
-              تعداد فاکتورها
+              تعداد فاکتورهای همگام‌شده
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-            42 فاکتور
+            {dash.invoiceCountSynced} فاکتور
           </CardContent>
         </Card>
       </div>
@@ -66,31 +80,45 @@ export default async function FinanceSalesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-right">شماره فاکتور</TableHead>
-                <TableHead className="text-right">نام مشتری</TableHead>
-                <TableHead className="text-right">تاریخ صدور</TableHead>
-                <TableHead className="text-right">مبلغ کل (تومان)</TableHead>
-                <TableHead className="text-right">مانده بدهی (تومان)</TableHead>
-                <TableHead className="text-right">وضعیت</TableHead>
+                <TableHead className="text-right">شناسه / شماره فاکتور</TableHead>
+                <TableHead className="text-right">کانال فروش</TableHead>
+                <TableHead className="text-right">کد ERPNext</TableHead>
+                <TableHead className="text-right">تاریخ ثبت</TableHead>
+                <TableHead className="text-right">وضعیت همگام‌سازی</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="font-mono text-xs font-semibold">ACC-SINV-2026-00001</TableCell>
-                <TableCell>مشتری حضوری (Cash Customer)</TableCell>
-                <TableCell>{new Date().toLocaleDateString("fa-IR")}</TableCell>
-                <TableCell className="font-mono font-semibold">15,000,000</TableCell>
-                <TableCell className="font-mono text-muted-foreground">0</TableCell>
-                <TableCell><Badge variant="default" className="bg-emerald-600">تسویه شده (Paid)</Badge></TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-mono text-xs font-semibold">ACC-SINV-2026-00002</TableCell>
-                <TableCell>شرکت آریا تجارت</TableCell>
-                <TableCell>{new Date().toLocaleDateString("fa-IR")}</TableCell>
-                <TableCell className="font-mono font-semibold">350,000,000</TableCell>
-                <TableCell className="font-mono text-destructive font-semibold">350,000,000</TableCell>
-                <TableCell><Badge variant="outline" className="border-amber-500 text-amber-600">معوق (Unpaid)</Badge></TableCell>
-              </TableRow>
+              {invoices.length > 0 ? (
+                invoices.map((inv) => (
+                  <TableRow key={inv.saleOrOrderId}>
+                    <TableCell className="font-mono text-xs font-semibold">{inv.saleOrOrderId}</TableCell>
+                    <TableCell>{inv.channel === "pos" ? "صندوق حضوری (POS)" : "سفارش آنلاین"}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{inv.externalId ?? "—"}</TableCell>
+                    <TableCell>{inv.occurredAt ? new Date(inv.occurredAt).toLocaleDateString("fa-IR") : "—"}</TableCell>
+                    <TableCell>
+                      {inv.status === "synced" ? (
+                        <Badge variant="default" className="bg-emerald-600">
+                          همگام‌شده
+                        </Badge>
+                      ) : inv.status === "pending" ? (
+                        <Badge variant="outline" className="border-amber-500 text-amber-600">
+                          در حال ارسال
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">
+                          ناموفق
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                    هیچ فاکتور فروشی یافت نشد
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

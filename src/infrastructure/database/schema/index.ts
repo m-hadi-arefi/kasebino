@@ -64,7 +64,10 @@ export {
   customerIdentities,
   customerOtpChallenges,
   merchantOtpChallenges,
+  rolePermissions,
+  roles,
   staffMemberships,
+  staffRoles,
   staffStoreScopes,
 } from "./identity.js";
 export {

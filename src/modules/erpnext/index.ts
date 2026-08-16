@@ -22,9 +22,17 @@ export type {
   ErpNextSyncStatus,
 } from "./domain/sync-record.js";
 export type {
-  FinanceDashboardSummary,
-  FinanceInvoiceRow,
   CustomerFinancialOverview,
+  FinanceAccountNode,
+  FinanceBalanceSheetReport,
+  FinanceDashboardSummary,
+  FinanceGeneralLedgerRow,
+  FinanceInvoiceRow,
+  FinancePayablesSummary,
+  FinanceProfitAndLossReport,
+  FinanceReceivablesSummary,
+  FinanceTrialBalanceReport,
+  FinanceTrialBalanceRow,
 } from "./domain/finance-types.js";
 
 export function resolveFinanceReaderMode(

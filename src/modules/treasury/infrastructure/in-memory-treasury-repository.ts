@@ -2,8 +2,8 @@
  * In-Memory Treasury Repository Implementation (MerchantOS Phase 3).
  */
 
-import { TreasuryRepository } from "../application/treasury-use-cases.js";
-import { BankAccount, CashClosing, CashRegister, FundTransfer } from "../domain/treasury.js";
+import type { TreasuryRepository } from "../application/treasury-use-cases.js";
+import type { BankAccount, CashClosing, CashRegister, FundTransfer } from "../domain/treasury.js";
 
 export class InMemoryTreasuryRepository implements TreasuryRepository {
   private registers = new Map<string, CashRegister>();
@@ -104,8 +104,8 @@ export class InMemoryTreasuryRepository implements TreasuryRepository {
       expectedBalanceMinor,
       actualCountMinor: input.actualCountMinor,
       varianceMinor,
-      varianceReason: input.varianceReason,
-      closedBy: input.closedBy,
+      ...(input.varianceReason !== undefined ? { varianceReason: input.varianceReason } : {}),
+      ...(input.closedBy !== undefined ? { closedBy: input.closedBy } : {}),
       createdAt: new Date(),
     };
 
@@ -149,10 +149,10 @@ export class InMemoryTreasuryRepository implements TreasuryRepository {
       merchantId: input.merchantId,
       accountId: input.accountId,
       bankName: input.bankName,
-      accountNumber: input.accountNumber,
-      iban: input.iban,
-      cardNumber: input.cardNumber,
-      accountHolder: input.accountHolder,
+      ...(input.accountNumber !== undefined ? { accountNumber: input.accountNumber } : {}),
+      ...(input.iban !== undefined ? { iban: input.iban } : {}),
+      ...(input.cardNumber !== undefined ? { cardNumber: input.cardNumber } : {}),
+      ...(input.accountHolder !== undefined ? { accountHolder: input.accountHolder } : {}),
       currentBalanceMinor: 0n,
       isDefault: input.isDefault ?? false,
       isActive: true,
@@ -196,9 +196,9 @@ export class InMemoryTreasuryRepository implements TreasuryRepository {
       toAccountId: input.toAccountId,
       amountMinor: input.amountMinor,
       transferDate: input.transferDate,
-      reference: input.reference,
-      notes: input.notes,
-      createdBy: input.createdBy,
+      ...(input.reference !== undefined ? { reference: input.reference } : {}),
+      ...(input.notes !== undefined ? { notes: input.notes } : {}),
+      ...(input.createdBy !== undefined ? { createdBy: input.createdBy } : {}),
       createdAt: new Date(),
     };
     this.transfers.push(transfer);

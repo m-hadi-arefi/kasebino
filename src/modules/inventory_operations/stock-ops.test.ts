@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   InMemoryStockOperationsRepository,
   ProcessWasteUseCase,
-} from "./index.ts";
+} from "./index.js";
 
 describe("Inventory Operations (Stock Counting, Waste & Transfers)", () => {
   it("creates and completes physical stock count calculating expected vs actual variance", async () => {
@@ -33,8 +33,8 @@ describe("Inventory Operations (Stock Counting, Waste & Transfers)", () => {
     });
 
     expect(completed.status).toBe("completed");
-    expect(completed.items[0].variance).toBe(-5); // 95 - 100
-    expect(completed.items[1].variance).toBe(2); // 52 - 50
+    expect(completed.items[0]?.variance).toBe(-5); // 95 - 100
+    expect(completed.items[1]?.variance).toBe(2); // 52 - 50
   });
 
   it("records inventory waste/shrinkage with financial value calculation", async () => {

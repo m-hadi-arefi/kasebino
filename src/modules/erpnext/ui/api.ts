@@ -5,8 +5,15 @@
 
 import type {
   CustomerFinancialOverview,
+  FinanceAccountNode,
+  FinanceBalanceSheetReport,
   FinanceDashboardSummary,
+  FinanceGeneralLedgerRow,
   FinanceInvoiceRow,
+  FinancePayablesSummary,
+  FinanceProfitAndLossReport,
+  FinanceReceivablesSummary,
+  FinanceTrialBalanceReport,
 } from "../domain/finance-types.js";
 import type { ErpNextSyncRecord } from "../domain/sync-record.js";
 
@@ -31,7 +38,7 @@ async function parseJson<T>(res: Response): Promise<T> {
 export async function fetchFinanceDashboard(): Promise<{
   summary: FinanceDashboardSummary;
 }> {
-  const res = await fetch("/api/v1/erpnext/finance/dashboard", {
+  const res = await fetch("/api/v1/accounting?action=dashboard", {
     credentials: "same-origin",
   });
   return parseJson(res);
@@ -84,5 +91,91 @@ export async function fetchCustomerFinancialOverview(
     `/api/v1/erpnext/finance/customers/${encodeURIComponent(customerId)}`,
     { credentials: "same-origin" },
   );
+  return parseJson(res);
+}
+
+export async function fetchChartOfAccounts(): Promise<{
+  accounts: FinanceAccountNode[];
+}> {
+  const res = await fetch("/api/v1/accounting?action=chart-of-accounts", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchGeneralLedger(params?: {
+  account?: string;
+  fromDate?: string;
+  toDate?: string;
+}): Promise<{
+  entries: FinanceGeneralLedgerRow[];
+}> {
+  const q = new URLSearchParams();
+  q.set("action", "general-ledger");
+  if (params?.account) q.set("account", params.account);
+  if (params?.fromDate) q.set("fromDate", params.fromDate);
+  if (params?.toDate) q.set("toDate", params.toDate);
+  const res = await fetch(`/api/v1/accounting?${q.toString()}`, {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchProfitAndLoss(): Promise<{
+  report: FinanceProfitAndLossReport;
+}> {
+  const res = await fetch("/api/v1/accounting?action=reports/profit-and-loss", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchBalanceSheet(): Promise<{
+  report: FinanceBalanceSheetReport;
+}> {
+  const res = await fetch("/api/v1/accounting?action=reports/balance-sheet", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchTrialBalance(): Promise<{
+  report: FinanceTrialBalanceReport;
+}> {
+  const res = await fetch("/api/v1/accounting?action=reports/trial-balance", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchPayables(): Promise<{
+  payables: FinancePayablesSummary;
+}> {
+  const res = await fetch("/api/v1/accounting?action=payables", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchReceivables(): Promise<{
+  receivables: FinanceReceivablesSummary;
+}> {
+  const res = await fetch("/api/v1/accounting?action=receivables", {
+    credentials: "same-origin",
+  });
+  return parseJson(res);
+}
+
+export async function fetchIntegrityCheck(): Promise<{
+  status: string;
+  syncHealthPercent: number;
+  pendingEvents: number;
+  failedEvents: number;
+  mismatches: Array<{ entityType: string; entityId: string; reason: string }>;
+  lastCheckedAt: string;
+}> {
+  const res = await fetch("/api/v1/accounting?action=integrity", {
+    credentials: "same-origin",
+  });
   return parseJson(res);
 }

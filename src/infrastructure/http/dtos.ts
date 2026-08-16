@@ -379,3 +379,49 @@ export function walletDto(wallet: Wallet) {
     updatedAt: wallet.updatedAt.toISOString(),
   };
 }
+
+export function subscriptionSummaryDto(summary: {
+  subscription: {
+    id: string;
+    merchantId: string;
+    planCode: string;
+    feeBps: number;
+    startsAt: Date;
+    expiresAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  planNameFa: string;
+  featureFlags: Record<string, boolean>;
+  feeBps: number;
+}) {
+  return {
+    id: summary.subscription.id,
+    merchantId: summary.subscription.merchantId,
+    planCode: summary.subscription.planCode,
+    planNameFa: summary.planNameFa,
+    feeBps: summary.feeBps,
+    feePercent: (summary.feeBps / 100).toFixed(2),
+    featureFlags: summary.featureFlags,
+    startsAt: summary.subscription.startsAt.toISOString(),
+    expiresAt: iso(summary.subscription.expiresAt),
+    createdAt: summary.subscription.createdAt.toISOString(),
+    updatedAt: summary.subscription.updatedAt.toISOString(),
+  };
+}
+
+export function creditBalanceDto(balance: {
+  merchantId: string;
+  balanceMinor: bigint;
+  balanceToman: bigint;
+  formattedToman: string;
+  entriesCount: number;
+}) {
+  return {
+    merchantId: balance.merchantId,
+    balanceMinor: balance.balanceMinor.toString(),
+    balanceToman: balance.balanceToman.toString(),
+    formattedToman: balance.formattedToman,
+    entriesCount: balance.entriesCount,
+  };
+}

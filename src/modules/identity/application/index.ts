@@ -43,4 +43,13 @@ export {
   type UpdateStaffInput,
   type DeactivateStaffInput,
 } from "./staff-use-cases.js";
+export {
+  createRoleUseCases,
+  type RoleUseCaseDeps,
+  type RoleUseCases,
+  type CreateCustomRoleInput,
+  type UpdateCustomRoleInput,
+  type DeleteCustomRoleInput,
+} from "./role-use-cases.js";
 export type { SmsMessage, SmsPort } from "./ports/sms-port.js";
+

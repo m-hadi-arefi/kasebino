@@ -3,7 +3,7 @@
  */
 
 import type { Customer, CustomerStatus, CustomerType } from "./customer.js";
-import type { CustomerNote } from "./notes.ts";
+import type { CustomerNote } from "./notes.js";
 import type { CrmTag, CustomerTagRelation } from "./tags.js";
 import type {
   CustomerFollowUp,

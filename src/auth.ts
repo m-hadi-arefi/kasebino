@@ -12,6 +12,8 @@ import { bootstrapCustomerStoreSession } from "./infrastructure/auth/customer-se
 import { getOtpRuntime } from "./infrastructure/auth/otp-runtime.js";
 import { getApiContext } from "./infrastructure/composition/index.js";
 
+import { ROLE_PERMISSION_MATRIX } from "./rbac/index.js";
+
 const runtime = () => getOtpRuntime();
 
 const appConfig = createAppAuthConfig({
@@ -26,6 +28,7 @@ const appConfig = createAppAuthConfig({
         return {
           merchantId: merchant.id,
           roles: ["merchant_owner"],
+          permissions: [...ROLE_PERMISSION_MATRIX.merchant_owner],
           storeIds: [],
         };
       }
@@ -36,15 +39,21 @@ const appConfig = createAppAuthConfig({
       if (staffMemberships.length > 0) {
         const active = staffMemberships.find((m) => m.membership.status === "active") ?? staffMemberships[0];
         if (active && active.membership.status === "active") {
+          const roleIds = active.roleIds && active.roleIds.length > 0
+            ? active.roleIds
+            : [active.membership.role];
+          const effectivePermissions = await api.roles.resolveEffectivePermissions(roleIds);
+
           return {
             merchantId: active.membership.merchantId,
-            roles: [active.membership.role],
+            roles: roleIds,
+            permissions: Array.from(effectivePermissions),
             storeIds: active.storeScopes.map((s) => s.storeId),
           };
         }
       }
 
-      return { merchantId: null, roles: [], storeIds: [] };
+      return { merchantId: null, roles: [], permissions: [], storeIds: [] };
     },
     nodeEnv: process.env.NODE_ENV,
   },

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { AuthSessionSnapshot } from "../../auth/session-guard.js";
 import type { ApiContext } from "../../composition/create-api-context.js";
-import { merchantDto } from "../dtos.js";
+import { merchantDto, subscriptionSummaryDto } from "../dtos.js";
 import { runUseCase } from "../domain-error.js";
 import {
   correlationIdFrom,
@@ -227,7 +227,7 @@ export async function handleAdminListAudit(
     })) as unknown as Array<Record<string, unknown>>;
   }
 
-  return ok({
+    return ok({
     actions: actions.map((a) => ({
       id: a.id,
       adminUserId: a.adminUserId,
@@ -243,4 +243,67 @@ export async function handleAdminListAudit(
     })),
     audit: auditDocs,
   });
+}
+
+const assignPlanSchema = z.object({
+  planCode: z.enum(["pilot", "free", "pro", "enterprise"]),
+  feeBps: z.number().int().min(0).max(10000).optional(),
+  features: z
+    .array(
+      z.enum([
+        "advanced_analytics",
+        "sms_campaigns",
+        "multi_store",
+        "loyalty_advanced",
+        "custom_receipts",
+        "accounting_sync",
+        "inventory_valuation",
+      ]),
+    )
+    .optional(),
+  expiresAt: z.string().datetime().nullable().optional(),
+});
+
+export async function handleAdminAssignMerchantPlan(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+  merchantId: string,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "PATCH") {
+    return methodNotAllowed(correlationId, "PATCH");
+  }
+  const admin = requireAdminPermission(session, correlationId, {
+    resourceMerchantId: merchantId,
+  });
+  if (!admin.ok) return admin.result;
+  const limited = await enforceAdminRateLimit({
+    request,
+    ctx,
+    correlationId,
+    adminUserId: admin.actor.userId,
+  });
+  if (limited) return limited;
+
+  const parsed = await parseBody(request, assignPlanSchema, correlationId);
+  if (!parsed.ok) return parsed.result;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.subscriptions.assignMerchantPlan({
+      merchantId,
+      planCode: parsed.data.planCode,
+      ...(parsed.data.feeBps !== undefined ? { feeBps: parsed.data.feeBps } : {}),
+      ...(parsed.data.features !== undefined ? { features: parsed.data.features } : {}),
+      ...(parsed.data.expiresAt !== undefined
+        ? {
+            expiresAt: parsed.data.expiresAt
+              ? new Date(parsed.data.expiresAt)
+              : null,
+          }
+        : {}),
+    }),
+  );
+  if (!ran.ok) return ran.result;
+  return ok({ subscription: subscriptionSummaryDto(ran.data) });
 }

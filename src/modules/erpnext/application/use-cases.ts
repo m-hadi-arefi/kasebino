@@ -87,6 +87,51 @@ export function createErpNextUseCases(deps: ErpNextModuleDeps) {
       });
       return { invoices: rows };
     },
+
+    async getChartOfAccounts(input: { merchantId: string }) {
+      const accounts = await deps.financeReader.getChartOfAccounts(input);
+      return { accounts };
+    },
+
+    async getGeneralLedger(input: {
+      merchantId: string;
+      filters?: {
+        account?: string | undefined;
+        fromDate?: string | undefined;
+        toDate?: string | undefined;
+        party?: string | undefined;
+        voucherNo?: string | undefined;
+        limit?: number | undefined;
+      } | undefined;
+    }) {
+      const entries = await deps.financeReader.getGeneralLedger(input);
+      return { entries };
+    },
+
+    async getProfitAndLoss(input: { merchantId: string }) {
+      const report = await deps.financeReader.getProfitAndLoss(input);
+      return { report };
+    },
+
+    async getBalanceSheet(input: { merchantId: string }) {
+      const report = await deps.financeReader.getBalanceSheet(input);
+      return { report };
+    },
+
+    async getTrialBalance(input: { merchantId: string }) {
+      const report = await deps.financeReader.getTrialBalance(input);
+      return { report };
+    },
+
+    async getPayables(input: { merchantId: string }) {
+      const payables = await deps.financeReader.getPayables(input);
+      return { payables };
+    },
+
+    async getReceivables(input: { merchantId: string }) {
+      const receivables = await deps.financeReader.getReceivables(input);
+      return { receivables };
+    },
   };
 }
 

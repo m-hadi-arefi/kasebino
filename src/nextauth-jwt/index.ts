@@ -53,6 +53,7 @@ export type MerchantJwtClaims = {
   sub: string;
   merchantId: string | null;
   roles: readonly string[];
+  permissions?: readonly string[] | undefined;
   storeIds: readonly string[];
   tokenVersion: number;
 };
@@ -250,9 +251,10 @@ export function assertAuthSecretEnvKey(envKey: string): void {
 export function buildMerchantJwtClaims(input: {
   authUserId: string;
   tokenVersion: number;
-  merchantId?: string | null;
-  roles?: readonly string[];
-  storeIds?: readonly string[];
+  merchantId?: string | null | undefined;
+  roles?: readonly string[] | undefined;
+  permissions?: readonly string[] | undefined;
+  storeIds?: readonly string[] | undefined;
 }): MerchantJwtClaims {
   const claims: MerchantJwtClaims = {
     sub: input.authUserId,
@@ -261,6 +263,9 @@ export function buildMerchantJwtClaims(input: {
     storeIds: input.storeIds ?? [],
     tokenVersion: input.tokenVersion,
   };
+  if (input.permissions !== undefined) {
+    claims.permissions = input.permissions;
+  }
   assertRequiredJwtClaims(claims);
   return claims;
 }

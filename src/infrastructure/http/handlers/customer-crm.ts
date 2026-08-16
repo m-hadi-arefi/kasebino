@@ -108,9 +108,9 @@ export async function handleListCustomers(
   const ran = await runUseCase(correlationId, () =>
     ctx.customerCrm.listCustomers({
       merchantId: auth.actor.merchantId,
-      search,
-      status,
-      customerType,
+      ...(search ? { search } : {}),
+      ...(status ? { status } : {}),
+      ...(customerType ? { customerType } : {}),
       limit,
       offset,
     }),
@@ -142,7 +142,16 @@ export async function handleCreateCustomer(
   const ran = await runUseCase(correlationId, () =>
     ctx.customerCrm.createCustomer({
       merchantId: auth.actor.merchantId,
-      ...parsed.data,
+      phone: parsed.data.phone,
+      displayName: parsed.data.displayName,
+      ...(parsed.data.storeId !== undefined ? { storeId: parsed.data.storeId } : {}),
+      ...(parsed.data.email !== undefined ? { email: parsed.data.email } : {}),
+      ...(parsed.data.address !== undefined ? { address: parsed.data.address } : {}),
+      ...(parsed.data.city !== undefined ? { city: parsed.data.city } : {}),
+      ...(parsed.data.postalCode !== undefined ? { postalCode: parsed.data.postalCode } : {}),
+      ...(parsed.data.customerType !== undefined ? { customerType: parsed.data.customerType } : {}),
+      ...(parsed.data.preferredContactMethod !== undefined ? { preferredContactMethod: parsed.data.preferredContactMethod } : {}),
+      ...(parsed.data.notes !== undefined ? { notes: parsed.data.notes } : {}),
     }),
   );
   if (!ran.ok) return ran.result;
@@ -199,7 +208,15 @@ export async function handleUpdateCustomer(
     ctx.customerCrm.updateCustomer({
       merchantId: auth.actor.merchantId,
       customerId,
-      ...parsed.data,
+      ...(parsed.data.displayName !== undefined ? { displayName: parsed.data.displayName } : {}),
+      ...(parsed.data.email !== undefined ? { email: parsed.data.email } : {}),
+      ...(parsed.data.address !== undefined ? { address: parsed.data.address } : {}),
+      ...(parsed.data.city !== undefined ? { city: parsed.data.city } : {}),
+      ...(parsed.data.postalCode !== undefined ? { postalCode: parsed.data.postalCode } : {}),
+      ...(parsed.data.customerType !== undefined ? { customerType: parsed.data.customerType } : {}),
+      ...(parsed.data.status !== undefined ? { status: parsed.data.status } : {}),
+      ...(parsed.data.preferredContactMethod !== undefined ? { preferredContactMethod: parsed.data.preferredContactMethod } : {}),
+      ...(parsed.data.notes !== undefined ? { notes: parsed.data.notes } : {}),
     }),
   );
   if (!ran.ok) return ran.result;
@@ -284,7 +301,7 @@ export async function handleAddCustomerNote(
       authorId: auth.actor.userId,
       authorName: (session?.user as Record<string, unknown> | undefined)?.name as string ?? "کاربر سیستم",
       content: parsed.data.content,
-      isPrivate: parsed.data.isPrivate,
+      ...(parsed.data.isPrivate !== undefined ? { isPrivate: parsed.data.isPrivate } : {}),
     }),
   );
   if (!ran.ok) return ran.result;
@@ -313,10 +330,34 @@ export async function handleDeleteCustomerNote(
     ctx.customerCrm.deleteNote(noteId, auth.actor.merchantId),
   );
   if (!ran.ok) return ran.result;
-  return ok({ success: true });
+  return ok({ deleted: true });
 }
 
-export async function handleAssignCustomerTag(
+export async function handleListCrmTags(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "GET") {
+    return methodNotAllowed(correlationId, "GET");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "crm.read" },
+  );
+  if (!auth.ok) return auth.result;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.customerCrm.listTags(auth.actor.merchantId),
+  );
+  if (!ran.ok) return ran.result;
+  return ok({ tags: ran.data });
+}
+
+export async function handleAssignCrmTag(
   request: HttpRequestLike,
   ctx: ApiContext,
   session: AuthSessionSnapshot,
@@ -345,10 +386,10 @@ export async function handleAssignCustomerTag(
     }),
   );
   if (!ran.ok) return ran.result;
-  return ok({ success: true });
+  return ok({ assigned: true });
 }
 
-export async function handleRemoveCustomerTag(
+export async function handleRemoveCrmTag(
   request: HttpRequestLike,
   ctx: ApiContext,
   session: AuthSessionSnapshot,
@@ -375,7 +416,7 @@ export async function handleRemoveCustomerTag(
     }),
   );
   if (!ran.ok) return ran.result;
-  return ok({ success: true });
+  return ok({ removed: true });
 }
 
 export async function handleCreateCrmTag(
@@ -402,7 +443,7 @@ export async function handleCreateCrmTag(
     ctx.customerCrm.createTag({
       merchantId: auth.actor.merchantId,
       name: parsed.data.name,
-      color: parsed.data.color,
+      ...(parsed.data.color !== undefined ? { color: parsed.data.color } : {}),
     }),
   );
   if (!ran.ok) return ran.result;
@@ -434,7 +475,7 @@ export async function handleLogCustomerInteraction(
     ctx.customerCrm.logInteraction({
       merchantId: auth.actor.merchantId,
       customerId,
-      storeId: parsed.data.storeId,
+      ...(parsed.data.storeId !== undefined ? { storeId: parsed.data.storeId } : {}),
       staffId: auth.actor.userId,
       staffName: (session?.user as Record<string, unknown> | undefined)?.name as string ?? "کاربر سیستم",
       type: parsed.data.type,
@@ -472,7 +513,7 @@ export async function handleCreateFollowUp(
     ctx.customerCrm.createFollowUp({
       merchantId: auth.actor.merchantId,
       customerId: parsed.data.customerId,
-      storeId: parsed.data.storeId,
+      ...(parsed.data.storeId !== undefined ? { storeId: parsed.data.storeId } : {}),
       assigneeId: parsed.data.assigneeId,
       assigneeName: parsed.data.assigneeName,
       description: parsed.data.description,

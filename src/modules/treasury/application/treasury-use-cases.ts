@@ -2,7 +2,7 @@
  * Treasury Application Use-Cases (MerchantOS Phase 3).
  */
 
-import {
+import type {
   BankAccount,
   CashClosing,
   CashRegister,

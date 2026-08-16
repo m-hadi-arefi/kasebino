@@ -229,8 +229,8 @@ export class ErpNextProvisioningService {
         storeWarehouses,
         status: "READY",
       };
-    } catch (err: any) {
-      const errorMessageFa = `خطا در ایجاد شرکت مالی در ERPNext: ${err?.message || "خطای ناشناخته"}`;
+    } catch (err: unknown) {
+      const errorMessageFa = `خطا در ایجاد شرکت مالی در ERPNext: ${err instanceof Error ? err.message : "خطای ناشناخته"}`;
 
       await this.persistence.saveTenantIntegration({
         merchantId: input.merchantId,

@@ -1,13 +1,21 @@
 import { randomUUID } from "node:crypto";
 import type { CanonicalRole } from "../../../rbac/index.js";
 import { normalizeIranianMobile } from "../domain/iranian-phone.js";
-import type { AuthUserRepository, StaffMembershipRepository } from "../domain/repositories.js";
-import type { StaffMembership, StaffStoreScope } from "../domain/staff.js";
+import type {
+  AuthUserRepository,
+  RoleRepository,
+  StaffMembershipRepository,
+} from "../domain/repositories.js";
+import type {
+  StaffMembership,
+  StaffStoreScope,
+} from "../domain/staff.js";
 import { createAuthUser } from "../domain/auth-user.js";
 
 export type StaffUseCaseDeps = {
   staffMemberships: StaffMembershipRepository;
   authUsers: AuthUserRepository;
+  roles?: RoleRepository;
   now?: () => Date;
   idFactory?: () => string;
 };
@@ -15,14 +23,16 @@ export type StaffUseCaseDeps = {
 export type InviteStaffInput = {
   merchantId: string;
   phone: string;
-  role: CanonicalRole;
+  role?: CanonicalRole | string;
+  roleIds?: string[];
   storeIds: string[];
 };
 
 export type UpdateStaffInput = {
   merchantId: string;
   staffMembershipId: string;
-  role: CanonicalRole;
+  role?: CanonicalRole | string;
+  roleIds?: string[];
   storeIds: string[];
 };
 
@@ -43,6 +53,11 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
     const phone = phoneResult.phone;
     const at = now();
 
+    const resolvedRoleIds = input.roleIds && input.roleIds.length > 0
+      ? input.roleIds
+      : input.role ? [input.role] : ["store_employee"];
+    const primaryRole = (input.role ?? resolvedRoleIds[0] ?? "store_employee") as CanonicalRole;
+
     let user = await deps.authUsers.findByPhoneE164(phone.e164);
     if (!user) {
       user = createAuthUser({
@@ -56,7 +71,7 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
 
     // Check if membership already exists
     const existing = await deps.staffMemberships.findByAuthUserId(user.id);
-    const merchantMembership = existing.find(e => e.membership.merchantId === input.merchantId);
+    const merchantMembership = existing.find(e => e.membership.merchantId === input.merchantId && !e.membership.deletedAt);
     
     if (merchantMembership) {
       throw new Error("STAFF_ALREADY_EXISTS");
@@ -66,7 +81,7 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
       id: idFactory(),
       merchantId: input.merchantId,
       authUserId: user.id,
-      role: input.role,
+      role: primaryRole,
       status: "pending",
       createdAt: at,
       updatedAt: at,
@@ -79,12 +94,16 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
       createdAt: at,
     }));
 
-    await deps.staffMemberships.save(membership, scopes);
+    await deps.staffMemberships.save(membership, scopes, resolvedRoleIds);
     return membership;
   }
 
   async function listStaff(merchantId: string) {
     return deps.staffMemberships.findByMerchantId(merchantId);
+  }
+
+  async function getStaffMember(id: string) {
+    return deps.staffMemberships.findById(id);
   }
 
   async function updateStaff(input: UpdateStaffInput): Promise<void> {
@@ -95,9 +114,14 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
       throw new Error("STAFF_NOT_FOUND");
     }
 
+    const resolvedRoleIds = input.roleIds && input.roleIds.length > 0
+      ? input.roleIds
+      : input.role ? [input.role] : existing.roleIds;
+    const primaryRole = (input.role ?? resolvedRoleIds[0] ?? existing.membership.role) as CanonicalRole;
+
     const updatedMembership: StaffMembership = {
       ...existing.membership,
-      role: input.role,
+      role: primaryRole,
       updatedAt: at,
     };
 
@@ -107,7 +131,7 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
       createdAt: at,
     }));
 
-    await deps.staffMemberships.update(updatedMembership, scopes);
+    await deps.staffMemberships.update(updatedMembership, scopes, resolvedRoleIds);
   }
 
   async function deactivateStaff(input: DeactivateStaffInput): Promise<void> {
@@ -124,10 +148,11 @@ export function createStaffUseCases(deps: StaffUseCaseDeps) {
       updatedAt: at,
     };
 
-    await deps.staffMemberships.update(updatedMembership, existing.storeScopes);
+    await deps.staffMemberships.update(updatedMembership, existing.storeScopes, existing.roleIds);
   }
 
-  return { inviteStaff, listStaff, updateStaff, deactivateStaff };
+  return { inviteStaff, listStaff, getStaffMember, updateStaff, deactivateStaff };
 }
 
 export type StaffUseCases = ReturnType<typeof createStaffUseCases>;
+

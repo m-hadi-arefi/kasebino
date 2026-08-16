@@ -3,11 +3,16 @@
  */
 
 import type {
+  RecordExpenseInput,
   RecordInventoryAdjustmentInput,
   RecordPaymentInput,
+  RecordPurchaseInput,
+  RecordReturnInput,
   RecordSaleInput,
+  RecordTransferInput,
   SyncCustomerInput,
   SyncProductInput,
+  SyncSupplierInput,
 } from "../../../application/ports/accounting-provider.js";
 import type { ErpNextProviderConfig } from "./erpnext-config.js";
 import { minorToErpRate, mosEventMarker } from "./erpnext-client.js";
@@ -194,5 +199,176 @@ export function projectStockEntryDoc(
     posting_date: input.occurredAt.slice(0, 10),
     remarks: `${mosEventMarker(input.eventId)} reason=${input.reason}`,
     items: [row],
+  };
+}
+
+export function projectSupplierDoc(
+  input: SyncSupplierInput,
+  config: ErpNextProviderConfig,
+): Record<string, unknown> {
+  const supplierName = input.name.trim();
+  return {
+    doctype: "Supplier",
+    supplier_name: supplierName,
+    supplier_group: input.supplierGroup || config.customerGroup || "All Supplier Groups",
+    supplier_type: "Company",
+    mobile_no: input.phone ?? undefined,
+    tax_id: input.taxId ?? undefined,
+    supplier_details: `${supplierName} ${mosEventMarker(input.eventId)}`,
+  };
+}
+
+export function projectPurchaseInvoiceDoc(
+  input: RecordPurchaseInput,
+  config: ErpNextProviderConfig,
+  resolved: {
+    supplierName: string;
+    itemCodesByProductId: ReadonlyMap<string, string>;
+  },
+): Record<string, unknown> {
+  const items = input.lines.map((line, idx) => {
+    const itemCode =
+      line.itemCode ||
+      resolved.itemCodesByProductId.get(line.productId) ||
+      line.productId;
+    const row: Record<string, unknown> = {
+      item_code: itemCode,
+      qty: line.quantity,
+      rate: minorToErpRate(line.unitCostMinor),
+      uom: mapUnitCodeToStockUom(line.unitCode ?? "piece"),
+      warehouse: config.warehouse,
+      idx: idx + 1,
+    };
+    if (config.costCenter) {
+      row.cost_center = config.costCenter;
+    }
+    return row;
+  });
+
+  return {
+    doctype: "Purchase Invoice",
+    company: config.company,
+    supplier: resolved.supplierName,
+    posting_date: input.postingDate.slice(0, 10),
+    due_date: input.dueDate ? input.dueDate.slice(0, 10) : input.postingDate.slice(0, 10),
+    currency: input.currency || config.currency,
+    update_stock: 1,
+    bill_no: input.invoiceNumber || input.purchaseId,
+    bill_date: input.postingDate.slice(0, 10),
+    items,
+    remarks: `${mosEventMarker(input.eventId)} purchaseId=${input.purchaseId}`,
+  };
+}
+
+export function projectReturnInvoiceDoc(
+  input: RecordReturnInput,
+  config: ErpNextProviderConfig,
+  resolved: {
+    customerName: string;
+    originalInvoiceName?: string | null;
+    itemCodesByProductId: ReadonlyMap<string, string>;
+  },
+): Record<string, unknown> {
+  const items = input.lines.map((line, idx) => {
+    const itemCode =
+      line.itemCode ||
+      resolved.itemCodesByProductId.get(line.productId) ||
+      line.productId;
+    const row: Record<string, unknown> = {
+      item_code: itemCode,
+      qty: -Math.abs(line.quantity), // Negative qty for ERPNext return
+      rate: minorToErpRate(line.unitPriceMinor),
+      uom: mapUnitCodeToStockUom(line.unitCode ?? "piece"),
+      warehouse: config.warehouse,
+      idx: idx + 1,
+    };
+    if (config.incomeAccount) {
+      row.income_account = config.incomeAccount;
+    }
+    if (config.costCenter) {
+      row.cost_center = config.costCenter;
+    }
+    return row;
+  });
+
+  return {
+    doctype: "Sales Invoice",
+    company: config.company,
+    customer: resolved.customerName,
+    posting_date: input.occurredAt.slice(0, 10),
+    currency: input.currency || config.currency,
+    is_return: 1,
+    return_against: resolved.originalInvoiceName || undefined,
+    update_stock: 1, // Reverse inventory!
+    items,
+    remarks: `${mosEventMarker(input.eventId)} returnId=${input.returnId} reason=${input.reason || "Return"}`,
+  };
+}
+
+export function projectExpenseJournalEntryDoc(
+  input: RecordExpenseInput,
+  config: ErpNextProviderConfig,
+  resolved: {
+    expenseAccount: string;
+    paidFromAccount: string;
+  },
+): Record<string, unknown> {
+  const amount = minorToErpRate(input.amountMinor);
+  return {
+    doctype: "Journal Entry",
+    voucher_type: "Expense Entry",
+    company: config.company,
+    posting_date: input.expenseDate.slice(0, 10),
+    user_remark: `${mosEventMarker(input.eventId)} expenseId=${input.expenseId} ${input.description || ""}`,
+    accounts: [
+      {
+        account: resolved.expenseAccount,
+        debit_in_account_currency: amount,
+        credit_in_account_currency: 0,
+        cost_center: config.costCenter ?? undefined,
+      },
+      {
+        account: resolved.paidFromAccount,
+        debit_in_account_currency: 0,
+        credit_in_account_currency: amount,
+        cost_center: config.costCenter ?? undefined,
+      },
+    ],
+  };
+}
+
+export function projectStockTransferDoc(
+  input: RecordTransferInput,
+  config: ErpNextProviderConfig,
+  resolved: {
+    fromWarehouse: string;
+    toWarehouse: string;
+    itemCodesByProductId: ReadonlyMap<string, string>;
+  },
+): Record<string, unknown> {
+  const items = input.lines.map((line) => {
+    const itemCode =
+      line.itemCode ||
+      resolved.itemCodesByProductId.get(line.productId) ||
+      line.productId;
+    const qty = line.quantity;
+    return {
+      item_code: itemCode,
+      qty,
+      transfer_qty: qty,
+      conversion_factor: 1,
+      uom: mapUnitCodeToStockUom(line.unitCode ?? "piece"),
+      s_warehouse: resolved.fromWarehouse,
+      t_warehouse: resolved.toWarehouse,
+    };
+  });
+
+  return {
+    doctype: "Stock Entry",
+    company: config.company,
+    stock_entry_type: "Material Transfer",
+    posting_date: input.occurredAt.slice(0, 10),
+    remarks: `${mosEventMarker(input.eventId)} transferId=${input.transferId} from=${input.fromStoreId} to=${input.toStoreId}`,
+    items,
   };
 }

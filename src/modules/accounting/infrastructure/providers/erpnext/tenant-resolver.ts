@@ -10,13 +10,15 @@ export type TenantContext = {
   merchantId: string;
   erpnextSiteUrl: string;
   erpnextCompany: string;
-  companyAbbr: string;
+  companyAbbr?: string | undefined;
   defaultWarehouse: string;
-  storeWarehouse?: string;
+  storeWarehouse?: string | undefined;
   apiKey: string;
   apiSecret: string;
-  provisioningStatus: string;
-  connectionStatus: string;
+  provisioningStatus?: string | undefined;
+  connectionStatus?: string | undefined;
+  currency?: string | undefined;
+  costCenter?: string | null | undefined;
 };
 
 export interface TenantIntegrationRepository {

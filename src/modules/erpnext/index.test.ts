@@ -159,4 +159,37 @@ describe("ADR-141 ERPNext capability foundation", () => {
     expect(row?.status).toBe("failed");
     expect(row?.errorMessageFa).toContain("قبلاً");
   });
+
+  it("queries Chart of Accounts, General Ledger, P&L, Balance Sheet, Trial Balance, Payables, Receivables", async () => {
+    const syncRecords = new InMemoryErpNextSyncRecordRepository();
+    const useCases = createErpNextUseCases({
+      financeReader: new FakeFinanceReader({ syncRecords }),
+      syncRecords,
+    });
+    const merchantId = "11111111-1111-1111-1111-111111111111";
+
+    const coa = await useCases.getChartOfAccounts({ merchantId });
+    expect(coa.accounts.length).toBeGreaterThan(0);
+    expect(coa.accounts[0]?.accountName).toBeDefined();
+
+    const gl = await useCases.getGeneralLedger({ merchantId });
+    expect(gl.entries.length).toBeGreaterThan(0);
+    expect(gl.entries[0]?.voucherType).toBe("Sales Invoice");
+
+    const pnl = await useCases.getProfitAndLoss({ merchantId });
+    expect(pnl.report.source).toBe("fake");
+    expect(pnl.report.totalIncome.amountMinor).toBe("80000000");
+
+    const bs = await useCases.getBalanceSheet({ merchantId });
+    expect(bs.report.totalAsset.amountMinor).toBe("50000000");
+
+    const tb = await useCases.getTrialBalance({ merchantId });
+    expect(tb.report.rows.length).toBeGreaterThan(0);
+
+    const pay = await useCases.getPayables({ merchantId });
+    expect(pay.payables.totalPayable.amountMinor).toBe("0");
+
+    const rec = await useCases.getReceivables({ merchantId });
+    expect(rec.receivables.totalReceivable.amountMinor).toBe("0");
+  });
 });

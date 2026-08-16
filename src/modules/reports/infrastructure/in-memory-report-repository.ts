@@ -2,8 +2,8 @@
  * In-Memory Report Repository Implementation (MerchantOS Phase 8).
  */
 
-import { ReportRepository } from "../application/report-use-cases.js";
-import {
+import type { ReportRepository } from "../application/report-use-cases.js";
+import type {
   DebtAgingReport,
   InventoryValuationReport,
   ProfitSummaryReport,
@@ -15,6 +15,7 @@ export class InMemoryReportRepository implements ReportRepository {
     startDate: string,
     endDate: string,
   ): Promise<ProfitSummaryReport> {
+    void _merchantId;
     const totalRevenueMinor = 150000000n; // 15,000,000 IRR
     const totalCogsMinor = 90000000n; // 9,000,000 IRR
     const grossProfitMinor = totalRevenueMinor - totalCogsMinor; // 6,000,000 IRR
@@ -36,6 +37,8 @@ export class InMemoryReportRepository implements ReportRepository {
     _merchantId: string,
     _storeId?: string,
   ): Promise<InventoryValuationReport> {
+    void _merchantId;
+    void _storeId;
     return {
       totalProductsCount: 45,
       totalQuantity: 320,
@@ -44,6 +47,7 @@ export class InMemoryReportRepository implements ReportRepository {
   }
 
   async getDebtAging(_merchantId: string): Promise<DebtAgingReport> {
+    void _merchantId;
     return {
       customerReceivables: {
         current0To30Minor: 12000000n,

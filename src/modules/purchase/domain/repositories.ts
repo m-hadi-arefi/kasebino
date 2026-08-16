@@ -2,7 +2,7 @@
  * Purchase Repository Interface (MerchantOS Phase 2).
  */
 
-import { CreatePurchaseInput, Purchase, PurchaseId, PurchasePayment } from "./purchase.js";
+import type { CreatePurchaseInput, Purchase, PurchaseId, PurchasePayment } from "./purchase.js";
 
 export type ListPurchasesFilter = {
   readonly merchantId: string;

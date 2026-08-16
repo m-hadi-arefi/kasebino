@@ -23,6 +23,7 @@ import { DrizzleStoreMembershipRepository } from "../../modules/crm/infrastructu
 import {
   DrizzleAuthUserRepository,
   DrizzleOtpChallengeRepository,
+  DrizzleRoleRepository,
   DrizzleStaffMembershipRepository,
 } from "../../modules/identity/infrastructure/persistence/drizzle-repositories.js";
 import { DrizzleStockItemRepository } from "../../modules/inventory/infrastructure/persistence/drizzle-stock-item-repository.js";
@@ -32,7 +33,11 @@ import {
   DrizzlePointsLedgerRepository,
   DrizzleWalletRepository,
 } from "../../modules/loyalty/infrastructure/persistence/drizzle-loyalty-repositories.js";
-import { DrizzleMerchantRepository } from "../../modules/merchant/infrastructure/persistence/drizzle-merchant-repository.js";
+import {
+  DrizzleMerchantCreditLedgerRepository,
+  DrizzleMerchantRepository,
+  DrizzleMerchantSubscriptionRepository,
+} from "../../modules/merchant/infrastructure/index.js";
 import { DrizzleNotificationRepository } from "../../modules/notifications/infrastructure/persistence/drizzle-notification-repository.js";
 import { DrizzleOrderRepository } from "../../modules/ordering/infrastructure/persistence/drizzle-order-repository.js";
 import { DrizzlePaymentRepository } from "../../modules/payments/infrastructure/persistence/drizzle-payment-repository.js";
@@ -59,6 +64,8 @@ export type ProductionRepositories = {
   /** Shared TX scope for CompleteSale UoW (ADR-126). */
   txScope: DrizzleTransactionScope;
   merchants: DrizzleMerchantRepository;
+  merchantSubscriptions: DrizzleMerchantSubscriptionRepository;
+  merchantCreditLedger: DrizzleMerchantCreditLedgerRepository;
   stores: DrizzleStoreRepository;
   authUsers: DrizzleAuthUserRepository;
   otpChallenges: DrizzleOtpChallengeRepository;
@@ -66,6 +73,7 @@ export type ProductionRepositories = {
   customerOtpChallenges: DrizzleCustomerOtpChallengeRepository;
   storeMemberships: DrizzleStoreMembershipRepository;
   staffMemberships: DrizzleStaffMembershipRepository;
+  roles: DrizzleRoleRepository;
   products: DrizzleProductRepository;
   categories: DrizzleCategoryRepository;
   stockItems: DrizzleStockItemRepository;
@@ -98,6 +106,8 @@ export function createProductionRepositoriesFromDb(
     db,
     txScope,
     merchants: new DrizzleMerchantRepository(db),
+    merchantSubscriptions: new DrizzleMerchantSubscriptionRepository(db, txScope),
+    merchantCreditLedger: new DrizzleMerchantCreditLedgerRepository(db, txScope),
     stores: new DrizzleStoreRepository(db),
     authUsers: new DrizzleAuthUserRepository(db),
     otpChallenges: new DrizzleOtpChallengeRepository(db),
@@ -105,6 +115,7 @@ export function createProductionRepositoriesFromDb(
     customerOtpChallenges: new DrizzleCustomerOtpChallengeRepository(db),
     storeMemberships: new DrizzleStoreMembershipRepository(txScope),
     staffMemberships: new DrizzleStaffMembershipRepository(db),
+    roles: new DrizzleRoleRepository(db),
     products: new DrizzleProductRepository(db),
     categories: new DrizzleCategoryRepository(db),
     stockItems: new DrizzleStockItemRepository(txScope),

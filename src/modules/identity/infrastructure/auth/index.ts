@@ -41,11 +41,13 @@ export type ResolveMerchantClaims = (
   | {
       merchantId?: string | null;
       roles?: readonly string[];
+      permissions?: readonly string[];
       storeIds?: readonly string[];
     }
   | Promise<{
       merchantId?: string | null;
       roles?: readonly string[];
+      permissions?: readonly string[];
       storeIds?: readonly string[];
     }>;
 
@@ -127,12 +129,14 @@ export function createMerchantOtpAuthorize(
         tokenVersion: verified.tokenVersion,
         merchantId: resolved.merchantId ?? null,
         roles: resolved.roles ?? [],
+        permissions: resolved.permissions ?? [],
         storeIds: resolved.storeIds ?? [],
       });
       return {
         id: claims.sub,
         merchantId: claims.merchantId,
         roles: [...claims.roles],
+        permissions: claims.permissions ? [...claims.permissions] : [],
         storeIds: [...claims.storeIds],
         tokenVersion: claims.tokenVersion,
       };

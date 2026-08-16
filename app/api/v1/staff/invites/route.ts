@@ -7,7 +7,8 @@ import { z, ZodError } from "zod";
 
 const InviteStaffInputSchema = z.object({
   phone: z.string(),
-  role: z.enum(["store_manager", "store_employee", "merchant_owner", "customer", "platform_admin"]),
+  role: z.string().optional(),
+  roleIds: z.array(z.string()).optional(),
   storeIds: z.array(z.string()),
 });
 

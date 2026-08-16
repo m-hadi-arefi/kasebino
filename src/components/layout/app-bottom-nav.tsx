@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
+import { usePermissions } from "@/hooks/use-permissions";
 import { isNavActive, type AppNavItem } from "./nav-config";
 
 export type AppBottomNavProps = {
@@ -14,6 +15,12 @@ export type AppBottomNavProps = {
 
 export function AppBottomNav({ items, className }: AppBottomNavProps) {
   const pathname = usePathname() ?? "/";
+  const { hasPermission } = usePermissions();
+
+  const visibleItems = items.filter((item) => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
 
   return (
     <nav
@@ -24,7 +31,7 @@ export function AppBottomNav({ items, className }: AppBottomNavProps) {
       )}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1 py-1">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const active = isNavActive(pathname, item);
           return (
@@ -32,10 +39,10 @@ export function AppBottomNav({ items, className }: AppBottomNavProps) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[11px] transition-colors",
+                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[11px] transition-colors",
                   active
-                    ? "bg-accent font-medium text-primary"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                    ? "bg-primary text-on-primary font-semibold shadow-sm"
+                    : "text-muted-foreground hover:bg-surface-container-high hover:text-foreground",
                 )}
                 aria-current={active ? "page" : undefined}
               >

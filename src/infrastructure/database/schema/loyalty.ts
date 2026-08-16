@@ -11,11 +11,9 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
-  boolean,
   index,
   integer,
   pgTable,
-  text,
   timestamp,
   uniqueIndex,
   uuid,

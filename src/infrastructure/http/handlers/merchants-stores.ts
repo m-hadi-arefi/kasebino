@@ -14,7 +14,12 @@ import {
   generateStoreQrPng,
   resolvePublicAppOrigin,
 } from "../../../store-location/qr-png.js";
-import { merchantDto, storeDto } from "../dtos.js";
+import {
+  creditBalanceDto,
+  merchantDto,
+  storeDto,
+  subscriptionSummaryDto,
+} from "../dtos.js";
 import { runUseCase } from "../domain-error.js";
 import {
   correlationIdFrom,
@@ -868,6 +873,104 @@ export async function handleCompleteOnboarding(
       },
     },
   );
+}
+
+const topupCreditsSchema = z.object({
+  amountMinor: z.union([z.string(), z.number()]),
+  reason: z.string().optional(),
+  referenceId: z.string().optional(),
+});
+
+export async function handleGetMerchantSubscription(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "GET") {
+    return methodNotAllowed(correlationId, "GET");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "merchant.read" },
+  );
+  if (!auth.ok) return auth.result;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.subscriptions.getMerchantSubscription(auth.actor.merchantId),
+  );
+  if (!ran.ok) return ran.result;
+  return ok({ subscription: subscriptionSummaryDto(ran.data) });
+}
+
+export async function handleTopupMerchantCredits(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "POST") {
+    return methodNotAllowed(correlationId, "POST");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "merchant.write" },
+  );
+  if (!auth.ok) return auth.result;
+
+  const parsed = await parseBody(request, topupCreditsSchema, correlationId);
+  if (!parsed.ok) return parsed.result;
+
+  let amountMinor: bigint;
+  try {
+    amountMinor = BigInt(parsed.data.amountMinor);
+  } catch {
+    return fail({
+      code: "INVALID_AMOUNT",
+      correlationId,
+      messageFa: "مبلغ شارژ معتبر نیست.",
+      status: 400,
+    });
+  }
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.subscriptions.topupMerchantCredits({
+      merchantId: auth.actor.merchantId,
+      amountMinor,
+      ...(parsed.data.reason !== undefined ? { reason: parsed.data.reason } : {}),
+      ...(parsed.data.referenceId !== undefined ? { referenceId: parsed.data.referenceId } : {}),
+    }),
+  );
+  if (!ran.ok) return ran.result;
+  return ok({ credits: creditBalanceDto(ran.data) }, { status: 201 });
+}
+
+export async function handleGetMerchantCreditBalance(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "GET") {
+    return methodNotAllowed(correlationId, "GET");
+  }
+  const auth = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "merchant.read" },
+  );
+  if (!auth.ok) return auth.result;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.subscriptions.getCreditBalance(auth.actor.merchantId),
+  );
+  if (!ran.ok) return ran.result;
+  return ok({ credits: creditBalanceDto(ran.data) });
 }
 
 export function isHttpBinaryResult(

@@ -39,7 +39,7 @@ export function ProductsListClient() {
           placeholder={fa.searchPlaceholder}
           containerClassName="max-w-none flex-1"
         />
-        <Button asChild className="min-h-11 shrink-0">
+        <Button asChild variant="secondary" className="min-h-11 shrink-0">
           <Link href="/products/new">{fa.addProduct}</Link>
         </Button>
       </div>

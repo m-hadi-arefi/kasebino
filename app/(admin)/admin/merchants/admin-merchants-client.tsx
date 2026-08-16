@@ -24,6 +24,8 @@ import {
   suspendMerchant,
 } from "@/modules/admin/ui";
 
+import { AdminMerchantAccessDialog } from "./admin-merchant-access-dialog";
+
 const fa = ADMIN_UI_COPY_FA;
 
 export function AdminMerchantsClient() {
@@ -85,6 +87,10 @@ export function AdminMerchantsClient() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap justify-end gap-2">
+                      <AdminMerchantAccessDialog
+                        merchantId={row.id}
+                        merchantName={row.tradeName}
+                      />
                       <ConfirmDialog
                         title={fa.activate}
                         description={fa.confirmActivate}

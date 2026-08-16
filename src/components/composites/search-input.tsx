@@ -25,7 +25,7 @@ export function SearchInput({
       <Input
         type="search"
         placeholder={placeholder}
-        className={cn("min-h-11 ps-10", className)}
+        className={cn("min-h-11 rounded-full ps-10 bg-muted/70 border-border/40 focus-visible:bg-card focus-visible:ring-2 focus-visible:ring-primary/20", className)}
         {...props}
       />
     </div>

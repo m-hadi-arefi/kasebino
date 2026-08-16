@@ -2,7 +2,7 @@
  * Reports Application Use-Cases (MerchantOS Phase 8).
  */
 
-import {
+import type {
   DebtAgingReport,
   InventoryValuationReport,
   ProfitSummaryReport,

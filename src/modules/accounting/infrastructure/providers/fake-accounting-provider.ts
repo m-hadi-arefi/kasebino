@@ -5,11 +5,16 @@
 import type {
   AccountingProvider,
   AccountingSyncResult,
+  RecordExpenseInput,
   RecordInventoryAdjustmentInput,
   RecordPaymentInput,
+  RecordPurchaseInput,
+  RecordReturnInput,
   RecordSaleInput,
+  RecordTransferInput,
   SyncCustomerInput,
   SyncProductInput,
+  SyncSupplierInput,
 } from "../../application/ports/accounting-provider.js";
 
 export class FakeAccountingProvider implements AccountingProvider {
@@ -36,7 +41,7 @@ export class FakeAccountingProvider implements AccountingProvider {
   async syncCustomer(input: SyncCustomerInput): Promise<AccountingSyncResult> {
     return this.apply("syncCustomer", input.eventId);
   }
-  async syncSupplier(input: { eventId: string }): Promise<AccountingSyncResult> {
+  async syncSupplier(input: SyncSupplierInput): Promise<AccountingSyncResult> {
     return this.apply("syncSupplier", input.eventId);
   }
   async recordSale(input: RecordSaleInput): Promise<AccountingSyncResult> {
@@ -50,16 +55,16 @@ export class FakeAccountingProvider implements AccountingProvider {
   ): Promise<AccountingSyncResult> {
     return this.apply("recordInventoryAdjustment", input.eventId);
   }
-  async recordPurchase(input: { eventId: string }): Promise<AccountingSyncResult> {
+  async recordPurchase(input: RecordPurchaseInput): Promise<AccountingSyncResult> {
     return this.apply("recordPurchase", input.eventId);
   }
-  async recordReturn(input: { eventId: string }): Promise<AccountingSyncResult> {
+  async recordReturn(input: RecordReturnInput): Promise<AccountingSyncResult> {
     return this.apply("recordReturn", input.eventId);
   }
-  async recordExpense(input: { eventId: string }): Promise<AccountingSyncResult> {
+  async recordExpense(input: RecordExpenseInput): Promise<AccountingSyncResult> {
     return this.apply("recordExpense", input.eventId);
   }
-  async recordTransfer(input: { eventId: string }): Promise<AccountingSyncResult> {
+  async recordTransfer(input: RecordTransferInput): Promise<AccountingSyncResult> {
     return this.apply("recordTransfer", input.eventId);
   }
 }

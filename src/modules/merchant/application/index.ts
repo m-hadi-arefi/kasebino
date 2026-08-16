@@ -16,3 +16,14 @@ export {
   type UpdateMerchantSettingsInput,
   type UpdateMerchantSettingsResult,
 } from "./use-cases.js";
+export {
+  assertFeatureEnabled,
+  evaluateFeatureFlag,
+  getMerchantFeatureFlags,
+} from "./feature-flags.js";
+export {
+  createSubscriptionUseCases,
+  type MerchantSubscriptionSummary,
+  type SubscriptionUseCaseDeps,
+  type SubscriptionUseCases,
+} from "./subscription-use-cases.js";

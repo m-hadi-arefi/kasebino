@@ -75,6 +75,93 @@ export type RecordInventoryAdjustmentInput = AccountingEntityRef & {
   occurredAt: string;
 };
 
+export type SyncSupplierInput = AccountingEntityRef & {
+  eventId: string;
+  name: string;
+  phone?: string | null;
+  taxId?: string | null;
+  supplierGroup?: string | null;
+  address?: string | null;
+};
+
+export type RecordPurchaseLineInput = {
+  productId: string;
+  quantity: number;
+  unitCode?: string | undefined;
+  unitCostMinor: string;
+  lineTotalMinor: string;
+  itemCode?: string | undefined;
+};
+
+export type RecordPurchaseInput = AccountingEntityRef & {
+  eventId: string;
+  purchaseId: string;
+  supplierName: string;
+  supplierId?: string | null | undefined;
+  idempotencyKey?: string | undefined;
+  invoiceNumber?: string | null | undefined;
+  postingDate: string;
+  dueDate?: string | null | undefined;
+  totalAmountMinor: string;
+  currency: "IRR";
+  lines: readonly RecordPurchaseLineInput[];
+  remarks?: string | undefined;
+};
+
+export type RecordReturnLineInput = {
+  productId: string;
+  quantity: number;
+  unitCode?: string | undefined;
+  unitPriceMinor: string;
+  lineTotalMinor: string;
+  itemCode?: string | undefined;
+};
+
+export type RecordReturnInput = AccountingEntityRef & {
+  eventId: string;
+  returnId: string;
+  originalSaleOrOrderId: string;
+  idempotencyKey?: string | undefined;
+  returnNumber?: string | undefined;
+  customerName?: string | undefined;
+  customerId?: string | null | undefined;
+  totalAmountMinor: string;
+  currency: "IRR";
+  lines: readonly RecordReturnLineInput[];
+  reason?: string | undefined;
+  occurredAt: string;
+};
+
+export type RecordExpenseInput = AccountingEntityRef & {
+  eventId: string;
+  expenseId: string;
+  categoryId?: string | null | undefined;
+  categoryName?: string | null | undefined;
+  amountMinor: string;
+  currency: "IRR";
+  paymentMethod?: "cash" | "bank" | string | undefined;
+  expenseDate: string;
+  description?: string | null | undefined;
+  accountId?: string | null | undefined;
+};
+
+export type RecordTransferLineInput = {
+  productId: string;
+  quantity: number;
+  unitCode?: string | undefined;
+  itemCode?: string | undefined;
+};
+
+export type RecordTransferInput = AccountingEntityRef & {
+  eventId: string;
+  transferId: string;
+  fromStoreId: string;
+  toStoreId: string;
+  occurredAt: string;
+  lines: readonly RecordTransferLineInput[];
+  remarks?: string | undefined;
+};
+
 /**
  * Outbound accounting/ERP port. Implementations must be idempotent by eventId.
  */
@@ -82,14 +169,14 @@ export type AccountingProvider = {
   readonly providerId: string;
   syncProduct(input: SyncProductInput): Promise<AccountingSyncResult>;
   syncCustomer(input: SyncCustomerInput): Promise<AccountingSyncResult>;
-  syncSupplier(input: AccountingEntityRef & { eventId: string; name: string; phone?: string }): Promise<AccountingSyncResult>;
+  syncSupplier(input: SyncSupplierInput): Promise<AccountingSyncResult>;
   recordSale(input: RecordSaleInput): Promise<AccountingSyncResult>;
   recordPayment(input: RecordPaymentInput): Promise<AccountingSyncResult>;
   recordInventoryAdjustment(
     input: RecordInventoryAdjustmentInput,
   ): Promise<AccountingSyncResult>;
-  recordPurchase(input: AccountingEntityRef & { eventId: string }): Promise<AccountingSyncResult>;
-  recordReturn(input: AccountingEntityRef & { eventId: string }): Promise<AccountingSyncResult>;
-  recordExpense(input: AccountingEntityRef & { eventId: string; amountMinor: string }): Promise<AccountingSyncResult>;
-  recordTransfer(input: AccountingEntityRef & { eventId: string; amountMinor: string }): Promise<AccountingSyncResult>;
+  recordPurchase(input: RecordPurchaseInput): Promise<AccountingSyncResult>;
+  recordReturn(input: RecordReturnInput): Promise<AccountingSyncResult>;
+  recordExpense(input: RecordExpenseInput): Promise<AccountingSyncResult>;
+  recordTransfer(input: RecordTransferInput): Promise<AccountingSyncResult>;
 };

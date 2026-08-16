@@ -31,17 +31,6 @@ const baseConfig = {
   cashAccount: null,
 };
 
-function mockFetch(handlers: Record<string, ErpNextFetch>): ErpNextFetch {
-  return async (req) => {
-    const key = `${req.method} ${req.path}`;
-    for (const [pattern, fn] of Object.entries(handlers)) {
-      if (key.startsWith(pattern) || key === pattern || req.path.includes(pattern)) {
-        return fn(req);
-      }
-    }
-    return { status: 404, json: { exc: `unhandled ${key}` } };
-  };
-}
 
 describe("ERPNext projectors", () => {
   it("maps piece unit to Nos and marks mos_event", () => {
@@ -230,7 +219,269 @@ describe("ErpNextAccountingProvider", () => {
     const ports = await import("../../../application/ports/accounting-provider.js");
     expect("projectItemDoc" in ports).toBe(false);
   });
-});
 
-// silence unused in case tree-shaking
-void mockFetch;
+  it("syncs supplier idempotently", async () => {
+    const createSupplier = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "Supplier-001" } },
+    }));
+    const listSuppliers = vi.fn(async () => ({
+      status: 200,
+      json: { data: [] },
+    }));
+
+    const fetchImpl: ErpNextFetch = async (req) => {
+      const path = decodeURIComponent(req.path);
+      if (req.method === "GET" && path.includes("/Supplier")) {
+        return listSuppliers();
+      }
+      if (req.method === "POST" && path.endsWith("/Supplier")) {
+        return createSupplier();
+      }
+      return { status: 404, json: {} };
+    };
+
+    const provider = new ErpNextAccountingProvider({
+      config: baseConfig,
+      client: createErpNextClient(fetchImpl),
+    });
+
+    const res = await provider.syncSupplier({
+      merchantId: "m1",
+      entityType: "supplier",
+      entityId: "sup-1",
+      eventId: "evt-sup-1",
+      name: "شرکت پخش البرز",
+      phone: "09120000000",
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.externalId).toBe("Supplier-001");
+    expect(createSupplier).toHaveBeenCalledOnce();
+  });
+
+  it("creates and submits Purchase Invoice idempotently", async () => {
+    const createPurchase = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-PINV-001", docstatus: 0 } },
+    }));
+    const submitPurchase = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-PINV-001", docstatus: 1 } },
+    }));
+
+    const fetchImpl: ErpNextFetch = async (req) => {
+      const path = decodeURIComponent(req.path);
+      if (req.method === "GET" && path.includes("/Purchase Invoice")) {
+        return { status: 200, json: { data: [] } };
+      }
+      if (req.method === "GET" && path.includes("/Supplier")) {
+        return { status: 200, json: { data: [{ name: "تامین‌کننده تست" }] } };
+      }
+      if (req.method === "PUT" && path.includes("/Supplier")) {
+        return { status: 200, json: { data: { name: "تامین‌کننده تست" } } };
+      }
+      if (req.method === "POST" && path.endsWith("/Purchase Invoice")) {
+        return createPurchase();
+      }
+      if (req.method === "POST" && path.includes("frappe.client.submit")) {
+        return submitPurchase();
+      }
+      return { status: 404, json: {} };
+    };
+
+    const provider = new ErpNextAccountingProvider({
+      config: baseConfig,
+      client: createErpNextClient(fetchImpl),
+    });
+
+    const res = await provider.recordPurchase({
+      eventId: "evt-pur-1",
+      merchantId: "m1",
+      storeId: "s1",
+      entityType: "purchase",
+      entityId: "pur-1",
+      purchaseId: "pur-1",
+      supplierName: "تامین‌کننده تست",
+      postingDate: "2026-08-16T10:00:00.000Z",
+      totalAmountMinor: "5000000",
+      currency: "IRR",
+      lines: [
+        {
+          productId: "p1",
+          quantity: 10,
+          unitCostMinor: "500000",
+          lineTotalMinor: "5000000",
+        },
+      ],
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.externalId).toBe("ACC-PINV-001");
+    expect(createPurchase).toHaveBeenCalledOnce();
+    expect(submitPurchase).toHaveBeenCalledOnce();
+  });
+
+  it("creates and submits Return Sales Invoice (Credit Note) reversing inventory", async () => {
+    const createReturn = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-SINV-RET-001", docstatus: 0 } },
+    }));
+    const submitReturn = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-SINV-RET-001", docstatus: 1 } },
+    }));
+
+    const fetchImpl: ErpNextFetch = async (req) => {
+      const path = decodeURIComponent(req.path);
+      if (req.method === "GET" && path.includes("/Sales Invoice") && path.includes("po_no")) {
+        return { status: 200, json: { data: [{ name: "ACC-SINV-ORIG-001" }] } };
+      }
+      if (req.method === "GET" && path.includes("/Sales Invoice/ACC-SINV-ORIG-001")) {
+        return { status: 200, json: { data: { name: "ACC-SINV-ORIG-001", customer: "مشتری وفادار" } } };
+      }
+      if (req.method === "GET" && path.includes("/Sales Invoice")) {
+        return { status: 200, json: { data: [] } };
+      }
+      if (req.method === "POST" && path.endsWith("/Sales Invoice")) {
+        return createReturn();
+      }
+      if (req.method === "POST" && path.includes("frappe.client.submit")) {
+        return submitReturn();
+      }
+      return { status: 404, json: {} };
+    };
+
+    const provider = new ErpNextAccountingProvider({
+      config: baseConfig,
+      client: createErpNextClient(fetchImpl),
+    });
+
+    const res = await provider.recordReturn({
+      eventId: "evt-ret-1",
+      merchantId: "m1",
+      storeId: "s1",
+      entityType: "return",
+      entityId: "ret-1",
+      returnId: "ret-1",
+      originalSaleOrOrderId: "sale-orig-1",
+      totalAmountMinor: "10000",
+      currency: "IRR",
+      occurredAt: "2026-08-16T10:00:00.000Z",
+      lines: [
+        {
+          productId: "p1",
+          quantity: 1,
+          unitPriceMinor: "10000",
+          lineTotalMinor: "10000",
+        },
+      ],
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.externalId).toBe("ACC-SINV-RET-001");
+    expect(createReturn).toHaveBeenCalledOnce();
+    expect(submitReturn).toHaveBeenCalledOnce();
+  });
+
+  it("creates and submits Expense Journal Entry", async () => {
+    const createJournal = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-JV-2026-001", docstatus: 0 } },
+    }));
+    const submitJournal = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "ACC-JV-2026-001", docstatus: 1 } },
+    }));
+
+    const fetchImpl: ErpNextFetch = async (req) => {
+      const path = decodeURIComponent(req.path);
+      if (req.method === "GET" && path.includes("/Journal Entry")) {
+        return { status: 200, json: { data: [] } };
+      }
+      if (req.method === "POST" && path.endsWith("/Journal Entry")) {
+        return createJournal();
+      }
+      if (req.method === "POST" && path.includes("frappe.client.submit")) {
+        return submitJournal();
+      }
+      return { status: 404, json: {} };
+    };
+
+    const provider = new ErpNextAccountingProvider({
+      config: baseConfig,
+      client: createErpNextClient(fetchImpl),
+    });
+
+    const res = await provider.recordExpense({
+      eventId: "evt-exp-1",
+      merchantId: "m1",
+      entityType: "expense",
+      entityId: "exp-1",
+      expenseId: "exp-1",
+      amountMinor: "250000",
+      currency: "IRR",
+      expenseDate: "2026-08-16T10:00:00.000Z",
+      description: "قبض برق شعبه",
+      paymentMethod: "bank",
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.externalId).toBe("ACC-JV-2026-001");
+    expect(createJournal).toHaveBeenCalledOnce();
+    expect(submitJournal).toHaveBeenCalledOnce();
+  });
+
+  it("creates and submits Stock Transfer Entry between store warehouses", async () => {
+    const createTransfer = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "MAT-STE-2026-001", docstatus: 0 } },
+    }));
+    const submitTransfer = vi.fn(async () => ({
+      status: 200,
+      json: { data: { name: "MAT-STE-2026-001", docstatus: 1 } },
+    }));
+
+    const fetchImpl: ErpNextFetch = async (req) => {
+      const path = decodeURIComponent(req.path);
+      if (req.method === "GET" && path.includes("/Stock Entry")) {
+        return { status: 200, json: { data: [] } };
+      }
+      if (req.method === "POST" && path.endsWith("/Stock Entry")) {
+        return createTransfer();
+      }
+      if (req.method === "POST" && path.includes("frappe.client.submit")) {
+        return submitTransfer();
+      }
+      return { status: 404, json: {} };
+    };
+
+    const provider = new ErpNextAccountingProvider({
+      config: baseConfig,
+      client: createErpNextClient(fetchImpl),
+    });
+
+    const res = await provider.recordTransfer({
+      eventId: "evt-xfer-1",
+      merchantId: "m1",
+      entityType: "stock_transfer",
+      entityId: "xfer-1",
+      transferId: "xfer-1",
+      fromStoreId: "store-1",
+      toStoreId: "store-2",
+      occurredAt: "2026-08-16T10:00:00.000Z",
+      lines: [
+        {
+          productId: "p1",
+          quantity: 5,
+          unitCode: "piece",
+        },
+      ],
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.externalId).toBe("MAT-STE-2026-001");
+    expect(createTransfer).toHaveBeenCalledOnce();
+    expect(submitTransfer).toHaveBeenCalledOnce();
+  });
+});

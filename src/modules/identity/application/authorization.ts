@@ -28,6 +28,7 @@ export type JwtAuthClaimsInput = Pick<
   MerchantJwtClaims,
   "sub" | "merchantId" | "roles" | "tokenVersion"
 > & {
+  permissions?: readonly string[];
   storeIds?: readonly string[];
 };
 
@@ -45,11 +46,15 @@ export function authContextFromJwtClaims(
     rolesCanonical,
     tokenVersion: claims.tokenVersion,
   };
+  if (claims.permissions !== undefined) {
+    ctx.permissions = claims.permissions as readonly Permission[];
+  }
   if (claims.storeIds !== undefined) {
     ctx.storeIds = claims.storeIds;
   }
   return ctx;
 }
+
 
 /**
  * Authorize a mutation/query from JWT claims at the application boundary.

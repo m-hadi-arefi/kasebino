@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 
+import { usePermissions } from "@/hooks/use-permissions";
 import { isNavActive, type AppNavItem } from "./nav-config";
 
 export type AppSidebarNavProps = {
@@ -36,29 +37,38 @@ export function AppSidebarNav({
   label = "منوی اصلی",
 }: AppSidebarNavProps) {
   const pathname = usePathname() ?? "/";
+  const { hasPermission } = usePermissions();
+
+  const visibleItems = items.filter((item) => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
 
   return (
     <Sidebar collapsible="icon" side="right" variant="inset">
-      <SidebarHeader className="gap-2 px-3 py-4">
+      <SidebarHeader className="gap-1 px-4 py-5 text-center">
         <Link
           href={brandHref}
-          className="flex items-center gap-2 rounded-md px-1 text-base font-semibold text-sidebar-foreground transition-colors hover:text-sidebar-primary"
+          className="flex items-center justify-center gap-2 rounded-xl px-1 text-lg font-bold text-sidebar-foreground transition-colors hover:text-sidebar-primary"
         >
-          <span className="flex size-8 items-center justify-center rounded-md bg-sidebar-primary text-sm text-sidebar-primary-foreground">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-base font-black text-sidebar-primary-foreground shadow-sm">
             ک
           </span>
-          <span className="truncate group-data-[collapsible=icon]:hidden">
+          <span className="truncate text-xl font-black text-primary group-data-[collapsible=icon]:hidden">
             {brand}
           </span>
         </Link>
+        <p className="text-[11px] font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">
+          مدیریت هوشمند کسب‌وکار
+        </p>
       </SidebarHeader>
-      <Separator />
+      <Separator className="opacity-40" />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>{label}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {visibleItems.map((item) => {
                 const Icon = item.icon;
                 const active = isNavActive(pathname, item);
                 return (

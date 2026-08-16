@@ -11,6 +11,7 @@ export type MerchantAuthUser = {
   id: string;
   merchantId: string | null;
   roles: string[];
+  permissions?: string[];
   storeIds: string[];
   tokenVersion: number;
 };
@@ -24,6 +25,7 @@ export function applyMerchantClaimsToToken(
     tokenVersion: user.tokenVersion,
     merchantId: user.merchantId,
     roles: user.roles,
+    permissions: user.permissions,
     storeIds: user.storeIds,
   });
   return {
@@ -31,6 +33,7 @@ export function applyMerchantClaimsToToken(
     sub: claims.sub,
     merchantId: claims.merchantId,
     roles: [...claims.roles],
+    permissions: claims.permissions ? [...claims.permissions] : [],
     storeIds: [...claims.storeIds],
     tokenVersion: claims.tokenVersion,
     audience: "merchant",
@@ -52,6 +55,7 @@ export function applyMerchantClaimsToSession(
         ? (token.merchantId as string | null)
         : null,
     roles: Array.isArray(token.roles) ? (token.roles as string[]) : [],
+    permissions: Array.isArray(token.permissions) ? (token.permissions as string[]) : undefined,
     storeIds: Array.isArray(token.storeIds) ? (token.storeIds as string[]) : [],
   });
 
@@ -60,6 +64,7 @@ export function applyMerchantClaimsToSession(
     id: claims.sub,
     merchantId: claims.merchantId,
     roles: [...claims.roles],
+    permissions: claims.permissions ? [...claims.permissions] : [],
     storeIds: [...claims.storeIds],
     tokenVersion: claims.tokenVersion,
     audience: "merchant" as const,
@@ -71,7 +76,9 @@ export function applyMerchantClaimsToSession(
     audience: "merchant",
     merchantId: claims.merchantId,
     roles: [...claims.roles],
+    permissions: claims.permissions ? [...claims.permissions] : [],
     storeIds: [...claims.storeIds],
     tokenVersion: claims.tokenVersion,
   };
 }
+

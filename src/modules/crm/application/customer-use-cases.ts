@@ -127,7 +127,7 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
     try {
       const res = await deps.accountingProvider.syncCustomer({
         merchantId: customer.merchantId,
-        storeId: customer.storeId ?? undefined,
+        storeId: customer.storeId,
         entityType: "customer",
         entityId: customer.id,
         eventId: idFactory(),
@@ -155,18 +155,18 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
     const customer = createCustomerAggregate({
       id: idFactory(),
       merchantId,
-      storeId: input.storeId,
+      storeId: input.storeId ?? null,
       phoneNational: phone.national,
       phoneE164: phone.e164,
       displayName: input.displayName,
-      email: input.email,
-      birthday: input.birthday,
-      address: input.address,
-      city: input.city,
-      postalCode: input.postalCode,
-      customerType: input.customerType,
-      preferredContactMethod: input.preferredContactMethod,
-      notes: input.notes,
+      email: input.email ?? null,
+      birthday: input.birthday ?? null,
+      address: input.address ?? null,
+      city: input.city ?? null,
+      postalCode: input.postalCode ?? null,
+      ...(input.customerType !== undefined ? { customerType: input.customerType } : {}),
+      ...(input.preferredContactMethod !== undefined ? { preferredContactMethod: input.preferredContactMethod } : {}),
+      notes: input.notes ?? null,
       now: now(),
     });
 
@@ -332,7 +332,7 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
       authorId: input.authorId,
       authorName: input.authorName,
       content: input.content,
-      isPrivate: input.isPrivate,
+      ...(input.isPrivate !== undefined ? { isPrivate: input.isPrivate } : {}),
       now: now(),
     });
     await deps.notes.save(note);
@@ -358,7 +358,7 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
       id: idFactory(),
       merchantId: m,
       name: input.name,
-      color: input.color,
+      ...(input.color !== undefined ? { color: input.color } : {}),
       now: now(),
     });
     await deps.tags.save(tag);
@@ -389,6 +389,11 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
     await deps.tags.removeTag(input.customerId, input.tagId);
   }
 
+  async function listTags(merchantId: string): Promise<CrmTag[]> {
+    const m = requireTenant(merchantId);
+    return deps.tags.listByMerchant(m);
+  }
+
   // Interactions & Follow-Ups Use Cases
   async function logInteraction(input: {
     merchantId: string;
@@ -406,13 +411,13 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
       id: idFactory(),
       merchantId: m,
       customerId: input.customerId,
-      storeId: input.storeId,
+      storeId: input.storeId ?? null,
       staffId: input.staffId,
       staffName: input.staffName,
       type: input.type,
       description: input.description,
-      interactionDate: input.interactionDate,
-      followUpDate: input.followUpDate,
+      ...(input.interactionDate !== undefined ? { interactionDate: input.interactionDate } : {}),
+      followUpDate: input.followUpDate ?? null,
       now: now(),
     });
     await deps.interactions.save(interaction);
@@ -433,7 +438,7 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
       id: idFactory(),
       merchantId: m,
       customerId: input.customerId,
-      storeId: input.storeId,
+      storeId: input.storeId ?? null,
       assigneeId: input.assigneeId,
       assigneeName: input.assigneeName,
       description: input.description,
@@ -585,6 +590,7 @@ export function createCustomerUseCases(deps: CustomerUseCaseDeps) {
     addNote,
     deleteNote,
     createTag,
+    listTags,
     assignTag,
     removeTag,
     logInteraction,

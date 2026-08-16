@@ -136,6 +136,7 @@ describe("ADR-036 Event-Driven Architecture", () => {
         "accounting_integration",
         "cache_invalidation",
         "emqx_realtime",
+        "loyalty_online_earn",
         "minio_receipts",
         "mongodb_warehouse",
         "notifications",

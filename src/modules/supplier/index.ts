@@ -2,7 +2,7 @@
  * Supplier Module Facade (MerchantOS Phase 1).
  */
 
-export * from "./domain/supplier.ts";
-export * from "./domain/repositories.ts";
-export * from "./application/use-cases.ts";
-export * from "./infrastructure/in-memory-supplier-repository.ts";
+export * from "./domain/supplier.js";
+export * from "./domain/repositories.js";
+export * from "./application/use-cases.js";
+export * from "./infrastructure/in-memory-supplier-repository.js";

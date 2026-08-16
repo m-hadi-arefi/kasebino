@@ -43,6 +43,7 @@ function toSale(row: SaleRow, lines: SaleLine[]): Sale {
     customerId: row.customerId,
     phoneNational: row.phoneNational,
     tenderType: row.tenderType as PosTenderType,
+    payments: [{ amountMinor: row.totalAmountMinor, tenderType: row.tenderType as PosTenderType }],
     lines,
     totalAmountMinor: row.totalAmountMinor,
     status: row.status as SaleStatus,

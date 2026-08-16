@@ -11,7 +11,7 @@ export function createLoyaltyOutboxHandler(
   return async (message: OutboxMessage): Promise<void> => {
     const eventType = message.envelope?.eventType ?? message.eventType;
     if (eventType === "OrderPaid") {
-      const payload = (message.envelope?.payload ?? message.payload) as Record<string, unknown>;
+      const payload = (message.envelope?.payload ?? {}) as Record<string, unknown>;
       const orderId = typeof payload.orderId === "string" ? payload.orderId : "";
       const merchantId = typeof payload.merchantId === "string" ? payload.merchantId : message.merchantId;
       const storeId = typeof payload.storeId === "string" ? payload.storeId : (message.storeId ?? "");
@@ -21,7 +21,9 @@ export function createLoyaltyOutboxHandler(
       const totalAmountMinor =
         typeof totalAmountMinorRaw === "bigint"
           ? totalAmountMinorRaw
-          : BigInt(totalAmountMinorRaw ?? 0);
+          : typeof totalAmountMinorRaw === "number" || typeof totalAmountMinorRaw === "string"
+            ? BigInt(totalAmountMinorRaw)
+            : 0n;
 
       if (orderId && merchantId && storeId && membershipId.trim()) {
         await options.useCases.earnPointsForOrder({
@@ -29,7 +31,7 @@ export function createLoyaltyOutboxHandler(
           storeId,
           orderId,
           membershipId,
-          customerId,
+          ...(customerId ? { customerId } : {}),
           totalAmountMinor,
         });
       }

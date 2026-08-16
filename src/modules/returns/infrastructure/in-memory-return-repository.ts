@@ -2,8 +2,8 @@
  * In-Memory Return Repository Implementation (MerchantOS Phase 5).
  */
 
-import { ReturnRepository } from "../application/return-use-cases.js";
-import { ProcessCustomerReturnInput, ReturnItem, ReturnRecord } from "../domain/returns.js";
+import type { ReturnRepository } from "../application/return-use-cases.js";
+import type { ProcessCustomerReturnInput, ReturnItem, ReturnRecord } from "../domain/returns.js";
 
 export class InMemoryReturnRepository implements ReturnRepository {
   private returns = new Map<string, ReturnRecord>();
@@ -42,7 +42,7 @@ export class InMemoryReturnRepository implements ReturnRepository {
         unitCostMinor: item.unitCostMinor,
         unitPriceMinor: item.unitPriceMinor,
         totalMinor: lineTotal,
-        costLayerId: item.costLayerId,
+        ...(item.costLayerId !== undefined ? { costLayerId: item.costLayerId } : {}),
       };
     });
 
@@ -54,14 +54,14 @@ export class InMemoryReturnRepository implements ReturnRepository {
       returnNumber: input.returnNumber,
       originalReferenceType: "sale",
       originalReferenceId: input.saleId,
-      customerId: input.customerId,
+      ...(input.customerId !== undefined ? { customerId: input.customerId } : {}),
       totalMinor,
       refundMethod: input.refundMethod ?? "cash",
-      refundAccountId: input.refundAccountId,
+      ...(input.refundAccountId !== undefined ? { refundAccountId: input.refundAccountId } : {}),
       status: "completed",
-      reason: input.reason,
+      ...(input.reason !== undefined ? { reason: input.reason } : {}),
       items,
-      createdBy: input.createdBy,
+      ...(input.createdBy !== undefined ? { createdBy: input.createdBy } : {}),
       createdAt: now,
     };
 

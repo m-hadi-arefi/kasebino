@@ -4,10 +4,9 @@ import {
   GetSupplierStatementUseCase,
   GetSupplierUseCase,
   InMemorySupplierRepository,
-  ListSuppliersUseCase,
   UpdateSupplierUseCase,
-} from "./index.ts";
-import { isMerchantOsUnitCode, requireUnit } from "../../shared/quantity/index.ts";
+} from "./index.js";
+import { isMerchantOsUnitCode, requireUnit } from "../../shared/quantity/index.js";
 
 describe("Supplier Module & Unit Extensions (Phase 1)", () => {
   it("supports extended retail unit codes (pack, carton, meter, liter, bottle, pair, dozen)", () => {

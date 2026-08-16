@@ -6,11 +6,11 @@ import { SandboxPaymentGateway } from "./sandbox-payment-gateway.js";
 describe("ZarinpalPaymentGateway", () => {
   it("creates payment intent with ZarinPal API v4 request.json", async () => {
     let requestedUrl = "";
-    let requestedBody: any = null;
+    let requestedBody: Record<string, unknown> | null = null;
 
     const mockFetch: typeof fetch = async (url, init) => {
       requestedUrl = String(url);
-      requestedBody = JSON.parse(String(init?.body));
+      requestedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
       return {
         ok: true,
         status: 200,
@@ -49,17 +49,17 @@ describe("ZarinpalPaymentGateway", () => {
     );
 
     expect(requestedUrl).toBe("https://sandbox.zarinpal.com/pg/v4/payment/request.json");
-    expect(requestedBody.merchant_id).toBe("test-merchant-id-1234");
-    expect(requestedBody.amount).toBe(5000); // Converted from 50,000 Rials to 5,000 Tomans
+    expect(requestedBody?.["merchant_id"]).toBe("test-merchant-id-1234");
+    expect(requestedBody?.["amount"]).toBe(5000); // Converted from 50,000 Rials to 5,000 Tomans
   });
 
   it("confirms payment successfully with verify.json code 100", async () => {
     let requestedUrl = "";
-    let requestedBody: any = null;
+    let requestedBody: Record<string, unknown> | null = null;
 
     const mockFetch: typeof fetch = async (url, init) => {
       requestedUrl = String(url);
-      requestedBody = JSON.parse(String(init?.body));
+      requestedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
       return {
         ok: true,
         status: 200,
@@ -88,7 +88,7 @@ describe("ZarinpalPaymentGateway", () => {
     expect(result.confirmed).toBe(true);
     expect(result.providerRef).toBe("987654321");
     expect(requestedUrl).toBe("https://sandbox.zarinpal.com/pg/v4/payment/verify.json");
-    expect(requestedBody.authority).toBe("A00000000000000000000000000000001234");
+    expect(requestedBody?.["authority"]).toBe("A00000000000000000000000000000001234");
   });
 
   it("refunds payment successfully with refund.json code 100", async () => {

@@ -2,7 +2,7 @@
  * Returns Application Use-Cases & Repository Interface (MerchantOS Phase 5).
  */
 
-import { ProcessCustomerReturnInput, ReturnRecord } from "../domain/returns.js";
+import type { ProcessCustomerReturnInput, ReturnRecord } from "../domain/returns.js";
 
 export interface ReturnRepository {
   findById(merchantId: string, id: string): Promise<ReturnRecord | null>;

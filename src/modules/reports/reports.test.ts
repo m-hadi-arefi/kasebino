@@ -4,7 +4,7 @@ import {
   GetInventoryValuationUseCase,
   GetProfitSummaryUseCase,
   InMemoryReportRepository,
-} from "./index.ts";
+} from "./index.js";
 
 describe("Operational Reports Module (Profit, Stock Valuation, AR/AP Aging)", () => {
   it("calculates Net Profit correctly (Revenue - COGS - Expenses = Net Profit)", async () => {

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 export type StatCardProps = {
   title: string;
@@ -22,26 +22,28 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("shadow-sm transition-shadow hover:shadow-md", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
+    <Card className={cn("p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md border border-border/40", className)}>
+      <div className="flex items-start justify-between gap-2 mb-3">
         {Icon ? (
-          <Icon className="size-4 text-primary" aria-hidden />
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="size-5" aria-hidden />
+          </div>
         ) : null}
-      </CardHeader>
-      <CardContent className="space-y-1">
-        <div className="text-2xl font-semibold tracking-tight text-foreground">
+        {trend ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2.5 py-0.5 text-xs font-semibold text-secondary">
+            {trend}
+          </span>
+        ) : null}
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums">
           {value}
         </div>
         {description ? (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground pt-0.5">{description}</p>
         ) : null}
-        {trend ? (
-          <p className="text-xs font-medium text-primary">{trend}</p>
-        ) : null}
-      </CardContent>
+      </div>
     </Card>
   );
 }

@@ -5,12 +5,18 @@
 import type {
   AccountingProvider,
   AccountingSyncResult,
+  RecordExpenseInput,
   RecordInventoryAdjustmentInput,
   RecordPaymentInput,
+  RecordPurchaseInput,
+  RecordReturnInput,
   RecordSaleInput,
+  RecordTransferInput,
   SyncCustomerInput,
   SyncProductInput,
+  SyncSupplierInput,
 } from "../../../application/ports/accounting-provider.js";
+import type { ErpNextConnectionManager } from "./connection-manager.js";
 import {
   createErpNextClient,
   createErpNextFetch,
@@ -25,11 +31,17 @@ import {
 import {
   customerDocName,
   projectCustomerDoc,
+  projectExpenseJournalEntryDoc,
   projectItemDoc,
   projectPaymentEntryDoc,
+  projectPurchaseInvoiceDoc,
+  projectReturnInvoiceDoc,
   projectSalesInvoiceDoc,
   projectStockEntryDoc,
+  projectStockTransferDoc,
+  projectSupplierDoc,
 } from "./projectors.js";
+import type { ErpNextTenantResolver } from "./tenant-resolver.js";
 
 export type ErpNextAccountingProviderDeps = {
   config: ErpNextProviderConfig;
@@ -40,8 +52,8 @@ export type ErpNextAccountingProviderDeps = {
     entityId: string;
   }) => Promise<string | null>;
   /** Optional multi-tenant resolver & connection manager. */
-  tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver;
-  connectionManager?: import("./connection-manager.js").ErpNextConnectionManager;
+  tenantResolver?: ErpNextTenantResolver;
+  connectionManager?: ErpNextConnectionManager;
 };
 
 async function findByEventMarker(
@@ -69,8 +81,8 @@ export class ErpNextAccountingProvider implements AccountingProvider {
   private readonly config: ErpNextProviderConfig;
   private readonly client: ErpNextClient;
   private readonly resolveExternalId?: ErpNextAccountingProviderDeps["resolveExternalId"] | undefined;
-  private readonly tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver | undefined;
-  private readonly connectionManager?: import("./connection-manager.js").ErpNextConnectionManager | undefined;
+  private readonly tenantResolver?: ErpNextTenantResolver | undefined;
+  private readonly connectionManager?: ErpNextConnectionManager | undefined;
 
   constructor(deps: ErpNextAccountingProviderDeps) {
     this.config = deps.config;
@@ -334,22 +346,346 @@ export class ErpNextAccountingProvider implements AccountingProvider {
     return ok(String(submitted.name ?? name), false);
   }
 
-  async recordPurchase(): Promise<AccountingSyncResult> {
-    return {
-      ok: false,
-      externalId: null,
-      alreadyApplied: false,
-      message: "purchase_erp_first_unsupported_in_mos",
-    };
+  async syncSupplier(input: SyncSupplierInput): Promise<AccountingSyncResult> {
+    const { client, config } = await this.resolveClientAndConfig(
+      input.merchantId,
+      input.storeId ?? undefined,
+    );
+    const supplierName = input.name.trim();
+
+    const existingMapped = await this.resolveExternalId?.({
+      entityType: "supplier",
+      entityId: input.entityId,
+    });
+    if (existingMapped) {
+      await client.updateDoc("Supplier", existingMapped, {
+        mobile_no: input.phone || undefined,
+        tax_id: input.taxId || undefined,
+      });
+      return ok(existingMapped, true);
+    }
+
+    const byName = await client.getList("Supplier", {
+      fields: ["name"],
+      filters: [["supplier_name", "=", supplierName]],
+      limit: 1,
+    });
+    if (byName[0]?.name) {
+      const name = String(byName[0].name);
+      await client.updateDoc("Supplier", name, {
+        mobile_no: input.phone || undefined,
+        tax_id: input.taxId || undefined,
+      });
+      return ok(name, true);
+    }
+
+    const created = await client.createDoc(
+      "Supplier",
+      projectSupplierDoc(input, config),
+    );
+    return ok(String(created.name ?? supplierName), false);
   }
 
-  async recordReturn(): Promise<AccountingSyncResult> {
-    return {
-      ok: false,
-      externalId: null,
-      alreadyApplied: false,
-      message: "return_unsupported",
-    };
+  async recordPurchase(
+    input: RecordPurchaseInput,
+  ): Promise<AccountingSyncResult> {
+    if (input.lines.length === 0) {
+      return {
+        ok: false,
+        externalId: null,
+        alreadyApplied: false,
+        message: "purchase_lines_required",
+      };
+    }
+
+    const { client, config } = await this.resolveClientAndConfig(
+      input.merchantId,
+      input.storeId ?? undefined,
+    );
+
+    const mapped = await this.resolveExternalId?.({
+      entityType: "purchase",
+      entityId: input.purchaseId,
+    });
+    if (mapped) {
+      return ok(mapped, true);
+    }
+
+    const byMarker = await findByEventMarker(
+      client,
+      "Purchase Invoice",
+      "remarks",
+      input.eventId,
+    );
+    if (byMarker) {
+      return ok(byMarker, true);
+    }
+
+    const byBillNo = await client.getList("Purchase Invoice", {
+      fields: ["name"],
+      filters: [
+        ["company", "=", config.company],
+        ["bill_no", "=", input.invoiceNumber || input.purchaseId],
+      ],
+      limit: 1,
+    });
+    if (byBillNo[0]?.name) {
+      return ok(String(byBillNo[0].name), true);
+    }
+
+    const supplierName = input.supplierName.trim();
+    await this.syncSupplier({
+      merchantId: input.merchantId,
+      storeId: input.storeId ?? null,
+      entityType: "supplier",
+      entityId: input.supplierId || supplierName,
+      eventId: `${input.eventId}:supplier`,
+      name: supplierName,
+    });
+
+    const itemCodes = new Map<string, string>();
+    for (const line of input.lines) {
+      const mappedItem = await this.resolveExternalId?.({
+        entityType: "product",
+        entityId: line.productId,
+      });
+      itemCodes.set(line.productId, mappedItem ?? line.productId);
+    }
+
+    const draft = await client.createDoc(
+      "Purchase Invoice",
+      projectPurchaseInvoiceDoc(input, config, {
+        supplierName,
+        itemCodesByProductId: itemCodes,
+      }),
+    );
+    const draftName = String(draft.name);
+    const submitted = await client.submitDoc("Purchase Invoice", draftName);
+    return ok(String(submitted.name ?? draftName), false);
+  }
+
+  async recordReturn(input: RecordReturnInput): Promise<AccountingSyncResult> {
+    if (input.lines.length === 0) {
+      return {
+        ok: false,
+        externalId: null,
+        alreadyApplied: false,
+        message: "return_lines_required",
+      };
+    }
+
+    const { client, config } = await this.resolveClientAndConfig(
+      input.merchantId,
+      input.storeId ?? undefined,
+    );
+
+    const mapped = await this.resolveExternalId?.({
+      entityType: "return",
+      entityId: input.returnId,
+    });
+    if (mapped) {
+      return ok(mapped, true);
+    }
+
+    const byMarker = await findByEventMarker(
+      client,
+      "Sales Invoice",
+      "remarks",
+      input.eventId,
+    );
+    if (byMarker) {
+      return ok(byMarker, true);
+    }
+
+    let originalInvoiceName = await this.resolveExternalId?.({
+      entityType: "sale",
+      entityId: input.originalSaleOrOrderId,
+    });
+    if (!originalInvoiceName) {
+      originalInvoiceName = await this.resolveExternalId?.({
+        entityType: "order",
+        entityId: input.originalSaleOrOrderId,
+      });
+    }
+    if (!originalInvoiceName) {
+      const byPo = await client.getList("Sales Invoice", {
+        fields: ["name"],
+        filters: [
+          ["company", "=", config.company],
+          ["po_no", "=", input.originalSaleOrOrderId],
+        ],
+        limit: 1,
+      });
+      if (byPo[0]?.name) {
+        originalInvoiceName = String(byPo[0].name);
+      }
+    }
+
+    let customerName = input.customerName || config.defaultCustomer;
+    if (originalInvoiceName) {
+      const origDoc = await client.getDoc("Sales Invoice", originalInvoiceName);
+      if (origDoc?.customer) {
+        customerName = String(origDoc.customer);
+      }
+    }
+
+    const itemCodes = new Map<string, string>();
+    for (const line of input.lines) {
+      const mappedItem = await this.resolveExternalId?.({
+        entityType: "product",
+        entityId: line.productId,
+      });
+      itemCodes.set(line.productId, mappedItem ?? line.productId);
+    }
+
+    const draft = await client.createDoc(
+      "Sales Invoice",
+      projectReturnInvoiceDoc(input, config, {
+        customerName,
+        originalInvoiceName: originalInvoiceName ?? null,
+        itemCodesByProductId: itemCodes,
+      }),
+    );
+    const draftName = String(draft.name);
+    const submitted = await client.submitDoc("Sales Invoice", draftName);
+    return ok(String(submitted.name ?? draftName), false);
+  }
+
+  async recordExpense(
+    input: RecordExpenseInput,
+  ): Promise<AccountingSyncResult> {
+    if (!input.amountMinor || input.amountMinor === "0") {
+      return {
+        ok: true,
+        externalId: null,
+        alreadyApplied: true,
+        message: "zero_amount",
+      };
+    }
+
+    const { client, config } = await this.resolveClientAndConfig(
+      input.merchantId,
+      input.storeId ?? undefined,
+    );
+
+    const mapped = await this.resolveExternalId?.({
+      entityType: "expense",
+      entityId: input.expenseId,
+    });
+    if (mapped) {
+      return ok(mapped, true);
+    }
+
+    const byMarker = await findByEventMarker(
+      client,
+      "Journal Entry",
+      "user_remark",
+      input.eventId,
+    );
+    if (byMarker) {
+      return ok(byMarker, true);
+    }
+
+    const abbr = config.company.slice(0, 3).toUpperCase();
+    const expenseAccount =
+      config.expenseAccount || `Administrative Expenses - ${abbr}`;
+    const paidFromAccount =
+      input.paymentMethod === "bank"
+        ? config.bankAccount || `Bank Accounts - ${abbr}`
+        : config.cashAccount || `Cash In Hand - ${abbr}`;
+
+    const draft = await client.createDoc(
+      "Journal Entry",
+      projectExpenseJournalEntryDoc(input, config, {
+        expenseAccount,
+        paidFromAccount,
+      }),
+    );
+    const draftName = String(draft.name);
+    const submitted = await client.submitDoc("Journal Entry", draftName);
+    return ok(String(submitted.name ?? draftName), false);
+  }
+
+  async recordTransfer(
+    input: RecordTransferInput,
+  ): Promise<AccountingSyncResult> {
+    if (input.lines.length === 0) {
+      return {
+        ok: false,
+        externalId: null,
+        alreadyApplied: false,
+        message: "transfer_lines_required",
+      };
+    }
+
+    const { client, config } = await this.resolveClientAndConfig(
+      input.merchantId,
+      input.fromStoreId,
+    );
+
+    const mapped = await this.resolveExternalId?.({
+      entityType: "stock_transfer",
+      entityId: input.transferId,
+    });
+    if (mapped) {
+      return ok(mapped, true);
+    }
+
+    const byMarker = await findByEventMarker(
+      client,
+      "Stock Entry",
+      "remarks",
+      input.eventId,
+    );
+    if (byMarker) {
+      return ok(byMarker, true);
+    }
+
+    let fromWarehouse = config.warehouse;
+    let toWarehouse = config.warehouse;
+
+    if (this.tenantResolver && input.merchantId) {
+      try {
+        const fromTenant = await this.tenantResolver.resolveTenantContext({
+          merchantId: input.merchantId,
+          storeId: input.fromStoreId,
+        });
+        fromWarehouse =
+          fromTenant.storeWarehouse || fromTenant.defaultWarehouse;
+      } catch {
+        // Fall back
+      }
+      try {
+        const toTenant = await this.tenantResolver.resolveTenantContext({
+          merchantId: input.merchantId,
+          storeId: input.toStoreId,
+        });
+        toWarehouse = toTenant.storeWarehouse || toTenant.defaultWarehouse;
+      } catch {
+        // Fall back
+      }
+    }
+
+    const itemCodes = new Map<string, string>();
+    for (const line of input.lines) {
+      const mappedItem = await this.resolveExternalId?.({
+        entityType: "product",
+        entityId: line.productId,
+      });
+      itemCodes.set(line.productId, mappedItem ?? line.productId);
+    }
+
+    const draft = await client.createDoc(
+      "Stock Entry",
+      projectStockTransferDoc(input, config, {
+        fromWarehouse,
+        toWarehouse,
+        itemCodesByProductId: itemCodes,
+      }),
+    );
+    const draftName = String(draft.name);
+    const submitted = await client.submitDoc("Stock Entry", draftName);
+    return ok(String(submitted.name ?? draftName), false);
   }
 }
 
@@ -358,8 +694,8 @@ export function createErpNextAccountingProviderFromEnv(
   overrides?: {
     fetchImpl?: typeof fetch;
     resolveExternalId?: ErpNextAccountingProviderDeps["resolveExternalId"];
-    tenantResolver?: import("./tenant-resolver.js").ErpNextTenantResolver;
-    connectionManager?: import("./connection-manager.js").ErpNextConnectionManager;
+    tenantResolver?: ErpNextTenantResolver;
+    connectionManager?: ErpNextConnectionManager;
   },
 ): ErpNextAccountingProvider {
   const config = loadErpNextProviderConfig(env);

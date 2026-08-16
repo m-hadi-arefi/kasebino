@@ -6,6 +6,8 @@ export {
   ErpNextHttpError,
   mosEventMarker,
   minorToErpRate,
+  type ErpNextClient,
+  type ErpNextFetch,
 } from "./erpnext-client.js";
 export {
   projectItemDoc,

@@ -2,7 +2,7 @@
  * Inventory Operations Application Use-Cases & Repository Interface (MerchantOS Phase 6).
  */
 
-import {
+import type {
   StockCountRecord,
   StockTransferRecord,
   WasteReason,

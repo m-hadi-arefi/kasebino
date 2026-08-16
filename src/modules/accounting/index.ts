@@ -7,18 +7,33 @@
 export type { AccountingProvider } from "./application/ports/accounting-provider.js";
 export type {
   AccountingSyncResult,
+  RecordExpenseInput,
+  RecordPaymentInput,
+  RecordPurchaseInput,
+  RecordPurchaseLineInput,
+  RecordReturnInput,
+  RecordReturnLineInput,
   RecordSaleInput,
+  RecordSaleLineInput,
+  RecordTransferInput,
+  RecordTransferLineInput,
   SyncCustomerInput,
   SyncProductInput,
+  SyncSupplierInput,
 } from "./application/ports/accounting-provider.js";
 export {
   ACCOUNTING_MOVEMENT_TYPES,
   mapCustomerToAccountingSync,
+  mapExpenseToAccountingRecord,
   mapPaymentToAccountingRecord,
   mapProductToAccountingSync,
+  mapPurchaseToAccountingRecord,
+  mapReturnToAccountingRecord,
   mapSaleToAccountingRecord,
   mapStockReasonToAccountingMovementType,
   mapStoreToWarehouseProjection,
+  mapSupplierToAccountingSync,
+  mapTransferToAccountingRecord,
 } from "./application/mappers/index.js";
 export { createAccountingOutboxHandler } from "./application/outbox-handler.js";
 export {

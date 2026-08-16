@@ -30,12 +30,12 @@ export class ErpNextSalesProvider {
       throw new Error(`Original Sales Invoice ${input.invoiceNo} not found`);
     }
 
-    const origItems: any[] = Array.isArray(original.items) ? original.items : [];
-    const itemsDoc = origItems.map((item: any) => ({
-      item_code: item.item_code,
-      qty: -Math.abs(item.qty), // Negative quantity for return in ERPNext
-      rate: item.rate,
-      warehouse: item.warehouse,
+    const origItems: Array<{ item_code?: string; qty?: number; rate?: number; warehouse?: string }> = Array.isArray(original.items) ? (original.items as Array<{ item_code?: string; qty?: number; rate?: number; warehouse?: string }>) : [];
+    const itemsDoc = origItems.map((item) => ({
+      item_code: String(item.item_code ?? ""),
+      qty: -Math.abs(Number(item.qty ?? 0)), // Negative quantity for return in ERPNext
+      rate: Number(item.rate ?? 0),
+      warehouse: item.warehouse ? String(item.warehouse) : undefined,
     }));
 
     const draft = await client.createDoc("Sales Invoice", {
@@ -75,7 +75,7 @@ export class ErpNextSalesProvider {
     tenant: TenantContext,
     filters?: { customer?: string; status?: string; limit?: number },
   ) {
-    const queryFilters: Array<[string, string, any]> = [
+    const queryFilters: Array<[string, string, string | number]> = [
       ["company", "=", tenant.erpnextCompany],
     ];
 

@@ -201,9 +201,9 @@ export async function handleListStockMovements(
     ctx.inventory.listStockMovements({
       merchantId: auth.actor.merchantId,
       storeId,
-      productId,
-      cursor,
-      limit,
+      ...(productId ? { productId } : {}),
+      ...(cursor ? { cursor } : {}),
+      ...(limit !== undefined ? { limit } : {}),
     }),
   );
   if (!ran.ok) return ran.result;

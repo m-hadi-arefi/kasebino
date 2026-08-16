@@ -31,6 +31,7 @@ export async function GET() {
       merchantId: s.membership.merchantId,
       authUserId: s.membership.authUserId,
       role: s.membership.role,
+      roleIds: s.roleIds ?? (s.membership.role ? [s.membership.role] : []),
       status: s.membership.status,
       createdAt: s.membership.createdAt.toISOString(),
       updatedAt: s.membership.updatedAt.toISOString(),

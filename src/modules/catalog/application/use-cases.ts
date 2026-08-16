@@ -413,7 +413,7 @@ export function createCatalogUseCases(deps: CatalogUseCaseDeps) {
       barcode,
       categoryId,
       price,
-      cost,
+      ...(cost !== undefined ? { cost } : {}),
       now: at,
     });
     await deps.products.update(product);

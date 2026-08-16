@@ -2,7 +2,7 @@
  * Supplier Repository Port (MerchantOS Phase 1).
  */
 
-import {
+import type {
   CreateSupplierInput,
   Supplier,
   SupplierId,

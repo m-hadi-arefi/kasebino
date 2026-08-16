@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CostLayer, CostLayerValuationEngine } from "./index.ts";
+import type { CostLayer } from "./index.js";
+import { CostLayerValuationEngine } from "./index.js";
 
 describe("CostLayerValuationEngine (FIFO / LIFO / Weighted Average)", () => {
   const sampleLayers: CostLayer[] = [
@@ -38,10 +39,10 @@ describe("CostLayerValuationEngine (FIFO / LIFO / Weighted Average)", () => {
     const result = CostLayerValuationEngine.allocateConsumption(sampleLayers, 4, "fifo");
     expect(result.totalCogsMinor).toBe(4200000n); // 420,000 IRR
     expect(result.consumptions.length).toBe(2);
-    expect(result.consumptions[0].layerId).toBe("layer-1");
-    expect(result.consumptions[0].quantityConsumed).toBe(3);
-    expect(result.consumptions[1].layerId).toBe("layer-2");
-    expect(result.consumptions[1].quantityConsumed).toBe(1);
+    expect(result.consumptions[0]?.layerId).toBe("layer-1");
+    expect(result.consumptions[0]?.quantityConsumed).toBe(3);
+    expect(result.consumptions[1]?.layerId).toBe("layer-2");
+    expect(result.consumptions[1]?.quantityConsumed).toBe(1);
   });
 
   it("calculates LIFO COGS correctly (2 @ 120k + 2 @ 100k = 440k IRR)", () => {
@@ -49,10 +50,10 @@ describe("CostLayerValuationEngine (FIFO / LIFO / Weighted Average)", () => {
     const result = CostLayerValuationEngine.allocateConsumption(sampleLayers, 4, "lifo");
     expect(result.totalCogsMinor).toBe(4400000n); // 440,000 IRR
     expect(result.consumptions.length).toBe(2);
-    expect(result.consumptions[0].layerId).toBe("layer-2");
-    expect(result.consumptions[0].quantityConsumed).toBe(2);
-    expect(result.consumptions[1].layerId).toBe("layer-1");
-    expect(result.consumptions[1].quantityConsumed).toBe(2);
+    expect(result.consumptions[0]?.layerId).toBe("layer-2");
+    expect(result.consumptions[0]?.quantityConsumed).toBe(2);
+    expect(result.consumptions[1]?.layerId).toBe("layer-1");
+    expect(result.consumptions[1]?.quantityConsumed).toBe(2);
   });
 
   it("calculates Weighted Average COGS correctly (Avg = (300k+240k)/5 = 108k -> 4 @ 108k = 432k IRR)", () => {

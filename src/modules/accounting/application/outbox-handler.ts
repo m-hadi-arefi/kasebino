@@ -5,12 +5,16 @@
  */
 
 import type { OutboxMessage } from "../../../outbox/index.js";
-import type { AccountingProvider } from "./ports/accounting-provider.js";
 import {
   mapCustomerToAccountingSync,
+  mapExpenseToAccountingRecord,
   mapPaymentToAccountingRecord,
   mapProductToAccountingSync,
+  mapPurchaseToAccountingRecord,
+  mapReturnToAccountingRecord,
   mapSaleToAccountingRecord,
+  mapSupplierToAccountingSync,
+  mapTransferToAccountingRecord,
 } from "./mappers/index.js";
 import {
   INTEGRATION_METRIC_NAMES,
@@ -18,6 +22,7 @@ import {
 } from "./observability.js";
 import type { ExternalEntityMappingRepository } from "../domain/external-entity-mapping.js";
 import type { ErpNextSyncRecordRepository } from "../../erpnext/domain/sync-record.js";
+import type { AccountingProvider } from "./ports/accounting-provider.js";
 import {
   markSyncFailed,
   markSyncPending,
@@ -284,6 +289,243 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
           entityId = String(message.aggregateId ?? productId);
           break;
         }
+        case "PurchaseCreated":
+        case "PurchaseCompleted": {
+          const purchaseId = String(
+            payload.purchaseId ?? message.aggregateId ?? "",
+          );
+          await trackEntity("purchase", purchaseId);
+          const linesRaw = Array.isArray(payload.items ?? payload.lines)
+            ? ((payload.items ?? payload.lines) as unknown[])
+            : [];
+          const lines = linesRaw.map((line) => {
+            const row = line as Record<string, unknown>;
+            return {
+              productId: String(row.productId ?? ""),
+              quantity: Number(row.quantity ?? row.qty ?? 0),
+              unitCode: String(row.unitCode ?? "piece"),
+              unitCostMinor: String(row.unitCostMinor ?? row.rateMinor ?? "0"),
+              lineTotalMinor: String(
+                row.lineTotalMinor ?? row.totalMinor ?? "0",
+              ),
+              itemCode: row.itemCode ? String(row.itemCode) : undefined,
+            };
+          });
+          const supplierName = String(
+            payload.supplierName ?? payload.supplierId ?? "Supplier",
+          );
+          const result = await deps.provider.recordPurchase(
+            mapPurchaseToAccountingRecord({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              storeId: message.storeId,
+              purchaseId,
+              supplierName,
+              supplierId:
+                payload.supplierId != null
+                  ? String(payload.supplierId)
+                  : null,
+              idempotencyKey: String(payload.idempotencyKey ?? purchaseId),
+              invoiceNumber:
+                payload.invoiceNumber != null
+                  ? String(payload.invoiceNumber)
+                  : null,
+              postingDate: String(
+                payload.purchaseDate ??
+                  payload.postingDate ??
+                  message.occurredAt,
+              ),
+              dueDate:
+                payload.dueDate != null ? String(payload.dueDate) : null,
+              totalAmountMinor: String(
+                payload.totalAmountMinor ?? payload.totalMinor ?? "0",
+              ),
+              currency: "IRR",
+              remarks:
+                payload.notes != null ? String(payload.notes) : undefined,
+              lines,
+            }),
+          );
+          resultExternalId = result.externalId;
+          entityType = "purchase";
+          entityId = purchaseId;
+          break;
+        }
+        case "SaleReturned":
+        case "ReturnCompleted":
+        case "CustomerReturnProcessed": {
+          const returnId = String(
+            payload.returnId ?? message.aggregateId ?? "",
+          );
+          await trackEntity("return", returnId);
+          const linesRaw = Array.isArray(payload.items ?? payload.lines)
+            ? ((payload.items ?? payload.lines) as unknown[])
+            : [];
+          const lines = linesRaw.map((line) => {
+            const row = line as Record<string, unknown>;
+            return {
+              productId: String(row.productId ?? ""),
+              quantity: Number(row.quantity ?? row.qty ?? 0),
+              unitCode: String(row.unitCode ?? "piece"),
+              unitPriceMinor: String(
+                row.unitPriceMinor ?? row.rateMinor ?? "0",
+              ),
+              lineTotalMinor: String(
+                row.lineTotalMinor ?? row.totalMinor ?? "0",
+              ),
+              itemCode: row.itemCode ? String(row.itemCode) : undefined,
+            };
+          });
+          const result = await deps.provider.recordReturn(
+            mapReturnToAccountingRecord({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              storeId: message.storeId,
+              returnId,
+              originalSaleOrOrderId: String(
+                payload.saleId ??
+                  payload.originalReferenceId ??
+                  payload.orderId ??
+                  "",
+              ),
+              idempotencyKey: String(payload.idempotencyKey ?? returnId),
+              returnNumber:
+                payload.returnNumber != null
+                  ? String(payload.returnNumber)
+                  : undefined,
+              customerName:
+                payload.customerName != null
+                  ? String(payload.customerName)
+                  : undefined,
+              customerId:
+                payload.customerId != null
+                  ? String(payload.customerId)
+                  : null,
+              totalAmountMinor: String(
+                payload.totalAmountMinor ?? payload.totalMinor ?? "0",
+              ),
+              currency: "IRR",
+              reason:
+                payload.reason != null ? String(payload.reason) : undefined,
+              occurredAt: message.occurredAt,
+              lines,
+            }),
+          );
+          resultExternalId = result.externalId;
+          entityType = "return";
+          entityId = returnId;
+          break;
+        }
+        case "ExpenseRecorded":
+        case "ExpenseCreated": {
+          const expenseId = String(
+            payload.expenseId ?? message.aggregateId ?? "",
+          );
+          await trackEntity("expense", expenseId);
+          const result = await deps.provider.recordExpense(
+            mapExpenseToAccountingRecord({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              storeId: message.storeId,
+              expenseId,
+              categoryId:
+                payload.categoryId != null
+                  ? String(payload.categoryId)
+                  : null,
+              categoryName:
+                payload.categoryName != null
+                  ? String(payload.categoryName)
+                  : null,
+              amountMinor: String(payload.amountMinor ?? "0"),
+              currency: "IRR",
+              paymentMethod:
+                payload.paymentMethod != null
+                  ? String(payload.paymentMethod)
+                  : "cash",
+              expenseDate: String(
+                payload.expenseDate ?? message.occurredAt,
+              ),
+              description:
+                payload.description != null
+                  ? String(payload.description)
+                  : null,
+              accountId:
+                payload.accountId != null ? String(payload.accountId) : null,
+            }),
+          );
+          resultExternalId = result.externalId;
+          entityType = "expense";
+          entityId = expenseId;
+          break;
+        }
+        case "StockTransferred":
+        case "TransferCompleted": {
+          const transferId = String(
+            payload.transferId ?? message.aggregateId ?? "",
+          );
+          await trackEntity("stock_transfer", transferId);
+          const linesRaw = Array.isArray(payload.items ?? payload.lines)
+            ? ((payload.items ?? payload.lines) as unknown[])
+            : [];
+          const lines = linesRaw.map((line) => {
+            const row = line as Record<string, unknown>;
+            return {
+              productId: String(row.productId ?? ""),
+              quantity: Number(row.quantity ?? row.qty ?? 0),
+              unitCode: String(row.unitCode ?? "piece"),
+              itemCode: row.itemCode ? String(row.itemCode) : undefined,
+            };
+          });
+          const result = await deps.provider.recordTransfer(
+            mapTransferToAccountingRecord({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              fromStoreId: String(
+                payload.fromStoreId ?? message.storeId ?? "",
+              ),
+              toStoreId: String(payload.toStoreId ?? ""),
+              transferId,
+              occurredAt: message.occurredAt,
+              remarks:
+                payload.notes != null ? String(payload.notes) : undefined,
+              lines,
+            }),
+          );
+          resultExternalId = result.externalId;
+          entityType = "stock_transfer";
+          entityId = transferId;
+          break;
+        }
+        case "SupplierCreated":
+        case "SupplierUpdated": {
+          const supplierId = String(
+            payload.supplierId ?? message.aggregateId ?? "",
+          );
+          await trackEntity("supplier", supplierId);
+          const result = await deps.provider.syncSupplier(
+            mapSupplierToAccountingSync({
+              eventId: message.eventId,
+              merchantId: message.merchantId,
+              storeId: message.storeId,
+              supplierId,
+              name: String(payload.name ?? ""),
+              phone:
+                payload.phone != null ? String(payload.phone) : null,
+              taxId:
+                payload.taxId != null ? String(payload.taxId) : null,
+              supplierGroup:
+                payload.supplierGroup != null
+                  ? String(payload.supplierGroup)
+                  : null,
+              address:
+                payload.address != null ? String(payload.address) : null,
+            }),
+          );
+          resultExternalId = result.externalId;
+          entityType = "supplier";
+          entityId = supplierId;
+          break;
+        }
         default:
           // Ignore unrelated events on the shared outbox spine.
           return;
@@ -344,9 +586,20 @@ export function createAccountingOutboxHandler(deps: AccountingOutboxHandlerDeps)
                 ? "payment"
                 : message.eventType.startsWith("Product")
                   ? "product"
-                  : message.eventType.includes("Membership")
+                  : message.eventType.includes("Membership") ||
+                      message.eventType === "CustomerCreated"
                     ? "customer"
-                    : "unknown";
+                    : message.eventType.includes("Purchase")
+                      ? "purchase"
+                      : message.eventType.includes("Return")
+                        ? "return"
+                        : message.eventType.includes("Expense")
+                          ? "expense"
+                          : message.eventType.includes("Transfer")
+                            ? "stock_transfer"
+                            : message.eventType.includes("Supplier")
+                              ? "supplier"
+                              : "unknown";
         const fallbackId = String(message.aggregateId ?? "unknown");
         await markSyncFailed({
           repo: deps.syncRecords,

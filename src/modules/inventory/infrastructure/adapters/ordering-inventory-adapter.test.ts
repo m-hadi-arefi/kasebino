@@ -81,8 +81,8 @@ describe("createInventoryReserveAdapter", () => {
 
     // Stock movements recorded
     expect(stockMovements.items).toHaveLength(2);
-    expect(stockMovements.items[0].reason).toBe("pickup_paid");
-    expect(stockMovements.items[1].reason).toBe("pickup_paid");
+    expect(stockMovements.items[0]?.reason).toBe("pickup_paid");
+    expect(stockMovements.items[1]?.reason).toBe("pickup_paid");
   });
 
   it("is idempotent — duplicate reserve with same orderId is no-op", async () => {
@@ -152,8 +152,8 @@ describe("createInventoryReleaseAdapter", () => {
 
     // Stock movements recorded
     expect(stockMovements.items).toHaveLength(2);
-    expect(stockMovements.items[0].reason).toBe("pickup_restore");
-    expect(stockMovements.items[1].reason).toBe("pickup_restore");
+    expect(stockMovements.items[0]?.reason).toBe("pickup_restore");
+    expect(stockMovements.items[1]?.reason).toBe("pickup_restore");
   });
 
   it("is idempotent — duplicate release with same orderId is no-op", async () => {

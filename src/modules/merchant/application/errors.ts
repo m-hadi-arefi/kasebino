@@ -14,6 +14,8 @@ export const MERCHANT_ERROR_CODES = [
   "SUSPENDED_CANNOT_ACTIVATE",
   "INVALID_STATUS_TRANSITION",
   "NO_CHANGES",
+  "FEATURE_NOT_ENABLED",
+  "INSUFFICIENT_CREDITS",
 ] as const;
 
 export type MerchantErrorCode = (typeof MERCHANT_ERROR_CODES)[number];
@@ -33,6 +35,8 @@ export const MERCHANT_ERROR_MESSAGES_FA = {
     "حساب فروشنده تعلیق شده است و نمی‌توان آن را فعال کرد.",
   INVALID_STATUS_TRANSITION: "تغییر وضعیت فروشنده مجاز نیست.",
   NO_CHANGES: "تغییری برای ذخیره وجود ندارد.",
+  FEATURE_NOT_ENABLED: "این قابلیت در طرح فعلی اشتراک فعال نیست.",
+  INSUFFICIENT_CREDITS: "اعتبار ناکافی است. لطفاً حساب خود را شارژ کنید.",
 } as const satisfies Record<MerchantErrorCode, string>;
 
 export class MerchantDomainError extends Error {

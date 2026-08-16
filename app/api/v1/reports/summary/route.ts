@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
   GetDebtAgingUseCase,
   GetInventoryValuationUseCase,
   GetProfitSummaryUseCase,
   InMemoryReportRepository,
-} from "../../../../../src/modules/reports/index.ts";
+} from "@/modules/reports/index";
 
 const repo = new InMemoryReportRepository();
 const profitUC = new GetProfitSummaryUseCase(repo);

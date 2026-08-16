@@ -2,8 +2,8 @@
  * In-Memory Stock Operations Repository Implementation (MerchantOS Phase 6).
  */
 
-import { StockOperationsRepository } from "../application/stock-ops-use-cases.js";
-import {
+import type { StockOperationsRepository } from "../application/stock-ops-use-cases.js";
+import type {
   StockCountRecord,
   StockTransferRecord,
   WasteReason,
@@ -39,7 +39,7 @@ export class InMemoryStockOperationsRepository implements StockOperationsReposit
         productId: i.productId,
         expectedQuantity: i.expectedQuantity,
       })),
-      countedBy: input.countedBy,
+      ...(input.countedBy !== undefined ? { countedBy: input.countedBy } : {}),
       createdAt: new Date(),
     };
     this.stockCounts.set(this.getKey(input.merchantId, id), record);
@@ -65,7 +65,7 @@ export class InMemoryStockOperationsRepository implements StockOperationsReposit
         ...item,
         actualQuantity: match.actualQuantity,
         variance,
-        varianceReason: match.varianceReason,
+        ...(match.varianceReason !== undefined ? { varianceReason: match.varianceReason } : {}),
       };
     });
 
@@ -73,7 +73,7 @@ export class InMemoryStockOperationsRepository implements StockOperationsReposit
       ...existing,
       status: "completed",
       items: updatedItems,
-      approvedBy: input.approvedBy,
+      ...(input.approvedBy !== undefined ? { approvedBy: input.approvedBy } : {}),
       completedAt: new Date(),
     };
 
@@ -105,9 +105,9 @@ export class InMemoryStockOperationsRepository implements StockOperationsReposit
       unitCostMinor: input.unitCostMinor,
       totalValueMinor,
       reason: input.reason,
-      costLayerId: input.costLayerId,
-      notes: input.notes,
-      recordedBy: input.recordedBy,
+      ...(input.costLayerId !== undefined ? { costLayerId: input.costLayerId } : {}),
+      ...(input.notes !== undefined ? { notes: input.notes } : {}),
+      ...(input.recordedBy !== undefined ? { recordedBy: input.recordedBy } : {}),
       recordedAt: now,
     };
 
@@ -133,8 +133,8 @@ export class InMemoryStockOperationsRepository implements StockOperationsReposit
       transferNumber: input.transferNumber,
       status: "in_transit",
       items: input.items,
-      notes: input.notes,
-      createdBy: input.createdBy,
+      ...(input.notes !== undefined ? { notes: input.notes } : {}),
+      ...(input.createdBy !== undefined ? { createdBy: input.createdBy } : {}),
       createdAt: new Date(),
     };
     this.stockTransfers.set(this.getKey(input.merchantId, id), record);
