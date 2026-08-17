@@ -12,8 +12,8 @@ import {
   outboxEvents,
   processedEvents,
 } from "../database/schema/platform.js";
-import type { EventEnvelope } from "../../event-driven/index.js";
-import type { OutboxConsumerName } from "../../event-driven/index.js";
+import type { EventEnvelope } from "../../events/contracts/event-driven/index.js";
+import type { OutboxConsumerName } from "../../events/contracts/event-driven/index.js";
 import {
   createOutboxMessage,
   type DeadLetterRecordInput,
@@ -22,7 +22,7 @@ import {
   type OutboxMessage,
   type OutboxStore,
   type ProcessedSet,
-} from "../../outbox/index.js";
+} from "../../events/outbox/index.js";
 
 type OutboxRow = typeof outboxEvents.$inferSelect;
 

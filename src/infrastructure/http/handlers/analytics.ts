@@ -11,7 +11,7 @@ import {
   buildDashboardRetentionKey,
   buildDashboardRevenueKey,
   CACHE_TTL_SECONDS,
-} from "../../../cache-keys/index.js";
+} from "../../redis/cache-keys/index.js";
 import { runUseCase } from "../domain-error.js";
 import {
   correlationIdFrom,

@@ -3,11 +3,11 @@
  *
  * Resolves MQTT_URL for infrastructure layers. Does not open a broker
  * connection at import time. Live publish → `MqttJsEmqxPublisher`
- * (`mqtt-publisher.ts`). Browser subscribe strategy: `src/realtime-client`
+ * (`mqtt-publisher.ts`). Browser subscribe strategy: `src/infrastructure/emqx/realtime-client`
  * (ADR-039).
  */
 
-import { CONNECTION } from "../../emqx-realtime/index.js";
+import { CONNECTION } from "./contracts/index.js";
 
 export type EmqxConnectionConfig = {
   url: string;

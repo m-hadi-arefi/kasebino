@@ -2,13 +2,13 @@
  * Redis connection config + live client factory (ADR-051 / ADR-108).
  *
  * Resolves REDIS_URL for infrastructure layers. Cache-aside helpers live in
- * `src/cache-aside` (ADR-052). Rate limiting uses `src/rate-limiting` (ADR-055).
+ * `src/infrastructure/redis/cache-aside` (ADR-052). Rate limiting uses `src/infrastructure/security/rate-limiting` (ADR-055).
  * Prefer module-owned adapters over global singletons when wiring (docs/tech/redis.md).
  */
 
 import { createClient, type RedisClientType } from "redis";
 
-import { CONNECTION } from "../../redis-architecture/index.js";
+import { CONNECTION } from "./contracts/index.js";
 
 export type RedisConnectionConfig = {
   url: string;

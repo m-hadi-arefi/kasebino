@@ -2,11 +2,11 @@
  * ADR-101 pickup board presentation — تومان + Jalali + ready-hold signals.
  */
 
-import { PICKUP_TIMER_POLICY } from "../../../mvp-policies/index.js";
+import { PICKUP_TIMER_POLICY } from "../../../shared/contracts/mvp-policies/index.js";
 import {
   ORDER_STATUS_LABELS_FA,
   orderStatusLabelFa,
-} from "../../../ordering-domain/index.js";
+} from "../domain/contracts/index.js";
 import {
   formatTomanDisplay,
   moneyFromMinor,

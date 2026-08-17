@@ -5,7 +5,7 @@
 
 import { randomUUID } from "node:crypto";
 
-import { getMongoRuntime } from "../mongodb/create-mongo-runtime.js";
+import { getMongoRuntime } from "./create-mongo-runtime.js";
 
 export type PosFunnelStep =
   | "pos_opened"

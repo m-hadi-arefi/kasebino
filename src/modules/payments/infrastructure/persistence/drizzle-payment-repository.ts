@@ -7,7 +7,7 @@ import { and, eq } from "drizzle-orm";
 import type { DrizzleDb } from "../../../../infrastructure/database/drizzle/client.js";
 import { payments } from "../../../../infrastructure/database/schema/payments.js";
 import { assertMerchantId } from "../../../../infrastructure/persistence/helpers.js";
-import type { PaymentStatus } from "../../../../payments-domain/index.js";
+import type { PaymentStatus } from "../../domain/contracts/index.js";
 import type { PaymentIntent } from "../../domain/payment-intent.js";
 import type { PaymentRepository } from "../../domain/repositories.js";
 

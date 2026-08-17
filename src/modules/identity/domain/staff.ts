@@ -1,4 +1,4 @@
-import { type CanonicalRole, type Permission } from "../../../rbac/index.js";
+import { type CanonicalRole, type Permission } from "../../../infrastructure/security/rbac/index.js";
 
 export type StaffStatus = "pending" | "active" | "deactivated";
 

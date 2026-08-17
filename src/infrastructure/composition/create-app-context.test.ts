@@ -16,7 +16,7 @@ import {
 } from "./index.js";
 import { isConsoleSmsAdapter, createMerchantSmsAdapter } from "../auth/sms-adapter-factory.js";
 import { createOutboxWorkerRuntime } from "../../workers/create-outbox-runtime.js";
-import { EnvConfigError } from "../../env-secrets/index.js";
+import { EnvConfigError } from "../../shared/contracts/env-secrets/index.js";
 
 afterEach(() => {
   setApiContextForTests(null);

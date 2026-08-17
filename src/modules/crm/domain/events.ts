@@ -2,7 +2,7 @@ import { createDomainEvent } from "../../../shared/ddd/index.js";
 import type {
   ConsentSurface,
   MembershipSource,
-} from "../../../crm-membership/index.js";
+} from "./membership/index.js";
 
 export function membershipCreatedEvent(input: {
   membershipId: string;

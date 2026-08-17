@@ -13,8 +13,8 @@ import {
 import { createStockItemAggregate } from "./domain/stock-item.js";
 import { createPosUseCases } from "../pos/application/use-cases.js";
 import { InMemorySaleRepository } from "../pos/infrastructure/persistence/in-memory-sale-repository.js";
-import { InMemoryOutboxStore } from "../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
+import { InMemoryOutboxStore } from "../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
 
 describe("ADR-126 stock movements + sale integrity helpers", () => {
   it("appends a sale movement when decrementing stock", async () => {

@@ -9,7 +9,7 @@
 
 import { MongoClient, type Db, type MongoClientOptions } from "mongodb";
 
-import { CONNECTION, MONGO_ENGINE } from "../../mongodb-analytics/index.js";
+import { CONNECTION, MONGO_ENGINE } from "./contracts/analytics/index.js";
 
 export type MongodbConnectionConfig = {
   url: string;

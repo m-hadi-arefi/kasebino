@@ -5,7 +5,7 @@
 import {
   buildMerchantJwtClaims,
   type MerchantJwtClaims,
-} from "../../../../nextauth-jwt/index.js";
+} from "../../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 
 export type MerchantAuthUser = {
   id: string;

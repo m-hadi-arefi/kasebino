@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useMemo, useState, useTransition } from "react";
 
-import { iranianMobileSchema } from "@/forms-validation/phone";
+import { iranianMobileSchema } from "@/shared/validation/forms/phone";
 import { fetchActiveStore } from "@/modules/merchant/ui";
 import {
   completePosSale,
@@ -28,9 +28,9 @@ import {
   fetchWalletByPhone,
   redeemPoints,
 } from "@/modules/loyalty/ui";
-import { useRealtimeStoreChannel } from "@/realtime-client/use-realtime-store-channel";
-import { POS_OFFLINE_COPY_FA } from "@/pos-offline/client";
-import { enqueueOfflineSaleInIdb } from "@/pos-offline/browser-queue";
+import { useRealtimeStoreChannel } from "@/infrastructure/emqx/realtime-client/use-realtime-store-channel";
+import { POS_OFFLINE_COPY_FA } from "@/modules/pos/offline/client";
+import { enqueueOfflineSaleInIdb } from "@/modules/pos/offline/browser-queue";
 
 import { trackPosFunnelStep } from "@/modules/pos/ui/track-pos-funnel";
 

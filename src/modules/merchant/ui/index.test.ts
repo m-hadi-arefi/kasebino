@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
 import {
   ONBOARDING_UI_COPY_FA,
   ONBOARDING_UIUX_GATE,

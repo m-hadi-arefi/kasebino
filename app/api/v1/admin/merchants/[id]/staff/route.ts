@@ -21,7 +21,7 @@ export async function GET(
 
   const authz = requireAdminPermission(session, "admin.platform");
   if (!authz.ok) {
-    return NextResponse.json(authz.denial.body, { status: authz.denial.status });
+    return NextResponse.json(authz.result.body, { status: authz.result.status });
   }
 
   const api = getApiContext();
@@ -51,7 +51,7 @@ export async function POST(
 
   const authz = requireAdminPermission(session, "admin.platform");
   if (!authz.ok) {
-    return NextResponse.json(authz.denial.body, { status: authz.denial.status });
+    return NextResponse.json(authz.result.body, { status: authz.result.status });
   }
 
   try {

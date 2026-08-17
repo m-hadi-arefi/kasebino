@@ -6,7 +6,7 @@ import type { Notification, NotificationType } from "./notification.js";
 import type {
   NotificationAudience,
   NotificationChannel,
-} from "../../../notifications-architecture/index.js";
+} from "./contracts/index.js";
 
 export type ListNotificationsFilter = {
   merchantId: string;

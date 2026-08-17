@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { POS_OFFLINE_COPY_FA } from "@/pos-offline/client";
-import { STAFF_PWA_COPY_FA } from "@/staff-pwa";
+import { POS_OFFLINE_COPY_FA } from "@/modules/pos/offline/client";
+import { STAFF_PWA_COPY_FA } from "@/modules/pos/ui/staff-pwa";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;

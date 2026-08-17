@@ -1,7 +1,7 @@
 /**
  * Store OLTP table (ADR-006 / ARD-004) — Drizzle schema stub.
  *
- * Aligns with `src/database-modeling` (ADR-043) + multi-tenant isolation (ADR-048):
+ * Aligns with `src/infrastructure/database/contracts/modeling` (ADR-043) + multi-tenant isolation (ADR-048):
  * - UUID PKs, snake_case plural tables
  * - UTC timestamptz audit columns + optional soft-delete
  * - merchant_id mandatory (tenant-owned)

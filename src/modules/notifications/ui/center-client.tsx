@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchActiveStore } from "@/modules/merchant/ui";
-import { useRealtimeStoreChannel } from "@/realtime-client/use-realtime-store-channel";
+import { useRealtimeStoreChannel } from "@/infrastructure/emqx/realtime-client/use-realtime-store-channel";
 
 import { fetchNotifications, markNotificationRead } from "./api.js";
 import { NOTIFICATIONS_UI_COPY_FA } from "./copy.js";

@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { AuthSessionSnapshot } from "../../auth/session-guard.js";
 import type { ApiContext } from "../../composition/create-api-context.js";
-import { normalizeIranianMobile } from "../../../forms-validation/phone.js";
+import { normalizeIranianMobile } from "../../../shared/validation/forms/phone.js";
 import { pointRuleDto, walletDto } from "../dtos.js";
 import { runUseCase } from "../domain-error.js";
 import {

@@ -3,7 +3,7 @@
  * POS: notice-continue (no checkbox). Digital: explicit checkbox required.
  */
 
-import type { ConsentSurface } from "../../../crm-membership/index.js";
+import type { ConsentSurface } from "./membership/index.js";
 
 export type MembershipConsent = {
   readonly surface: ConsentSurface;

@@ -5,12 +5,12 @@
 import {
   MINIO_BUCKETS,
   type ObjectStoragePort,
-} from "../../minio-storage/index.js";
+} from "./contracts/index.js";
 import type { SaleRepository } from "../../modules/pos/domain/repositories.js";
 import { attachSaleReceiptRef } from "../../modules/pos/domain/sale.js";
 import { storeSaleReceiptObject } from "../../modules/pos/application/store-sale-receipt.js";
 import type { StoreRepository } from "../../modules/store/domain/repositories.js";
-import type { OutboxMessage } from "../../outbox/index.js";
+import type { OutboxMessage } from "../../events/outbox/index.js";
 
 export function createReceiptRenderOutboxHandler(deps: {
   sales: SaleRepository;

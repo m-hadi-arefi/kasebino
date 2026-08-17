@@ -9,7 +9,7 @@ import {
   InMemoryAuditStore,
   type AuditPort,
   type AuditStore,
-} from "../../../../audit-logging/index.js";
+} from "../../../../infrastructure/security/contracts/audit-logging/index.js";
 
 export type AdminAuditStub = {
   port: AuditPort;

@@ -8,8 +8,8 @@ import {
   type ProductAnalyticsDocument,
   type ProductAnalyticsInsertResult,
   type ProductAnalyticsStore,
-} from "../../product-analytics/index.js";
-import { MONGO_COLLECTIONS } from "../../mongodb-analytics/index.js";
+} from "../../modules/analytics/domain/product/index.js";
+import { MONGO_COLLECTIONS } from "./contracts/analytics/index.js";
 
 export class MongodbProductAnalyticsStore implements ProductAnalyticsStore {
   private readonly col: Collection<ProductAnalyticsDocument>;

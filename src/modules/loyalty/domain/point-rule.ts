@@ -2,8 +2,8 @@
  * PointRule aggregate (ADR-010) — store-scoped earn + expiry config.
  */
 
-import { LOYALTY_DECISION } from "../../../loyalty-domain/index.js";
-import { LOYALTY_EXPIRY_POLICY } from "../../../mvp-policies/index.js";
+import { LOYALTY_DECISION } from "./contracts/index.js";
+import { LOYALTY_EXPIRY_POLICY } from "../../../shared/contracts/mvp-policies/index.js";
 
 export type PointRule = {
   readonly id: string;

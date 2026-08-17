@@ -5,7 +5,7 @@ import {
   PERMISSION_CATALOG,
   PERMISSION_DOMAINS,
   normalizeRoles,
-} from "@/rbac";
+} from "@/infrastructure/security/rbac";
 
 export async function GET() {
   const session = (await auth()) as AuthSessionSnapshot;

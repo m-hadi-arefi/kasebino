@@ -5,7 +5,7 @@
 import type {
   ApiErrorEnvelope,
   ApiSuccessEnvelope,
-} from "../../api-standards/index.js";
+} from "../../shared/contracts/api-standards/index.js";
 
 export type HttpRequestLike = {
   method: string;

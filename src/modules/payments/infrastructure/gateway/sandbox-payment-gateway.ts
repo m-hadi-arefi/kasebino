@@ -8,7 +8,7 @@ import { createHmac, randomUUID } from "node:crypto";
 
 
 
-import { SANDBOX_PROVIDER_ID } from "../../../../payments-domain/index.js";
+import { SANDBOX_PROVIDER_ID } from "../../domain/contracts/index.js";
 import type {
   ConfirmGatewayPaymentInput,
   ConfirmGatewayPaymentResult,

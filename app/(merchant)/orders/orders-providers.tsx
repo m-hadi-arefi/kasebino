@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 import {
   MerchantQueryProvider,
   createMerchantQueryClient,
-} from "@/data-fetching";
+} from "@/shared/contracts/data-fetching";
 
 export function OrdersProviders({ children }: { children: ReactNode }) {
   const [client] = useState(() => createMerchantQueryClient());

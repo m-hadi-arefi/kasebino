@@ -8,6 +8,6 @@ export {
   type PosCartLine,
   type PosCartState,
   type PosCartStore,
-} from "../../../../state-management/pos-cart-store.js";
+} from "../../../../shared/state/pos-cart-store.js";
 
-export { STATE_MANAGEMENT_PATHS } from "../../../../state-management/index.js";
+export { STATE_MANAGEMENT_PATHS } from "../../../../shared/state/index.js";

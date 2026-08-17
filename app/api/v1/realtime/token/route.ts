@@ -5,7 +5,7 @@ import {
   parseRealtimeTokenBody,
   REALTIME_TOKEN_API,
   type RealtimeTokenAuthorizer,
-} from "@/realtime-client";
+} from "@/infrastructure/emqx/realtime-client";
 import { auth } from "@/auth";
 import {
   merchantIdFromSession,

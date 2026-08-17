@@ -3,7 +3,7 @@ import { createHash, randomInt, randomUUID } from "node:crypto";
 import {
   CUSTOMER_OTP_POLICY,
   shouldReturnDevOtp,
-} from "../../../customer-auth/index.js";
+} from "../domain/auth/index.js";
 import { createCustomerIdentity } from "../domain/customer-identity.js";
 import { customerLoggedInEvent } from "../domain/events.js";
 import { normalizeIranianMobile } from "../domain/iranian-phone.js";

@@ -6,7 +6,7 @@ import {
   CUSTOMER_AUTH_DECISION,
   CUSTOMER_JWT_CLAIMS_CONTRACT,
   assertCustomerJwtRole,
-} from "../../../../customer-auth/index.js";
+} from "../../domain/auth/index.js";
 
 export type CustomerAuthUser = {
   id: string;

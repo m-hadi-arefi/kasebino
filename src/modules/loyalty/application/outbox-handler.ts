@@ -1,4 +1,4 @@
-import type { OutboxDispatchHandler, OutboxMessage } from "../../../outbox/index.js";
+import type { OutboxDispatchHandler, OutboxMessage } from "../../../events/outbox/index.js";
 import type { createLoyaltyUseCases } from "./use-cases.js";
 
 export type LoyaltyOutboxHandlerOptions = {

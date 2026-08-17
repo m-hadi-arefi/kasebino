@@ -15,7 +15,7 @@ import {
   Building2,
   WalletCards,
 } from "lucide-react";
-import type { Permission } from "../../rbac/index.js";
+import type { Permission } from "../../infrastructure/security/rbac/index.js";
 
 export type AppNavItem = {
   title: string;

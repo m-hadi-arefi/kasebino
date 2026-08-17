@@ -6,7 +6,7 @@ import {
   PICKUP_TIMER_POLICY,
   readyHoldShouldExpire,
   unpaidOrderShouldAutoCancel,
-} from "../../../mvp-policies/index.js";
+} from "../../../shared/contracts/mvp-policies/index.js";
 import type { Order } from "./order.js";
 
 export { PICKUP_TIMER_POLICY };

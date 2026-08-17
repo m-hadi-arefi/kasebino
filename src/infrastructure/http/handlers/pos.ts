@@ -195,7 +195,7 @@ export async function handleGetSaleReceipt(
     createValidatedPresignedDownload,
     MINIO_BUCKETS,
     PRESIGN_TTL_SECONDS,
-  } = await import("../../../minio-storage/index.js");
+  } = await import("../../minio/contracts/index.js");
   const signed = await createValidatedPresignedDownload(ctx.objectStorage, {
     bucket: MINIO_BUCKETS.receipts,
     objectKey: sale.receiptObjectKey,

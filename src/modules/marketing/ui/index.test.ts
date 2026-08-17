@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
 import {
   MARKETING_COPY_FA,
   MARKETING_CTA,

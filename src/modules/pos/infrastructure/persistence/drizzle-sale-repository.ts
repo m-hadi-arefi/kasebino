@@ -16,7 +16,7 @@ import {
   assertStoreId,
   notDeleted,
 } from "../../../../infrastructure/persistence/helpers.js";
-import type { PosTenderType } from "../../../../pos-sales/index.js";
+import type { PosTenderType } from "../../domain/sales/index.js";
 import type { SaleRepository } from "../../domain/repositories.js";
 import type { Sale, SaleLine, SaleStatus } from "../../domain/sale.js";
 

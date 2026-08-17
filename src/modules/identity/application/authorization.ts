@@ -17,8 +17,8 @@ import {
   type AuthorizeInput,
   type CanonicalRole,
   type Permission,
-} from "../../../rbac/index.js";
-import type { MerchantJwtClaims } from "../../../nextauth-jwt/index.js";
+} from "../../../infrastructure/security/rbac/index.js";
+import type { MerchantJwtClaims } from "../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 
 export type IdentityAuthContext = AuthContext & {
   rolesCanonical: readonly CanonicalRole[];

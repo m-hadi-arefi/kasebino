@@ -4,7 +4,7 @@ import {
   createErrorEnvelope,
   createSuccessEnvelope,
   ensureCorrelationId,
-} from "@/api-standards";
+} from "@/shared/contracts/api-standards";
 import { signIn } from "@/auth";
 
 /**

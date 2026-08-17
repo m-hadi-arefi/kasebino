@@ -8,7 +8,7 @@ import {
   normalizeIranianMobile,
   parseTomanInput,
   toAsciiDigits,
-} from "../../forms-validation/index.js";
+} from "../../shared/validation/forms/index.js";
 
 export const PHONE_PLACEHOLDER_FA = "۰۹۱۲۳۴۵۶۷۸۹";
 export const PHONE_LABEL_FA = "شماره موبایل";

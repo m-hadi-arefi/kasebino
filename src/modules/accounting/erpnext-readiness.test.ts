@@ -13,8 +13,8 @@ import {
   InMemoryStockMovementRepository,
 } from "../inventory/infrastructure/index.js";
 import { createStockItemAggregate } from "../inventory/domain/stock-item.js";
-import { InMemoryOutboxStore } from "../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
+import { InMemoryOutboxStore } from "../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
 import {
   createAccountingOutboxHandler,
   FakeAccountingProvider,
@@ -22,8 +22,8 @@ import {
   mapPaymentToAccountingRecord,
   mapStockReasonToAccountingMovementType,
 } from "./index.js";
-import { createOutboxMessage } from "../../outbox/index.js";
-import { InMemoryObjectStorageAdapter } from "../../minio-storage/index.js";
+import { createOutboxMessage } from "../../events/outbox/index.js";
+import { InMemoryObjectStorageAdapter } from "../../infrastructure/minio/contracts/index.js";
 
 describe("ERPNext readiness — CompleteSale UoW boundary", () => {
   it("runs object storage only after OLTP unit of work commits", async () => {

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 
 
-import { FEE_POLICY } from "../../../payments-domain/index.js";
+import { FEE_POLICY } from "../domain/contracts/index.js";
 import {
   createPaymentIntent,
   markPaymentFailed,

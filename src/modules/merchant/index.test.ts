@@ -6,7 +6,7 @@ import {
   MERCHANT_LIFECYCLE,
   MERCHANT_PROFILE_CACHE,
   merchantGatesOperations,
-} from "../../merchant-domain/index.js";
+} from "./domain/contracts/index.js";
 import {
   MERCHANT_ERROR_MESSAGES_FA,
   MerchantDomainError,

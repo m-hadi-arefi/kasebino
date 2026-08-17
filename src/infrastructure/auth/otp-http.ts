@@ -9,7 +9,7 @@ import {
   ensureCorrelationId,
   type ApiErrorEnvelope,
   type ApiSuccessEnvelope,
-} from "../../api-standards/index.js";
+} from "../../shared/contracts/api-standards/index.js";
 import {
   CustomerAuthError,
   isCustomerAuthError,

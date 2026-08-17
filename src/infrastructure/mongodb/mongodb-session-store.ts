@@ -14,8 +14,8 @@ import {
   type SessionLifecycleEvent,
   type SessionStatus,
   type SessionStore,
-} from "../../session-analytics/index.js";
-import { MONGO_SESSION_COLLECTION } from "../../mongodb-analytics/index.js";
+} from "../../modules/analytics/domain/session/index.js";
+import { MONGO_SESSION_COLLECTION } from "./contracts/analytics/index.js";
 
 type SessionMongoDoc = SessionDocument & {
   lifecycleEvents?: SessionLifecycleEvent[];

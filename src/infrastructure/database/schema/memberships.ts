@@ -1,7 +1,7 @@
 /**
  * Store membership OLTP table (ADR-007 / ARD-031) — Drizzle schema stub.
  *
- * Aligns with `src/database-modeling` (ADR-043) + multi-tenant isolation (ADR-048):
+ * Aligns with `src/infrastructure/database/contracts/modeling` (ADR-043) + multi-tenant isolation (ADR-048):
  * - UUID PKs, snake_case plural tables
  * - UTC timestamptz audit columns + soft-delete
  * - merchant_id + store_id mandatory (store-owned membership)

@@ -6,7 +6,7 @@ import {
   assertSaleDecrementInSameTx,
   assertStoreScopedSync,
   OFFLINE_STOCK_SYNC,
-} from "../../../inventory-sync/index.js";
+} from "./sync/index.js";
 import {
   buildThresholdEvents,
   inventoryChangedEvent,

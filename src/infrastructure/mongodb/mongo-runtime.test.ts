@@ -14,11 +14,11 @@ import {
   createInMemoryIngestMetrics,
   createIsolatingAnalyticsIngestPort,
   ISOLATED_INGEST_PATHS,
-} from "../../analytics-ingest-isolation/index.js";
-import { createEventEnvelope } from "../../event-driven/index.js";
-import { MONGO_COLLECTIONS } from "../../mongodb-analytics/index.js";
-import { MONGO_TTL_TABLE } from "../../data-retention/index.js";
-import type { OutboxMessage } from "../../outbox/index.js";
+} from "./contracts/ingest-isolation/index.js";
+import { createEventEnvelope } from "../../events/contracts/event-driven/index.js";
+import { MONGO_COLLECTIONS } from "./contracts/analytics/index.js";
+import { MONGO_TTL_TABLE } from "../database/contracts/retention/index.js";
+import type { OutboxMessage } from "../../events/outbox/index.js";
 import { handleTelemetryBeacon } from "../http/handlers/telemetry.js";
 import { pingMongoFromEnv } from "./client.js";
 import {

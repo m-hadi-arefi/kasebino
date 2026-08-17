@@ -14,7 +14,7 @@ import {
   assertSecureCookieOptions,
   assertShortSessionTtl,
   sessionCookieSecure,
-} from "../../../../nextauth-jwt/index.js";
+} from "../../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 import type { VerifyCustomerOtpResult } from "../../application/customer-otp-use-cases.js";
 import {
   applyCustomerClaimsToSession,

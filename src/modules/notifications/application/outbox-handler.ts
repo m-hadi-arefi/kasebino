@@ -3,7 +3,7 @@
  * Creates persisted in-app notifications after commit — never on critical path.
  */
 
-import type { OutboxDispatchHandler, OutboxMessage } from "../../../outbox/index.js";
+import type { OutboxDispatchHandler, OutboxMessage } from "../../../events/outbox/index.js";
 import type { NotificationsUseCases } from "./use-cases.js";
 
 export type NotificationsOutboxHandlerOptions = {

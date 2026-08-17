@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
 import { ANALYTICS_UI_COPY_FA } from "./copy.js";
 import { formatAnalyticsToman } from "./format.js";
 

@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LOCALE_DEFAULTS } from "../../product-architecture/index.js";
+import { LOCALE_DEFAULTS } from "../architecture/product/index.js";
 import {
   BOUNDED_CONTEXT_MODULES,
   DDD_STRATEGY,

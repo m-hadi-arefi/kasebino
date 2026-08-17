@@ -2,9 +2,9 @@
  * ADR-094 / ADR-077 — DTO mappers (camelCase wire; public storefront ACL).
  */
 
-import { assertPublicDtoMinimized } from "../../api-protection/index.js";
+import { assertPublicDtoMinimized } from "../security/contracts/api-protection/index.js";
 import { formatTomanDisplay, moneyFromMinor } from "../../shared/domain/money.js";
-import { buildPublicStoreMapDto } from "../../store-location/index.js";
+import { buildPublicStoreMapDto } from "../../modules/store/domain/location/index.js";
 import type { Product } from "../../modules/catalog/domain/product.js";
 import type { Category } from "../../modules/catalog/domain/category.js";
 import type { Merchant } from "../../modules/merchant/domain/merchant.js";

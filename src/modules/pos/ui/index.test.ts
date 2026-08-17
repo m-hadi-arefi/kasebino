@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
-import { InMemoryOutboxStore } from "../../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../../event-driven/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
+import { InMemoryOutboxStore } from "../../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../../events/contracts/event-driven/index.js";
 import {
   InMemorySaleRepository,
   createPosUseCases,

@@ -2,7 +2,7 @@
  * Redis adapter for RateLimitRedisPort (ADR-108 / ADR-055).
  */
 
-import type { RateLimitRedisPort } from "../../rate-limiting/port.js";
+import type { RateLimitRedisPort } from "../security/rate-limiting/port.js";
 import type { MerchantOsRedisClient } from "./client.js";
 
 export class RedisRateLimitStore implements RateLimitRedisPort {

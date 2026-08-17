@@ -40,8 +40,8 @@ import {
   type OrderDto,
   type OrderTransitionAction,
 } from "@/modules/ordering/ui";
-import { REALTIME_CLIENT_UX_FA } from "@/realtime-client/ux";
-import { useRealtimeStoreChannel } from "@/realtime-client/use-realtime-store-channel";
+import { REALTIME_CLIENT_UX_FA } from "@/infrastructure/emqx/realtime-client/ux";
+import { useRealtimeStoreChannel } from "@/infrastructure/emqx/realtime-client/use-realtime-store-channel";
 
 const fa = ORDERS_UI_COPY_FA;
 

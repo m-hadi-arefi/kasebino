@@ -62,7 +62,7 @@ import {
   MerchantQueryProvider,
   buildScopedQueryKey,
   staleTimeForSurface,
-} from "../data-fetching/index.js";
+} from "../../src/shared/contracts/data-fetching/index.js";
 
 const client = createMerchantQueryClient();
 // Mount MerchantQueryProvider({ client, children }) in a client shell.

@@ -8,8 +8,8 @@ import {
   type ClickstreamDocument,
   type ClickstreamInsertResult,
   type ClickstreamStore,
-} from "../../clickstream/index.js";
-import { MONGO_COLLECTIONS } from "../../mongodb-analytics/index.js";
+} from "./clickstream/index.js";
+import { MONGO_COLLECTIONS } from "./contracts/analytics/index.js";
 
 export class MongodbClickstreamStore implements ClickstreamStore {
   private readonly col: Collection<ClickstreamDocument>;

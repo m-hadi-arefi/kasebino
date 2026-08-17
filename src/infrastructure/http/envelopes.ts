@@ -10,7 +10,7 @@ import {
   ensureCorrelationId,
   type ApiErrorEnvelope,
   type ApiSuccessEnvelope,
-} from "../../api-standards/index.js";
+} from "../../shared/contracts/api-standards/index.js";
 import type { HttpHandlerResult, HttpRequestLike } from "./types.js";
 
 export function correlationIdFrom(

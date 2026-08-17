@@ -12,7 +12,7 @@ import {
   fetchPortalOrders,
   formatPortalJalali,
   orderStatusLabelFa,
-} from "@/customer-dashboard/ui";
+} from "@/modules/customer-identity/ui/dashboard/ui";
 
 const fa = CUSTOMER_DASHBOARD_COPY_FA;
 

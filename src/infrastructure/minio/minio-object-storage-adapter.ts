@@ -22,7 +22,7 @@ import type {
   PresignedUrl,
   PresignUploadParams,
   PutObjectParams,
-} from "../../minio-storage/port.js";
+} from "./contracts/port.js";
 import type { MinioConnectionConfig } from "./client.js";
 
 function toUint8Array(body: unknown): Uint8Array {

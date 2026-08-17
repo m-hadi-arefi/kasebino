@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { LoyaltyEarnPort } from "../../pos/application/ports.js";
-import { LOYALTY_DECISION } from "../../../loyalty-domain/index.js";
+import { LOYALTY_DECISION } from "../domain/contracts/index.js";
 import { calculateEarnPoints } from "../domain/earn-calculator.js";
 import { shouldExpireWallet } from "../domain/expiry-policy.js";
 import {
@@ -28,8 +28,8 @@ import {
 } from "../domain/wallet.js";
 import { LoyaltyDomainError } from "./errors.js";
 import type { DomainEventBase } from "../../../shared/ddd/index.js";
-import type { OutboxStore } from "../../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../../event-driven/index.js";
+import type { OutboxStore } from "../../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../../events/contracts/event-driven/index.js";
 
 export type LoyaltyUseCaseDeps = {
   wallets: WalletRepository;
@@ -463,7 +463,7 @@ export function createLoyaltyUseCases(deps: LoyaltyUseCaseDeps) {
     },
 
     /**
-     * Expire stale wallets per ADR-091. Scheduler hook: `src/outbox` (ADR-035).
+     * Expire stale wallets per ADR-091. Scheduler hook: `src/events/outbox` (ADR-035).
      */
     async expireStaleWallets(input: ExpireStaleWalletsInput = {}): Promise<{
       expired: Array<{

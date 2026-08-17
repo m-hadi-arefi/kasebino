@@ -4,12 +4,12 @@
 
 import { describe, expect, it } from "vitest";
 
-import { createEventEnvelope } from "../../event-driven/index.js";
+import { createEventEnvelope } from "../../events/contracts/event-driven/index.js";
 import {
   InMemoryOutboxStore,
   InMemoryProcessedSet,
   createOutboxWorker,
-} from "../../outbox/index.js";
+} from "../../events/outbox/index.js";
 
 import {
   ConsoleSmsNotificationChannel,

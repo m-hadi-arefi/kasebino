@@ -11,16 +11,20 @@ export type AuthSessionSnapshot = {
     merchantId?: string | null;
     roles?: string[] | null;
     role?: string | null;
+    permissions?: string[];
     tokenVersion?: number | null;
     storeId?: string | null;
+    storeIds?: string[];
     audience?: string | null;
   } | null;
   audience?: string | null;
   merchantId?: string | null;
   roles?: string[] | null;
   role?: string | null;
+  permissions?: string[];
   tokenVersion?: number | null;
   storeId?: string | null;
+  storeIds?: string[];
 } | null;
 
 export function sessionAudience(

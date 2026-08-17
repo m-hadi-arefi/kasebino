@@ -3,7 +3,7 @@ import { createHash, randomInt, randomUUID } from "node:crypto";
 import {
   MERCHANT_OTP_POLICY,
   shouldReturnDevOtp,
-} from "../../../merchant-auth/index.js";
+} from "../domain/merchant-auth/index.js";
 import { createAuthUser } from "../domain/auth-user.js";
 import { merchantLoggedInEvent } from "../domain/events.js";
 import { normalizeIranianMobile } from "../domain/iranian-phone.js";

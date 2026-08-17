@@ -3,7 +3,7 @@
  * Tender recorded per ADR-091; money IRR minor units.
  */
 
-import type { PosTenderType } from "../../../pos-sales/index.js";
+import type { PosTenderType } from "./sales/index.js";
 
 export const SALE_STATUSES = ["completed", "canceled"] as const;
 export type SaleStatus = (typeof SALE_STATUSES)[number];

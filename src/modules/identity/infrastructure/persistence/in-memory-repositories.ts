@@ -3,7 +3,7 @@ import {
   ROLE_PERMISSION_MATRIX,
   type CanonicalRole,
   type Permission,
-} from "../../../../rbac/index.js";
+} from "../../../../infrastructure/security/rbac/index.js";
 import type { AuthUser } from "../../domain/auth-user.js";
 import {
   isOtpChallengeConsumed,

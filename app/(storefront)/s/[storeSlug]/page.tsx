@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { hasQrAcquisitionSource } from "@/qr-acquisition";
+import { hasQrAcquisitionSource } from "@/modules/storefront/domain/qr-acquisition";
 import { STOREFRONT_UI_COPY_FA } from "@/modules/storefront/ui";
 import { loadStorefrontCatalog } from "@/modules/storefront/ui/load";
 import { StoreCustomerInstallPrompt } from "./install-prompt";

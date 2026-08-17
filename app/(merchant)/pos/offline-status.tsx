@@ -6,13 +6,13 @@ import {
   POS_OFFLINE_INSTALL_UX,
   POS_OFFLINE_SERVICE_WORKER,
   bannerForConnectivity,
-} from "@/pos-offline/client";
+} from "@/modules/pos/offline/client";
 import {
   flushOfflineSalesViaPosApi,
   listRejectedOfflineSales,
   offlineQueueDepth,
   type BrowserOfflineSaleDraft,
-} from "@/pos-offline/browser-queue";
+} from "@/modules/pos/offline/browser-queue";
 import { POS_CONSENT_NOTICE_VERSION } from "@/modules/pos/ui/copy";
 import { formatPosToman } from "@/modules/pos/ui/format";
 import { Alert, AlertDescription } from "@/components/ui/alert";

@@ -11,7 +11,7 @@ import {
   putValidatedObject,
   type ObjectStoragePort,
   type ReceiptRef,
-} from "../../../minio-storage/index.js";
+} from "../../../infrastructure/minio/contracts/index.js";
 import type { Sale } from "../domain/sale.js";
 import { renderSaleReceiptHtml } from "./receipt-html.js";
 

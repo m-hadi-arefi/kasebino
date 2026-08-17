@@ -2,7 +2,7 @@
  * ADR-095 — Persian OTP login UX contract + uiuxpromax gate evidence.
  */
 
-import { assertUiuxGate } from "../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../shared/contracts/uiuxpromax-gate/index.js";
 import { AUTH_UX_COPY_FA } from "./auth-ux-copy.js";
 
 export { AUTH_UX_COPY_FA } from "./auth-ux-copy.js";

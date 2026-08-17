@@ -15,7 +15,7 @@ import {
   assertMerchantId,
   assertStoreId,
 } from "../../../../infrastructure/persistence/helpers.js";
-import type { LedgerEntryType } from "../../../../loyalty-domain/index.js";
+import type { LedgerEntryType } from "../../domain/contracts/index.js";
 import type { PointRule } from "../../domain/point-rule.js";
 import type { PointsLedgerEntry } from "../../domain/points-ledger.js";
 import type {

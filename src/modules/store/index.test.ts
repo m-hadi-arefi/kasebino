@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   STORE_DOMAIN_DECISION,
   storefrontPathForSlug,
-} from "../../store-domain/index.js";
+} from "./domain/contracts/index.js";
 import {
   STORE_ERROR_MESSAGES_FA,
   StoreDomainError,

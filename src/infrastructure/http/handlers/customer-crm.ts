@@ -579,3 +579,7 @@ export async function handleGetCrmDashboard(
   if (!ran.ok) return ran.result;
   return ok(ran.data);
 }
+
+export const handleAssignCustomerTag = handleAssignCrmTag;
+export const handleRemoveCustomerTag = handleRemoveCrmTag;
+

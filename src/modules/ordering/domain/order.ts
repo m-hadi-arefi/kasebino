@@ -9,7 +9,7 @@ import {
   assertPickupOnlyFulfillment,
   type OrderFulfillmentMode,
   type OrderStatus,
-} from "../../../ordering-domain/index.js";
+} from "./contracts/index.js";
 
 export { ORDER_FULFILLMENT_MODES, ORDER_STATUSES };
 export type { OrderFulfillmentMode, OrderStatus };

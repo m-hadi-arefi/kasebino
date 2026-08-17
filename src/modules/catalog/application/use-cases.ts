@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import {
   normalizeBarcode,
   normalizeSearchText,
-} from "../../../search-barcode/index.js";
+} from "../domain/search-barcode/index.js";
 import {
   formatTomanDisplay,
   moneyFromMinor,
@@ -36,7 +36,7 @@ import {
   buildObjectKey,
   putValidatedObject,
   type ObjectStoragePort,
-} from "../../../minio-storage/index.js";
+} from "../../../infrastructure/minio/contracts/index.js";
 
 const NAME_MAX = 200;
 const SKU_MAX = 64;

@@ -8,9 +8,9 @@ import { describe, expect, it } from "vitest";
 import {
   assertErrorEnvelopeShape,
   type ApiErrorEnvelope,
-} from "../../api-standards/index.js";
-import { ADMIN_DOMAIN_DECISION } from "../../admin-domain/index.js";
-import { createInMemoryRateLimiter } from "../../rate-limiting/index.js";
+} from "../../shared/contracts/api-standards/index.js";
+import { ADMIN_DOMAIN_DECISION } from "../../modules/admin/domain/contracts/index.js";
+import { createInMemoryRateLimiter } from "../security/rate-limiting/index.js";
 import { createAdminUser } from "../../modules/admin/domain/index.js";
 import {
   createAdminAuditPortStub,
@@ -74,7 +74,7 @@ import { correlationIdFrom, fail } from "./envelopes.js";
 import type { AdminAuditStub } from "../../modules/admin/infrastructure/audit/audit-port-stub.js";
 import { InMemoryCustomerIdentityRepository } from "../../modules/customer-identity/infrastructure/index.js";
 import { createCustomerIdentity } from "../../modules/customer-identity/domain/index.js";
-import { InMemoryOutboxStore } from "../../outbox/index.js";
+import { InMemoryOutboxStore } from "../../events/outbox/index.js";
 import { signSandboxWebhook } from "../../modules/payments/application/index.js";
 
 const PERSIAN = /[\u0600-\u06FF]/;
@@ -1451,7 +1451,7 @@ describe("ADR-104 store location map + QR HTTP", () => {
   });
 
   it("ADR-147: handleUploadProductImage uploads image via HTTP and handleDeleteProductImage clears it", async () => {
-    const { InMemoryObjectStorageAdapter } = await import("../../minio-storage/index.js");
+    const { InMemoryObjectStorageAdapter } = await import("../minio/contracts/index.js");
     const objectStorage = new InMemoryObjectStorageAdapter();
 
     const { ctx } = createTestContext();

@@ -5,8 +5,8 @@ import {
   NOTIFICATION_MVP_EVENTS,
   SMS_CAMPAIGN_STUB,
   type NotificationMvpEvent,
-} from "../../../notifications-architecture/index.js";
-import type { EventEnvelope } from "../../../event-driven/index.js";
+} from "../domain/contracts/index.js";
+import type { EventEnvelope } from "../../../events/contracts/event-driven/index.js";
 import {
   createNotification,
   markNotificationRead,

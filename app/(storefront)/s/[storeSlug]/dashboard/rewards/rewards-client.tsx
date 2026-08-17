@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   CUSTOMER_DASHBOARD_COPY_FA,
   fetchPortalRewards,
-} from "@/customer-dashboard/ui";
+} from "@/modules/customer-identity/ui/dashboard/ui";
 
 const fa = CUSTOMER_DASHBOARD_COPY_FA;
 

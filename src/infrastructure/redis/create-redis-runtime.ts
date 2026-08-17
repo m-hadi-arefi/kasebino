@@ -9,14 +9,14 @@ import {
   createCacheAside,
   InMemoryCacheAsideStore,
   type CacheAsideClient,
-} from "../../cache-aside/index.js";
-import type { CacheAsideStorePort } from "../../cache-aside/port.js";
+} from "./cache-aside/index.js";
+import type { CacheAsideStorePort } from "./cache-aside/port.js";
 import {
   createInMemoryRateLimiter,
   createRateLimiter,
   type RateLimiter,
-} from "../../rate-limiting/index.js";
-import { CONNECTION } from "../../redis-architecture/index.js";
+} from "../security/rate-limiting/index.js";
+import { CONNECTION } from "./contracts/index.js";
 
 import {
   createRedisClientConnecting,

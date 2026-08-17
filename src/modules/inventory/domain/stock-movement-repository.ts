@@ -2,7 +2,7 @@
  * Stock movement repository port + adapters (ADR-126).
  */
 
-import type { StockMovement } from "../domain/stock-movement.js";
+import type { StockMovement } from "./stock-movement.js";
 
 export type ListStockMovementsQueryOptions = {
   merchantId: string;

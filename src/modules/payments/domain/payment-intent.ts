@@ -6,7 +6,7 @@
 import {
   SANDBOX_PROVIDER_ID,
   type PaymentStatus,
-} from "../../../payments-domain/index.js";
+} from "./contracts/index.js";
 
 export type { PaymentStatus };
 

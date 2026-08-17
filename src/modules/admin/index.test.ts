@@ -7,7 +7,7 @@ import {
   ADMIN_ACTION_LABELS_FA,
   adminActionLabelFa,
   assertPlatformAdminAudience,
-} from "../../admin-domain/index.js";
+} from "./domain/contracts/index.js";
 import { adminActions, adminUsers } from "../../infrastructure/database/schema/index.js";
 import {
   ADMIN_ERROR_MESSAGES_FA,
@@ -22,7 +22,7 @@ import {
   InMemoryMerchantRepository,
   createMerchantUseCases,
 } from "../merchant/index.js";
-import type { AuthContext } from "../../rbac/index.js";
+import type { AuthContext } from "../../infrastructure/security/rbac/index.js";
 
 function platformAuth(sub: string): AuthContext {
   return {

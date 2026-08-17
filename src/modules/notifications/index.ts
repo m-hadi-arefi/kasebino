@@ -22,4 +22,4 @@ export {
   assertNeverBlockCoreTx,
   assertNeverLogOtpCodes,
   redactOtpCodesForLogs,
-} from "../../notifications-architecture/index.js";
+} from "./domain/contracts/index.js";

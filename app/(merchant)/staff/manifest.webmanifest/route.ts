@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   STAFF_MANIFEST_CONTENT_TYPE,
   buildStaffManifest,
-} from "@/staff-pwa";
+} from "@/modules/pos/ui/staff-pwa";
 
 /**
  * Merchant staff Web App Manifest — ADR-022 / ARD-017.

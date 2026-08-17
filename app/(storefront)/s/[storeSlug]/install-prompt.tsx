@@ -5,7 +5,7 @@ import {
   STORE_CUSTOMER_PWA_COPY_FA,
   STORE_CUSTOMER_PWA_OFFLINE,
   storeCustomerScope,
-} from "@/store-customer-pwa";
+} from "@/modules/storefront/ui/customer-pwa";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;

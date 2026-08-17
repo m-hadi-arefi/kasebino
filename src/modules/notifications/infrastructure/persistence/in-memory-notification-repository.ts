@@ -10,7 +10,7 @@ import type {
 import type {
   NotificationAudience,
   NotificationChannel,
-} from "../../../../notifications-architecture/index.js";
+} from "../../domain/contracts/index.js";
 
 export class InMemoryNotificationRepository implements NotificationRepository {
   private readonly byId = new Map<string, Notification>();

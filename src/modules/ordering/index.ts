@@ -13,4 +13,4 @@ export {
   ORDERING_COPY_FA,
   ORDERING_DECISION,
   orderStatusLabelFa,
-} from "../../ordering-domain/index.js";
+} from "./domain/contracts/index.js";

@@ -6,15 +6,19 @@ declare module "next-auth" {
     merchantId?: string | null;
     roles?: string[];
     role?: "customer";
+    permissions?: string[];
     tokenVersion?: number;
     storeId?: string | null;
+    storeIds?: string[];
     user: DefaultSession["user"] & {
       id?: string;
       merchantId?: string | null;
       roles?: string[];
       role?: "customer";
+      permissions?: string[];
       tokenVersion?: number;
       storeId?: string | null;
+      storeIds?: string[];
       audience?: "merchant" | "customer";
     };
   }
@@ -23,8 +27,10 @@ declare module "next-auth" {
     merchantId?: string | null;
     roles?: string[];
     role?: "customer";
+    permissions?: string[];
     tokenVersion?: number;
     storeId?: string | null;
+    storeIds?: string[];
     audience?: "merchant" | "customer";
   }
 }
@@ -35,8 +41,10 @@ declare module "next-auth/jwt" {
     merchantId?: string | null;
     roles?: string[];
     role?: "customer";
+    permissions?: string[];
     tokenVersion?: number;
     storeId?: string | null;
+    storeIds?: string[];
   }
 }
 

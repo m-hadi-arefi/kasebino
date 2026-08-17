@@ -4,11 +4,11 @@
 
 import { describe, expect, it } from "vitest";
 
-import { createEventEnvelope } from "../event-driven/index.js";
+import { createEventEnvelope } from "../events/contracts/event-driven/index.js";
 import {
   createEmqxOutboxHandler,
   InMemoryMqttBroker,
-} from "../emqx-realtime/index.js";
+} from "../infrastructure/emqx/contracts/index.js";
 import { resolveMqttRuntimeMode } from "../infrastructure/emqx/client.js";
 import {
   createLoyaltyUseCases,
@@ -30,7 +30,7 @@ import {
   OUTBOX_WORKER_UX_FA,
   runScheduledJob,
   SCHEDULED_JOB_HOOKS,
-} from "../outbox/index.js";
+} from "../events/outbox/index.js";
 import {
   CollectingOutboxMetrics,
   createOutboxWorkerRuntime,

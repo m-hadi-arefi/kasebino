@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   JWT_SESSION_TTL,
   OTP_CREDENTIALS_BRIDGE,
-} from "../../../../nextauth-jwt/index.js";
+} from "../../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 import type { VerifyMerchantOtpResult } from "../../application/merchant-otp-use-cases.js";
 import {
   NEXTAUTH_APP_ROUTER_WIRE_HINT,

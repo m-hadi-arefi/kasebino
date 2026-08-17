@@ -10,8 +10,8 @@ import {
   type AuditInsertResult,
   type AuditSearchInput,
   type AuditStore,
-} from "../../audit-logging/index.js";
-import { MONGO_COLLECTIONS } from "../../mongodb-analytics/index.js";
+} from "../security/contracts/audit-logging/index.js";
+import { MONGO_COLLECTIONS } from "./contracts/analytics/index.js";
 
 export class MongodbAuditStore implements AuditStore {
   private readonly col: Collection<AuditDocument>;

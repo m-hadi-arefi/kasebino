@@ -64,7 +64,7 @@ export type LoyaltyEarnPort = {
 /**
  * Analytics after-sale port (ADR-065).
  * Optional fire-and-forget enqueue after OLTP persist — must never fail CompleteSale.
- * Prefer `createAnalyticsAfterSalePort` from `src/analytics-ingest-isolation/`.
+ * Prefer `createAnalyticsAfterSalePort` from `src/infrastructure/mongodb/contracts/ingest-isolation/`.
  */
 export type AnalyticsAfterSalePort = {
   enqueueSaleCompleted(input: {

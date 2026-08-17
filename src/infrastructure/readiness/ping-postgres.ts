@@ -5,7 +5,7 @@
 
 import postgres from "postgres";
 
-import { CONNECTION } from "../../postgresql-architecture/index.js";
+import { CONNECTION } from "../database/contracts/postgresql-architecture/index.js";
 
 /**
  * Ping Postgres via DATABASE_URL. Returns false when URL missing or SELECT fails.

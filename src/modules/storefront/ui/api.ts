@@ -3,7 +3,7 @@
  */
 
 import { csrfHeadersForBrowserFetch } from "../../../infrastructure/security/index.js";
-import { DIGITAL_CONSENT_CHECKBOX_LABEL_FA } from "../../../crm-membership/index.js";
+import { DIGITAL_CONSENT_CHECKBOX_LABEL_FA } from "../../crm/domain/membership/index.js";
 import { STOREFRONT_UI_COPY_FA } from "./copy.js";
 
 export type PublicStoreDto = {

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { ErrorState } from "@/components/composites/error-state";
 import { LoadingState } from "@/components/composites/loading-state";
-import { fetchPortalMe } from "@/customer-dashboard/ui";
+import { fetchPortalMe } from "@/modules/customer-identity/ui/dashboard/ui";
 import { NotificationsCenterClient } from "@/modules/notifications/ui/center-client";
 import { NOTIFICATIONS_UI_COPY_FA } from "@/modules/notifications/ui";
 

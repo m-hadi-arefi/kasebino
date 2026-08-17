@@ -1,16 +1,16 @@
 /**
  * Centralized Drizzle schema index (ADR-042 / ADR-043 / ADR-044 / ADR-045 / ADR-046 / ADR-047 / ADR-048).
  *
- * Domain tables land with domain ADRs following `src/database-modeling` (ADR-043).
- * Index declarations follow `src/indexing-standards` (ADR-044). Query patterns follow
- * `src/query-design-standards` (ADR-045). Migrations via Drizzle Kit follow
- * `src/migration-strategy` (ADR-046) — generate into
+ * Domain tables land with domain ADRs following `src/infrastructure/database/contracts/modeling` (ADR-043).
+ * Index declarations follow `src/infrastructure/database/contracts/indexing` (ADR-044). Query patterns follow
+ * `src/infrastructure/database/contracts/query-design` (ADR-045). Migrations via Drizzle Kit follow
+ * `src/infrastructure/database/contracts/migration-strategy` (ADR-046) — generate into
  * `src/infrastructure/database/migrations/` only; never hand-author baseline SQL.
  * Soft-delete / audit timestamps / version / AuditPort shape follow
- * `src/data-integrity` (ADR-047); Mongo audit adapter →
- * `src/audit-logging/` (ADR-058).
+ * `src/infrastructure/database/contracts/data-integrity` (ADR-047); Mongo audit adapter →
+ * `src/infrastructure/security/contracts/audit-logging/` (ADR-058).
  * Row-level merchant_id isolation (+ store_id for membership/inventory) follow
- * `src/multi-tenant-isolation` (ADR-048); PostgreSQL RLS deferred optional later.
+ * `src/shared/contracts/multi-tenant-isolation` (ADR-048); PostgreSQL RLS deferred optional later.
  *
  * Iranian First: Persian UTF-8 product/customer text columns use `text` / `varchar`
  * (never ASCII-only types or collations); money as integer IRR minor units.

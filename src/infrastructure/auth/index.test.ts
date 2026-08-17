@@ -4,7 +4,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { shouldReturnDevOtp } from "../../merchant-auth/index.js";
+import { shouldReturnDevOtp } from "../../modules/identity/domain/merchant-auth/index.js";
 import { createAppAuthConfig } from "./create-app-auth-config.js";
 import {
   AUTH_UX_COPY_FA,

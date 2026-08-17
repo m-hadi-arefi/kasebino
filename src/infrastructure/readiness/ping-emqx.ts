@@ -5,7 +5,7 @@
 
 import mqtt from "mqtt";
 
-import { CONNECTION } from "../../emqx-realtime/index.js";
+import { CONNECTION } from "../emqx/contracts/index.js";
 
 /**
  * Ping MQTT broker via MQTT_URL. Returns false when URL missing or connect fails.

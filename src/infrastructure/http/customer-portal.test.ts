@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { createInMemoryRateLimiter } from "../../rate-limiting/index.js";
+import { createInMemoryRateLimiter } from "../security/rate-limiting/index.js";
 import {
   createAdminAuditPortStub,
   InMemoryAdminActionRepository,
@@ -39,7 +39,7 @@ import {
   createCustomerIdentity,
   customerLoggedInEvent,
 } from "../../modules/customer-identity/domain/index.js";
-import { InMemoryOutboxStore } from "../../outbox/index.js";
+import { InMemoryOutboxStore } from "../../events/outbox/index.js";
 import {
   handleCustomerStorefrontMe,
   handleCustomerStorefrontMeOrders,

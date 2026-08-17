@@ -2,7 +2,7 @@
  * ADR-101 — Persian pickup order board copy (uiuxpromax brief).
  */
 
-import { ORDER_STATUS_LABELS_FA } from "../../../ordering-domain/index.js";
+import { ORDER_STATUS_LABELS_FA } from "../domain/contracts/index.js";
 
 export const ORDERS_UI_COPY_FA = {
   brand: "کاسبینو",

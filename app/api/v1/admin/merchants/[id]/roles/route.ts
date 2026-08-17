@@ -4,7 +4,7 @@ import type { AuthSessionSnapshot } from "@/infrastructure/auth";
 import { getApiContext } from "@/infrastructure/composition";
 import { requireAdminPermission } from "@/infrastructure/http/require-auth";
 import { z, ZodError } from "zod";
-import type { Permission } from "@/rbac";
+import type { Permission } from "@/infrastructure/security/rbac";
 
 const CreateRoleInputSchema = z.object({
   name: z.string().min(1, "نام نقش الزامی است"),
@@ -21,7 +21,7 @@ export async function GET(
 
   const authz = requireAdminPermission(session, "admin.platform");
   if (!authz.ok) {
-    return NextResponse.json(authz.denial.body, { status: authz.denial.status });
+    return NextResponse.json(authz.result.body, { status: authz.result.status });
   }
 
   const api = getApiContext();
@@ -51,7 +51,7 @@ export async function POST(
 
   const authz = requireAdminPermission(session, "admin.platform");
   if (!authz.ok) {
-    return NextResponse.json(authz.denial.body, { status: authz.denial.status });
+    return NextResponse.json(authz.result.body, { status: authz.result.status });
   }
 
   try {

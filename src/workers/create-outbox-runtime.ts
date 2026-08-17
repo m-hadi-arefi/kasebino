@@ -4,17 +4,17 @@
  * and pickup/loyalty scheduled job ports.
  */
 
-import type { CacheAsideStorePort } from "../cache-aside/port.js";
+import type { CacheAsideStorePort } from "../infrastructure/redis/cache-aside/port.js";
 import {
   invalidateOnEvent,
   type InvalidateOnEventInput,
-} from "../cache-invalidation/index.js";
+} from "../infrastructure/redis/cache-invalidation/index.js";
 import {
   createEmqxOutboxHandler,
   InMemoryMqttBroker,
   type EmqxPublishPort,
-} from "../emqx-realtime/index.js";
-import { createWarehouseOutboxHandler } from "../event-warehouse/index.js";
+} from "../infrastructure/emqx/contracts/index.js";
+import { createWarehouseOutboxHandler } from "../events/contracts/event-warehouse/index.js";
 import {
   resolveMqttRuntimeMode,
   type MqttRuntimeMode,
@@ -58,7 +58,7 @@ import {
   type ScheduledJobName,
   type ScheduledJobPorts,
   type ScheduledJobRunResult,
-} from "../outbox/index.js";
+} from "../events/outbox/index.js";
 
 export type OutboxWorkerRuntimeOptions = {
   env?: NodeJS.ProcessEnv;

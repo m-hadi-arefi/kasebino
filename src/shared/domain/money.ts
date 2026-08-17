@@ -1,4 +1,4 @@
-import { LOCALE_DEFAULTS } from "../../product-architecture/index.js";
+import { LOCALE_DEFAULTS } from "../architecture/product/index.js";
 
 /**
  * Money as integer minor units of IRR (rial).

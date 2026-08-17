@@ -7,9 +7,9 @@ import {
   createInMemoryRateLimiter,
   createRateLimiter,
   type RateLimiter,
-} from "../../rate-limiting/index.js";
+} from "../security/rate-limiting/index.js";
 import { createRedisRuntime } from "../redis/index.js";
-import type { ObjectStoragePort } from "../../minio-storage/index.js";
+import type { ObjectStoragePort } from "../minio/contracts/index.js";
 import { createStoreAssetUseCases } from "../../modules/store/application/upload-branding-asset.js";
 import { createCatalogUseCases } from "../../modules/catalog/application/use-cases.js";
 import { createInventoryUseCases } from "../../modules/inventory/application/use-cases.js";
@@ -72,20 +72,20 @@ import {
 import type {
   MembershipCountersPort,
   SalesCountersPort,
-} from "../../merchant-oltp-analytics/index.js";
+} from "../../modules/analytics/domain/merchant-oltp/index.js";
 import { PersistInAppNotificationChannel } from "../../modules/notifications/infrastructure/channels/persist-in-app-channel.js";
 import { createPaymentGatewayFromEnv } from "../../modules/payments/infrastructure/gateway/payment-gateway-factory.js";
 import { createSandboxPaymentConfirmPort } from "../../modules/payments/infrastructure/ordering/sandbox-payment-confirm-adapter.js";
 import type { PaymentGateway } from "../../modules/payments/application/ports/payment-gateway.js";
-import type { AuditPort, AuditStore } from "../../audit-logging/index.js";
+import type { AuditPort, AuditStore } from "../security/contracts/audit-logging/index.js";
 import {
   createCacheAside,
   InMemoryCacheAsideStore,
   type CacheAsideClient,
-} from "../../cache-aside/index.js";
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
-import type { OutboxStore } from "../../outbox/index.js";
-import type { CacheAsideStorePort } from "../../cache-aside/port.js";
+} from "../redis/cache-aside/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
+import type { OutboxStore } from "../../events/outbox/index.js";
+import type { CacheAsideStorePort } from "../redis/cache-aside/port.js";
 import type { ProductRepository, CategoryRepository } from "../../modules/catalog/domain/repositories.js";
 import type { StockItemRepository } from "../../modules/inventory/domain/repositories.js";
 import type { StockMovementRepository } from "../../modules/inventory/domain/stock-movement-repository.js";

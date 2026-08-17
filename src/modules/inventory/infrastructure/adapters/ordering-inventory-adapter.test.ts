@@ -9,8 +9,8 @@ import { createInventoryUseCases } from "../../application/use-cases.js";
 import {
   InMemoryInventorySyncIdempotency,
   InMemoryStockItemRepository,
-} from "../../infrastructure/index.js";
-import { InMemoryStockMovementRepository } from "../../infrastructure/index.js";
+} from "../index.js";
+import { InMemoryStockMovementRepository } from "../index.js";
 import { createStockItemAggregate } from "../../domain/stock-item.js";
 import {
   createInventoryReserveAdapter,

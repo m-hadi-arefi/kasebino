@@ -1,5 +1,5 @@
 import { createDomainEvent } from "../../../shared/ddd/index.js";
-import type { PosTenderType } from "../../../pos-sales/index.js";
+import type { PosTenderType } from "./sales/index.js";
 
 export function saleCreatedEvent(input: {
   saleId: string;

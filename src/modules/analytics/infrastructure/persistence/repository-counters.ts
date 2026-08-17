@@ -9,7 +9,7 @@ import type {
   AnalyticsDateRange,
   MembershipCountersPort,
   SalesCountersPort,
-} from "../../../../merchant-oltp-analytics/index.js";
+} from "../../domain/merchant-oltp/index.js";
 
 function dayStartTehran(day: string): Date {
   return new Date(`${day}T00:00:00+03:30`);

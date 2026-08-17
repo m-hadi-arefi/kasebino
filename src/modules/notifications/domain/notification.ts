@@ -6,7 +6,7 @@
 import type {
   NotificationAudience,
   NotificationChannel,
-} from "../../../notifications-architecture/index.js";
+} from "./contracts/index.js";
 
 export type NotificationType =
   | "order_created"

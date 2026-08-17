@@ -19,7 +19,7 @@ import {
   assertShortSessionTtl,
   buildMerchantJwtClaims,
   sessionCookieSecure,
-} from "../../../../nextauth-jwt/index.js";
+} from "../../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 import type { VerifyMerchantOtpResult } from "../../application/merchant-otp-use-cases.js";
 import {
   applyMerchantClaimsToSession,

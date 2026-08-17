@@ -7,8 +7,8 @@ import type { Db, IndexDescription } from "mongodb";
 import {
   MONGO_COLLECTIONS,
   MONGO_SESSION_COLLECTION,
-} from "../../mongodb-analytics/index.js";
-import { MONGO_TTL_TABLE } from "../../data-retention/index.js";
+} from "./contracts/analytics/index.js";
+import { MONGO_TTL_TABLE } from "../database/contracts/retention/index.js";
 
 export type EnsuredIndex = {
   collection: string;

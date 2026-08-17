@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import type { Permission } from "@/rbac";
+import type { Permission } from "@/infrastructure/security/rbac";
 import { Shield, CheckSquare, Square } from "lucide-react";
 
 export type RoleItem = {
@@ -239,7 +239,7 @@ export function RoleBuilderDialog({
 
             <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
               {permissionsByDomain.map(({ domainMeta, items, domainSelectedCount, allSelected }) => {
-                if (items.length === 0) return null;
+                if (!domainMeta || items.length === 0) return null;
                 return (
                   <div key={domainMeta.key} className="rounded-xl border bg-card p-4 space-y-3 shadow-sm">
                     <div className="flex items-center justify-between border-b pb-2">

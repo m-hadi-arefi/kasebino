@@ -19,4 +19,4 @@ export {
   buildMerchantOverview,
   northStarRollingRange,
   stubJalaliRange,
-} from "../../merchant-oltp-analytics/index.js";
+} from "./domain/merchant-oltp/index.js";

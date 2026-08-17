@@ -13,7 +13,7 @@ import type { ApiContext } from "../../composition/create-api-context.js";
 import {
   generateStoreQrPng,
   resolvePublicAppOrigin,
-} from "../../../store-location/qr-png.js";
+} from "../../../modules/store/domain/location/qr-png.js";
 import {
   creditBalanceDto,
   merchantDto,
@@ -573,7 +573,7 @@ export async function handleUploadStoreAssets(
   }
 
   const { ObjectValidationError } = await import(
-    "../../../minio-storage/index.js"
+    "../../minio/contracts/index.js"
   );
   try {
     const result = await ctx.storeAssets.uploadBrandingAsset({

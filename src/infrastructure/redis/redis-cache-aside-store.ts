@@ -2,7 +2,7 @@
  * Redis adapter for CacheAsideStorePort (ADR-108 / ADR-052).
  */
 
-import type { CacheAsideStorePort } from "../../cache-aside/port.js";
+import type { CacheAsideStorePort } from "./cache-aside/port.js";
 import type { MerchantOsRedisClient } from "./client.js";
 
 export class RedisCacheAsideStore implements CacheAsideStorePort {

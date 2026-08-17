@@ -5,7 +5,7 @@
 
 import {
   redactOtpCodesForLogs,
-} from "../../../../notifications-architecture/index.js";
+} from "../../domain/contracts/index.js";
 import type {
   SmsNotificationChannelPort,
   SmsNotificationMessage,

@@ -19,7 +19,7 @@ export {
   PAYMENTS_DECISION,
   PAYMENT_STATUS_LABELS_FA,
   paymentStatusLabelFa,
-} from "../../payments-domain/index.js";
+} from "./domain/contracts/index.js";
 
 import type { PaymentRepository } from "./domain/repositories.js";
 import { SandboxPaymentGateway } from "./infrastructure/gateway/sandbox-payment-gateway.js";

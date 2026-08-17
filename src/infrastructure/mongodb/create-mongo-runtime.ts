@@ -16,14 +16,14 @@ import {
   createInMemoryIngestMetrics,
   createIsolatingAnalyticsIngestPort,
   type AnalyticsIngestBuffer,
-} from "../../analytics-ingest-isolation/index.js";
+} from "./contracts/ingest-isolation/index.js";
 import {
   createAuditPort,
   createInMemoryAuditMetrics,
   InMemoryAuditStore,
   type AuditPort,
   type AuditStore,
-} from "../../audit-logging/index.js";
+} from "../security/contracts/audit-logging/index.js";
 import {
   createClickstreamSink,
   createInMemoryClickstreamMetrics,
@@ -31,14 +31,14 @@ import {
   InMemoryClickstreamStore,
   type ClickstreamStore,
   type TrackClickstreamPort,
-} from "../../clickstream/index.js";
+} from "./clickstream/index.js";
 import {
   createInMemoryWarehouseMetrics,
   createWarehouseOutboxHandler,
   InMemoryEventWarehouseStore,
   type EventWarehouseStore,
   type WarehouseMetrics,
-} from "../../event-warehouse/index.js";
+} from "../../events/contracts/event-warehouse/index.js";
 import {
   createInMemoryProductAnalyticsMetrics,
   createProductAnalyticsSink,
@@ -46,7 +46,7 @@ import {
   InMemoryProductAnalyticsStore,
   type ProductAnalyticsStore,
   type TrackEventPort,
-} from "../../product-analytics/index.js";
+} from "../../modules/analytics/domain/product/index.js";
 import {
   createInMemorySessionMetrics,
   createSessionSink,
@@ -54,9 +54,9 @@ import {
   InMemorySessionStore,
   type SessionStore,
   type TrackSessionPort,
-} from "../../session-analytics/index.js";
-import { CONNECTION } from "../../mongodb-analytics/index.js";
-import type { OutboxDispatchHandler } from "../../outbox/index.js";
+} from "../../modules/analytics/domain/session/index.js";
+import { CONNECTION } from "./contracts/analytics/index.js";
+import type { OutboxDispatchHandler } from "../../events/outbox/index.js";
 
 import {
   createMongoClientConnecting,

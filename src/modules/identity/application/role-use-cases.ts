@@ -4,7 +4,7 @@ import {
   assertAssignablePermissions,
   normalizeRole,
   type Permission,
-} from "../../../rbac/index.js";
+} from "../../../infrastructure/security/rbac/index.js";
 import type { RoleRepository } from "../domain/repositories.js";
 import type { Role, RoleWithPermissions } from "../domain/staff.js";
 

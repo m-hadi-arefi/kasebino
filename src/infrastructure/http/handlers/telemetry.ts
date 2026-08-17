@@ -10,7 +10,7 @@ import {
   CLICKSTREAM_BEACON,
   CLICKSTREAM_UX_FA,
   type BeaconBatchItem,
-} from "../../../clickstream/index.js";
+} from "../../mongodb/clickstream/index.js";
 import type { MongoRuntime } from "../../mongodb/create-mongo-runtime.js";
 import {
   correlationIdFrom,

@@ -9,8 +9,8 @@ import {
   type EventWarehouseInsertResult,
   type EventWarehouseStore,
   type WarehouseDocument,
-} from "../../event-warehouse/index.js";
-import { MONGO_COLLECTIONS } from "../../mongodb-analytics/index.js";
+} from "../../events/contracts/event-warehouse/index.js";
+import { MONGO_COLLECTIONS } from "./contracts/analytics/index.js";
 
 export class MongodbEventWarehouseStore implements EventWarehouseStore {
   private readonly col: Collection<WarehouseDocument>;

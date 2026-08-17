@@ -3,7 +3,7 @@
  * Stores hashed OTP only; plaintext never at rest.
  */
 
-import { MERCHANT_OTP_POLICY } from "../../../merchant-auth/index.js";
+import { MERCHANT_OTP_POLICY } from "./merchant-auth/index.js";
 import type { IranianMobile } from "./iranian-phone.js";
 
 export type OtpChallenge = {

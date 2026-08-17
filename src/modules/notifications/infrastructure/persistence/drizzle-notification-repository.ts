@@ -10,7 +10,7 @@ import { assertMerchantId } from "../../../../infrastructure/persistence/helpers
 import type {
   NotificationAudience,
   NotificationChannel,
-} from "../../../../notifications-architecture/index.js";
+} from "../../domain/contracts/index.js";
 import type { Notification, NotificationType } from "../../domain/notification.js";
 import type {
   ListNotificationsFilter,

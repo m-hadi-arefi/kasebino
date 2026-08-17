@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { CanonicalRole } from "../../../rbac/index.js";
+import type { CanonicalRole } from "../../../infrastructure/security/rbac/index.js";
 import { normalizeIranianMobile } from "../domain/iranian-phone.js";
 import type {
   AuthUserRepository,

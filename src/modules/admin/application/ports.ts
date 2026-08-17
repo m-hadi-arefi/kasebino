@@ -3,7 +3,7 @@
  * AuditPort from ADR-058; security monitoring stub → ARD-026.
  */
 
-import type { AuditPort } from "../../../audit-logging/index.js";
+import type { AuditPort } from "../../../infrastructure/security/contracts/audit-logging/index.js";
 
 export type { AuditPort };
 

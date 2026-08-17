@@ -3,7 +3,7 @@
  * Mutations after insert are forbidden; balance corrections are new entries.
  */
 
-import type { LedgerEntryType } from "../../../loyalty-domain/index.js";
+import type { LedgerEntryType } from "./contracts/index.js";
 
 export type PointsLedgerEntry = {
   readonly id: string;

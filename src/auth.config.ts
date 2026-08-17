@@ -13,7 +13,7 @@ import {
   NEXTAUTH_JWT_DECISION,
   SECURE_COOKIE_RULES,
   sessionCookieSecure,
-} from "./nextauth-jwt/index.js";
+} from "./infrastructure/auth/contracts/nextauth-jwt/index.js";
 import { applyCustomerClaimsToSession } from "./modules/customer-identity/infrastructure/auth/claims.js";
 import { applyMerchantClaimsToSession } from "./modules/identity/infrastructure/auth/claims.js";
 

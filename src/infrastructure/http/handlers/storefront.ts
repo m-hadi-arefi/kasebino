@@ -10,7 +10,7 @@ import type { ApiContext } from "../../composition/create-api-context.js";
 import {
   createEnvStaticMapProvider,
   readStaticMapEnvFromProcess,
-} from "../../../store-location/index.js";
+} from "../../../modules/store/domain/location/index.js";
 import {
   orderDto,
   paymentDto,
@@ -203,7 +203,7 @@ export async function handleStorefrontLogo(
     });
   }
 
-  const { MINIO_BUCKETS } = await import("../../../minio-storage/index.js");
+  const { MINIO_BUCKETS } = await import("../../minio/contracts/index.js");
   const obj = await ctx.objectStorage.getObject({
     bucket: MINIO_BUCKETS.media,
     objectKey: key,

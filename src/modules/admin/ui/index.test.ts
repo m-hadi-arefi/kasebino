@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
 import { ADMIN_UI_COPY_FA, merchantStatusLabelFa } from "./copy.js";
 
 describe("admin UI (ADR-106)", () => {

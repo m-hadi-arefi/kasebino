@@ -12,7 +12,7 @@ import { bootstrapCustomerStoreSession } from "./infrastructure/auth/customer-se
 import { getOtpRuntime } from "./infrastructure/auth/otp-runtime.js";
 import { getApiContext } from "./infrastructure/composition/index.js";
 
-import { ROLE_PERMISSION_MATRIX } from "./rbac/index.js";
+import { ROLE_PERMISSION_MATRIX } from "./infrastructure/security/rbac/index.js";
 
 const runtime = () => getOtpRuntime();
 
@@ -33,23 +33,25 @@ const appConfig = createAppAuthConfig({
         };
       }
       
-      const staffMemberships = await api.repos.staffMemberships.findByAuthUserId(
-        verified.authUserId,
-      );
-      if (staffMemberships.length > 0) {
-        const active = staffMemberships.find((m) => m.membership.status === "active") ?? staffMemberships[0];
-        if (active && active.membership.status === "active") {
-          const roleIds = active.roleIds && active.roleIds.length > 0
-            ? active.roleIds
-            : [active.membership.role];
-          const effectivePermissions = await api.roles.resolveEffectivePermissions(roleIds);
+      if (api.repos.staffMemberships) {
+        const staffMemberships = await api.repos.staffMemberships.findByAuthUserId(
+          verified.authUserId,
+        );
+        if (staffMemberships.length > 0) {
+          const active = staffMemberships.find((m) => m.membership.status === "active") ?? staffMemberships[0];
+          if (active && active.membership.status === "active") {
+            const roleIds = active.roleIds && active.roleIds.length > 0
+              ? active.roleIds
+              : [active.membership.role];
+            const effectivePermissions = await api.roles.resolveEffectivePermissions(roleIds);
 
-          return {
-            merchantId: active.membership.merchantId,
-            roles: roleIds,
-            permissions: Array.from(effectivePermissions),
-            storeIds: active.storeScopes.map((s) => s.storeId),
-          };
+            return {
+              merchantId: active.membership.merchantId,
+              roles: roleIds,
+              permissions: Array.from(effectivePermissions),
+              storeIds: active.storeScopes.map((s) => s.storeId),
+            };
+          }
         }
       }
 

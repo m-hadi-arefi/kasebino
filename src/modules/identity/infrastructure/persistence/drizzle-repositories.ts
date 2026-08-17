@@ -27,7 +27,7 @@ import type {
   StaffStoreScope,
   StaffStatus,
 } from "../../domain/staff.js";
-import type { CanonicalRole, Permission } from "../../../../rbac/index.js";
+import type { CanonicalRole, Permission } from "../../../../infrastructure/security/rbac/index.js";
 
 type AuthUserRow = typeof authUsers.$inferSelect;
 type OtpRow = typeof merchantOtpChallenges.$inferSelect;

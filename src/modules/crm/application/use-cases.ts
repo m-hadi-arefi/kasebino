@@ -6,7 +6,7 @@ import {
   POS_PHONE_CONSENT_NOTICE_FA,
   isDigitalMembershipSource,
   type MembershipSource,
-} from "../../../crm-membership/index.js";
+} from "../domain/membership/index.js";
 import type { Sale } from "../../pos/domain/sale.js";
 import type { SaleRepository } from "../../pos/domain/repositories.js";
 import { normalizeIranianMobile } from "../../../shared/domain/iranian-phone.js";

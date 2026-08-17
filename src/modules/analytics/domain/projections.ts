@@ -11,7 +11,7 @@ export type {
   MerchantOverviewProjection,
   MembershipCountersPort,
   SalesCountersPort,
-} from "../../../merchant-oltp-analytics/index.js";
+} from "./merchant-oltp/index.js";
 
 export {
   MERCHANT_OLTP_CONSUMED_EVENTS,
@@ -21,7 +21,7 @@ export {
   toIsoDay,
   toTehranIsoDay,
   type MerchantOltpConsumedEvent,
-} from "../../../merchant-oltp-analytics/index.js";
+} from "./merchant-oltp/index.js";
 
 /** Projection repository port — Drizzle adapter (ADR-106). */
 export type AnalyticsProjectionRepository = {

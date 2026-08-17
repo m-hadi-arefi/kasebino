@@ -4,7 +4,7 @@
  * Isolated from merchant OTP challenge store.
  */
 
-import { CUSTOMER_OTP_POLICY } from "../../../customer-auth/index.js";
+import { CUSTOMER_OTP_POLICY } from "./auth/index.js";
 import type { IranianMobile } from "./iranian-phone.js";
 
 export type CustomerOtpChallenge = {

@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, KeyRound } from "lucide-react";
-import type { Permission } from "@/rbac";
+import type { Permission } from "@/infrastructure/security/rbac";
 
 type RoleSummary = {
   id: string;

@@ -4,7 +4,7 @@
  * provider also dedupes by eventId (Fake/future ERPNext).
  */
 
-import type { OutboxMessage } from "../../../outbox/index.js";
+import type { OutboxMessage } from "../../../events/outbox/index.js";
 import {
   mapCustomerToAccountingSync,
   mapExpenseToAccountingRecord,

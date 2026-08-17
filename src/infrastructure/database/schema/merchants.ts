@@ -1,7 +1,7 @@
 /**
  * Merchant OLTP tables (ADR-005 / ARD-003) — Drizzle schema stub.
  *
- * Aligns with `src/database-modeling` (ADR-043):
+ * Aligns with `src/infrastructure/database/contracts/modeling` (ADR-043):
  * - UUID PKs, snake_case plural tables
  * - UTC timestamptz audit columns + optional soft-delete
  * - Persian UTF-8 `text` / `varchar` for trade names

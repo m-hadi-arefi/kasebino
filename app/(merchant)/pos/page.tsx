@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { staffManifestPath } from "@/staff-pwa";
+import { staffManifestPath } from "@/modules/pos/ui/staff-pwa";
 import { PosChrome } from "@/components/layout/app-shell";
 
 import { StaffInstallPrompt } from "./install-prompt";

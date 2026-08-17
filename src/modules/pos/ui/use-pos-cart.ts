@@ -9,7 +9,7 @@ import {
   createPosCartStore,
   type PosCartState,
   type PosCartStore,
-} from "../../../state-management/pos-cart-store.js";
+} from "../../../shared/state/pos-cart-store.js";
 
 let cartStore: PosCartStore | null = null;
 

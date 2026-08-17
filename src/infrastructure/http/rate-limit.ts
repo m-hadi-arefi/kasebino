@@ -10,7 +10,7 @@ import {
   createRateLimitedEnvelope,
   hashRateLimitSubject,
   type RateLimitScope,
-} from "../../rate-limiting/index.js";
+} from "../security/rate-limiting/index.js";
 import type { ApiContext } from "../composition/create-api-context.js";
 import { fail } from "./envelopes.js";
 import type { HttpHandlerResult, HttpRequestLike } from "./types.js";

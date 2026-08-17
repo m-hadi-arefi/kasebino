@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
-import type { Permission } from "@/rbac";
-import { normalizeRoles, ROLE_PERMISSION_MATRIX } from "@/rbac";
+import type { Permission } from "@/infrastructure/security/rbac";
+import { normalizeRoles, ROLE_PERMISSION_MATRIX } from "@/infrastructure/security/rbac";
 
 export type PermissionsContextValue = {
   roles: readonly string[];

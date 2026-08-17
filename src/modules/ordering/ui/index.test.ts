@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PICKUP_TIMER_POLICY } from "../../../mvp-policies/index.js";
-import { assertUiuxGate } from "../../../uiuxpromax-gate/index.js";
+import { PICKUP_TIMER_POLICY } from "../../../shared/contracts/mvp-policies/index.js";
+import { assertUiuxGate } from "../../../shared/contracts/uiuxpromax-gate/index.js";
 import {
   BOARD_POLL_INTERVAL_MS,
   ORDERS_UI_COPY_FA,

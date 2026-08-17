@@ -3,14 +3,14 @@
  * best-effort in-app notification create until ADR-109 worker is live.
  */
 
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
-import type { OutboxStore } from "../../outbox/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
+import type { OutboxStore } from "../../events/outbox/index.js";
 import type { DomainEventBase } from "../../shared/ddd/index.js";
-import type { CacheAsideStorePort } from "../../cache-aside/port.js";
+import type { CacheAsideStorePort } from "../redis/cache-aside/port.js";
 import {
   invalidateOnEvent,
   type InvalidateOnEventInput,
-} from "../../cache-invalidation/index.js";
+} from "../redis/cache-invalidation/index.js";
 import type { NotificationsUseCases } from "../../modules/notifications/application/use-cases.js";
 
 export async function enqueueDomainEvent(input: {

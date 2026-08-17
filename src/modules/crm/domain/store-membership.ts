@@ -7,7 +7,7 @@
 import type {
   MembershipSource,
   MembershipStatus,
-} from "../../../crm-membership/index.js";
+} from "./membership/index.js";
 import type { MembershipConsent } from "./consent.js";
 
 export type StoreMembership = {

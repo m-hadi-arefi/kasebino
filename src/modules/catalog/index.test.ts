@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   CATALOG_DOMAIN_DECISION,
-} from "../../catalog-domain/index.js";
+} from "./domain/contracts/index.js";
 import {
   SEARCH_MESSAGES_FA,
   normalizeBarcode,
-} from "../../search-barcode/index.js";
+} from "./domain/search-barcode/index.js";
 import {
   formatTomanDisplay,
   toToman,
@@ -259,7 +259,7 @@ describe("ADR-050 Catalog lookupByBarcode / searchByName", () => {
   });
 
   it("ADR-147: uploads primary product image to object storage and clears on delete", async () => {
-    const { InMemoryObjectStorageAdapter } = await import("../../minio-storage/index.js");
+    const { InMemoryObjectStorageAdapter } = await import("../../infrastructure/minio/contracts/index.js");
     const objectStorage = new InMemoryObjectStorageAdapter();
 
     const products = new InMemoryProductRepository();

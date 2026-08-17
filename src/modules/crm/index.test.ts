@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CRM_MEMBERSHIP_DECISION,
   POS_PHONE_CONSENT_NOTICE_FA,
-} from "../../crm-membership/index.js";
+} from "./domain/membership/index.js";
 import {
   CRM_ERROR_MESSAGES_FA,
   CrmDomainError,

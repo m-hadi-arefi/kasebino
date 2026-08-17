@@ -10,12 +10,12 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   createCacheAside,
   type CacheAsideClient,
-} from "../../cache-aside/index.js";
+} from "./cache-aside/index.js";
 import {
   buildProductKey,
   buildStorefrontProductKey,
-} from "../../cache-keys/index.js";
-import { invalidateOnEvent } from "../../cache-invalidation/index.js";
+} from "./cache-keys/index.js";
+import { invalidateOnEvent } from "./cache-invalidation/index.js";
 import {
   RATE_LIMIT_HTTP,
   RATE_LIMIT_LIMITS,
@@ -24,7 +24,7 @@ import {
   createRateLimitedEnvelope,
   createRateLimiter,
   hashRateLimitSubject,
-} from "../../rate-limiting/index.js";
+} from "../security/rate-limiting/index.js";
 import { createOtpRuntime } from "../auth/otp-runtime.js";
 import { handleMerchantOtpRequestHttp } from "../http/handlers/auth-otp.js";
 import { enforceRateLimit } from "../http/rate-limit.js";

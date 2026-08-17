@@ -3,12 +3,12 @@ import { randomUUID } from "node:crypto";
 import {
   ADMIN_DOMAIN_DECISION,
   ADMIN_PRIVILEGE_WARNINGS_FA,
-} from "../../../admin-domain/index.js";
-import type { AuditPort } from "../../../audit-logging/index.js";
+} from "../domain/contracts/index.js";
+import type { AuditPort } from "../../../infrastructure/security/contracts/audit-logging/index.js";
 import {
   authorize,
   type AuthContext,
-} from "../../../rbac/index.js";
+} from "../../../infrastructure/security/rbac/index.js";
 import {
   activateMerchantAggregate,
   canAdminActivateFrom,

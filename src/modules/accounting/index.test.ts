@@ -16,8 +16,8 @@ import {
   resetIntegrationMetrics,
   snapshotIntegrationMetrics,
 } from "./index.js";
-import { createOutboxMessage } from "../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
+import { createOutboxMessage } from "../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
 
 describe("ADR-126 AccountingProvider", () => {
   it("FakeAccountingProvider is idempotent by eventId", async () => {

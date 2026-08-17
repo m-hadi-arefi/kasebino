@@ -9,7 +9,7 @@ import {
   InMemoryObjectStorageAdapter,
   MINIO_BUCKET_LIST,
   type ObjectStoragePort,
-} from "../../minio-storage/index.js";
+} from "./contracts/index.js";
 import {
   createMinioConfigFromEnv,
   type MinioConnectionConfig,

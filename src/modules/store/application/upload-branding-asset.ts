@@ -9,7 +9,7 @@ import {
   encodeFilenameMetadata,
   putValidatedObject,
   type ObjectStoragePort,
-} from "../../../minio-storage/index.js";
+} from "../../../infrastructure/minio/contracts/index.js";
 import type { StoreRepository } from "../domain/repositories.js";
 import { applyStoreBranding } from "../domain/store.js";
 import type { Store } from "../domain/store.js";

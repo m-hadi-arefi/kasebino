@@ -3,7 +3,7 @@
  * Shop-floor language for stock adjustments and sync conflicts.
  */
 
-import { INVENTORY_SYNC_MESSAGES_FA } from "../../../inventory-sync/index.js";
+import { INVENTORY_SYNC_MESSAGES_FA } from "./sync/index.js";
 
 export const INVENTORY_ERROR_CODES = [
   "INVALID_QUANTITY_DELTA",

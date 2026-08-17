@@ -4,7 +4,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import { JWT_SESSION_TTL } from "../../../../nextauth-jwt/index.js";
+import { JWT_SESSION_TTL } from "../../../../infrastructure/auth/contracts/nextauth-jwt/index.js";
 import type { VerifyCustomerOtpResult } from "../../application/customer-otp-use-cases.js";
 import {
   CUSTOMER_OTP_CREDENTIALS_BRIDGE,

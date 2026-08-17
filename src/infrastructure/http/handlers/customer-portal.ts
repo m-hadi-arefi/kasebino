@@ -288,7 +288,7 @@ export async function handleCustomerStorefrontMeReceipts(
     createValidatedPresignedDownload,
     MINIO_BUCKETS,
     PRESIGN_TTL_SECONDS,
-  } = await import("../../../minio-storage/index.js");
+  } = await import("../../minio/contracts/index.js");
 
   const receipts = [];
   for (const sale of scoped) {

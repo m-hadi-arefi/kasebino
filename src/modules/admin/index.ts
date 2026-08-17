@@ -15,4 +15,4 @@ export {
   ADMIN_ACTION_LABELS_FA,
   adminActionLabelFa,
   assertPlatformAdminAudience,
-} from "../../admin-domain/index.js";
+} from "./domain/contracts/index.js";

@@ -15,8 +15,8 @@ import {
 import type {
   MembershipSource,
   MembershipStatus,
-} from "../../../../crm-membership/index.js";
-import type { ConsentSurface } from "../../../../crm-membership/index.js";
+} from "../../domain/membership/index.js";
+import type { ConsentSurface } from "../../domain/membership/index.js";
 import type { StoreMembershipRepository } from "../../domain/repositories.js";
 import type { StoreMembership } from "../../domain/store-membership.js";
 

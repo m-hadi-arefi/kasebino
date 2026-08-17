@@ -5,8 +5,8 @@
 
 import mqtt, { type MqttClient } from "mqtt";
 
-import type { EmqxPublishInput, EmqxPublishPort, MqttQos } from "../../emqx-realtime/port.js";
-import { PUBLISH_QOS } from "../../emqx-realtime/index.js";
+import type { EmqxPublishInput, EmqxPublishPort, MqttQos } from "./contracts/port.js";
+import { PUBLISH_QOS } from "./contracts/index.js";
 import {
   createEmqxConfig,
   createEmqxConfigFromEnv,

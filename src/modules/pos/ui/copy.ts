@@ -2,8 +2,8 @@
  * ADR-096 — Persian POS cash-register copy (uiuxpromax brief).
  */
 
-import { POS_PHONE_CONSENT_NOTICE_FA } from "../../../crm-membership/index.js";
-import { TENDER_LABELS_FA } from "../../../pos-sales/index.js";
+import { POS_PHONE_CONSENT_NOTICE_FA } from "../../crm/domain/membership/index.js";
+import { TENDER_LABELS_FA } from "../domain/sales/index.js";
 
 export const POS_UI_COPY_FA = {
   brandHint: "کاسبینو",

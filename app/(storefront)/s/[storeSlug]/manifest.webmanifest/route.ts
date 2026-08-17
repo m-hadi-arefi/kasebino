@@ -3,7 +3,7 @@ import {
   STORE_CUSTOMER_MANIFEST_CONTENT_TYPE,
   buildStoreCustomerManifest,
   resolveStoreCustomerIconSrc,
-} from "@/store-customer-pwa";
+} from "@/modules/storefront/ui/customer-pwa";
 import { loadStorefrontProfile } from "@/modules/storefront/ui/load";
 
 type ManifestRouteProps = {

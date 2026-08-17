@@ -17,7 +17,7 @@ import {
   type InventoryDecrementPort,
   type MembershipUpsertPort,
 } from "../pos/index.js";
-import { InMemoryOutboxStore } from "../../outbox/index.js";
+import { InMemoryOutboxStore } from "../../events/outbox/index.js";
 
 function createLoyaltyHarness(opts?: { now?: () => Date }) {
   const wallets = new InMemoryWalletRepository();

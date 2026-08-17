@@ -3,11 +3,11 @@
  *
  * Resolves endpoint + credentials from env. Does not open an S3 session
  * at import time. Object operations use `ObjectStoragePort`
- * (`src/minio-storage`). Prefer module-owned adapters when wiring a real
+ * (`src/infrastructure/minio/contracts`). Prefer module-owned adapters when wiring a real
  * AWS/MinIO SDK client later (docs/tech/minio.md).
  */
 
-import { CONNECTION } from "../../minio-storage/index.js";
+import { CONNECTION } from "./contracts/index.js";
 
 export type MinioConnectionConfig = {
   endpoint: string;

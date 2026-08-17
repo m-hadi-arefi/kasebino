@@ -15,7 +15,7 @@ import {
   fetchPortalMe,
   formatPortalJalali,
   logoutCustomer,
-} from "@/customer-dashboard/ui";
+} from "@/modules/customer-identity/ui/dashboard/ui";
 import { ShoppingBag } from "lucide-react";
 
 const fa = CUSTOMER_DASHBOARD_COPY_FA;

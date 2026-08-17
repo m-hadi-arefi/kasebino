@@ -131,8 +131,45 @@ docs/templates/                 ← templates
 .agents/skills/                 ← executable Antigravity skills
 ```
 
-When documents conflict: **Accepted ADR > PRD clarification addenda > architecture docs > ARD details > code**.  
-If ADR and PRD conflict, stop and resolve with a new/superseding ADR — do not silently code.
+## Project Folder Structure Governance
+
+Canonical standard: [`docs/architecture/folder-structure.md`](./docs/architecture/folder-structure.md).
+
+The repository follows a strict, predictable architectural structure:
+
+- `app/`: Next.js App Router surfaces — grouped by route audience: `(auth)`, `(merchant)`, `(customer)`, `(admin)`, `(storefront)`, and `/api/v1/*` HTTP handlers.
+- `src/`: Application implementation and runtime code only.
+- `src/modules/`: Business domain bounded contexts (e.g. `merchant`, `store`, `customer`, `catalog`, `inventory`, `ordering`, `payments`, `loyalty`, `crm`, `notifications`, `identity`, `pos`, `admin`, `analytics`, `accounting`, `erpnext`).
+- `src/infrastructure/`: Technical infrastructure implementations (database/Drizzle, Redis, EMQX, MinIO, MongoDB analytics plane, Auth.js runtime, HTTP composition, security hardening).
+- `src/shared/`: Shared kernel, DDD primitives, domain value objects (Money, Phone, Quantity), errors, state, and cross-cutting contracts.
+- `src/events/`: Event contracts, naming conventions, warehouse mapping, and transactional outbox contracts.
+- `src/workers/`: Standalone background runtimes (outbox worker).
+- `src/components/` & `src/hooks/`: Reusable React components and hooks.
+- `src/lib/`: Low-level utilities (e.g. `cn`).
+- `src/types/`: Global ambient TypeScript definitions (e.g. NextAuth augmentations).
+- `adrs/`: Architecture decision records (`done/`, `tasks/`, `future/`).
+- `docs/`: Technical explanations, architecture guides, product docs, checklists, and rules.
+- `scripts/`: Tooling, migration, and setup scripts.
+- `e2e/`: Playwright end-to-end test suites.
+
+> **NEVER create a new top-level directory under `src/` merely because an ADR, feature, technology, architectural concern, or task exists.**
+>
+> Architecture decisions are NOT automatically source-code modules. Before creating a new top-level `src/` directory, the AI must determine whether the code belongs to an existing module, infrastructure area, cross-cutting area, shared area, or application route.
+
+## AI File and Folder Creation Rules
+
+Before creating a new file or directory:
+
+1. **Search for an existing appropriate location** across `src/modules/`, `src/infrastructure/`, `src/shared/`, and `app/`.
+2. **Prefer extending an existing module** over creating a new top-level directory.
+3. **Do not create architecture-named directories inside `src/`** (e.g. no `src/backend-layering`, `src/database-modeling`, `src/redis-architecture`).
+4. **Do not create folders based solely on ADR names.**
+5. **Do not create technology-specific top-level directories** unless the architecture explicitly requires them.
+6. **Business functionality belongs under `src/modules/<domain>/`.**
+7. **Infrastructure belongs under `src/infrastructure/<tech>/`.**
+8. **Documentation belongs under `docs/` or `adrs/`.**
+9. **Tests belong adjacent to the code they verify** (`*.test.ts`) or in `e2e/`.
+10. **Creating a new top-level directory directly under `src/` requires explicit architectural justification and user approval.**
 
 ## ADR Governance
 

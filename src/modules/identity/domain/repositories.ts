@@ -1,4 +1,4 @@
-import type { Permission } from "../../../rbac/index.js";
+import type { Permission } from "../../../infrastructure/security/rbac/index.js";
 import type { AuthUser } from "./auth-user.js";
 import type { OtpChallenge } from "./otp-challenge.js";
 import type {

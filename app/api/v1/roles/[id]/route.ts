@@ -4,7 +4,7 @@ import type { AuthSessionSnapshot } from "@/infrastructure/auth";
 import { getApiContext } from "@/infrastructure/composition";
 import { requirePermissionFromJwtClaims } from "@/modules/identity/application/authorization";
 import { z, ZodError } from "zod";
-import type { Permission } from "@/rbac";
+import type { Permission } from "@/infrastructure/security/rbac";
 
 const UpdateRoleInputSchema = z.object({
   name: z.string().min(1, "نام نقش الزامی است"),

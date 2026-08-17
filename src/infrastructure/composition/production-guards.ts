@@ -6,7 +6,7 @@
 import {
   assertRequiredEnvInProduction,
   EnvConfigError,
-} from "../../env-secrets/index.js";
+} from "../../shared/contracts/env-secrets/index.js";
 import {
   assertConsoleSmsAllowed,
   createCustomerSmsAdapter,

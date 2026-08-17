@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function FinancePurchasesPage() {
   const session = await auth();
-  if (!isMerchantSession(session)) {
+  if (!isMerchantSession(session) || !session?.user?.merchantId) {
     redirect("/login?callbackUrl=/finance/purchases");
   }
 

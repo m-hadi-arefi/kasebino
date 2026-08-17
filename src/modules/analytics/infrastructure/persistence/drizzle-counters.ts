@@ -12,12 +12,12 @@ import {
   assertMerchantId,
   notDeleted,
 } from "../../../../infrastructure/persistence/helpers.js";
-import { toTehranIsoDay } from "../../../../merchant-oltp-analytics/index.js";
+import { toTehranIsoDay } from "../../domain/merchant-oltp/index.js";
 import type {
   AnalyticsDateRange,
   MembershipCountersPort,
   SalesCountersPort,
-} from "../../../../merchant-oltp-analytics/index.js";
+} from "../../domain/merchant-oltp/index.js";
 
 function dayStartTehran(day: string): Date {
   // Approximate UTC instant for Asia/Tehran midnight of ISO day.

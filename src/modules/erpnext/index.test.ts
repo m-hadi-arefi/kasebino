@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { assertUiuxGate } from "../../uiuxpromax-gate/index.js";
+import { assertUiuxGate } from "../../shared/contracts/uiuxpromax-gate/index.js";
 import {
   createErpNextUseCases,
   FakeFinanceReader,
@@ -12,8 +12,8 @@ import {
   normalizeErpNextErrorFa,
 } from "./index.js";
 import { createAccountingOutboxHandler, FakeAccountingProvider } from "../accounting/index.js";
-import { createOutboxMessage } from "../../outbox/index.js";
-import { envelopeFromDomainEvent } from "../../event-driven/index.js";
+import { createOutboxMessage } from "../../events/outbox/index.js";
+import { envelopeFromDomainEvent } from "../../events/contracts/event-driven/index.js";
 import { ERPNEXT_UIUX_GATE } from "./ui/copy.js";
 import {
   markSyncFailed,

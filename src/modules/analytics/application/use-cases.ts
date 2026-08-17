@@ -13,7 +13,7 @@ import {
   type MembershipCountersPort,
   type MerchantOverviewProjection,
   type SalesCountersPort,
-} from "../../../merchant-oltp-analytics/index.js";
+} from "../domain/merchant-oltp/index.js";
 import type { AnalyticsProjectionRepository } from "../domain/projections.js";
 
 export type GetMerchantOverviewInput = {

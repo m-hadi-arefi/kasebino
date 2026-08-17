@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { requireIdempotencyKey } from "../../../api-standards/index.js";
-import { isPosTenderType, type PosTenderType } from "../../../pos-sales/index.js";
+import { requireIdempotencyKey } from "../../../shared/contracts/api-standards/index.js";
+import { isPosTenderType, type PosTenderType } from "../domain/sales/index.js";
 import type { CartLineInput, NormalizedCart } from "../domain/cart.js";
 import {
   saleCompletedEvent,
@@ -22,7 +22,7 @@ import type {
   SaleOutboxPort,
 } from "./ports.js";
 import { storeSaleReceiptObject } from "./store-sale-receipt.js";
-import type { ObjectStoragePort } from "../../../minio-storage/index.js";
+import type { ObjectStoragePort } from "../../../infrastructure/minio/contracts/index.js";
 import { attachSaleReceiptRef } from "../domain/sale.js";
 
 export type PosUseCaseDeps = {

@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   INVENTORY_DOMAIN_DECISION,
   STOCK_ADJUSTED_EVENT,
-} from "../../inventory-domain/index.js";
+} from "./domain/contracts/index.js";
 import {
   INVENTORY_SYNC_DECISION,
   OFFLINE_STOCK_SYNC,
   PICKUP_STOCK_SYNC,
-} from "../../inventory-sync/index.js";
+} from "./application/sync/index.js";
 import {
   INVENTORY_ERROR_MESSAGES_FA,
   InventoryDomainError,
