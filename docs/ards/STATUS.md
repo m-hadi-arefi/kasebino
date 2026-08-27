@@ -31,7 +31,7 @@ Last updated: 2026-08-03
 | ARD-023 | Product Analytics | todo | ADR-059 `src/product-analytics` (trackEvent → mos_product + funnels POS/QR/pickup/loyalty + feature registry + Persian metric names); HTTP track + admin UI + live driver remain |
 | ARD-024 | Event Warehouse | todo | ADR-035 outbox + ADR-037 catalog + ADR-057 `src/event-warehouse` (mos_events mirror + lag); ADR-064 TTL stance (`src/data-retention`); admin browse API/UI + live driver/TTL remain |
 | ARD-025 | Management Dashboards | todo | ADR-062 `src/mgmt-dashboard-analytics` (mos_mgmt rollups + platform_admin + DAM/MAM/GMV instrument notes + Persian titles) + ADR-089 portfolio stubs in `src/admin-dashboard`; HTTP APIs / live rollup jobs remain |
-| ARD-026 | Security Monitoring | todo | ADR-013 admin enforcement hook stubs (`SecurityMonitoringPort`) + ADR-089 `/admin/security` Persian stub; signal store / EMQX topics / API remain |
+| ARD-026 | Security Monitoring | completed | ADR-154 live security signal store + admin overview/metrics API + RTL dashboard |
 | ARD-027 | User Behavior Tracking | todo | ADR-060 `src/clickstream` (beacon batch + trackClickstream → mos_behavior); ADR-061 `src/session-analytics` (sessionId + heartbeat + 30m idle → mos_sessions, duration/device class); ADR-064 TTL 90–180d (`src/data-retention`); HTTP beacon/session + client SDK + live driver remain |
 | ARD-028 | Observability & Monitoring | todo | — |
 | ARD-029 | Store PWA Platform | in_progress | ADR-023 foundations |

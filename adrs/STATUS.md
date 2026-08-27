@@ -20,7 +20,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 
 ---
 
-## done/ — Fully implemented as ADR contracts (117)
+## done/ — Fully implemented as ADR contracts (120)
 
 | ID | Title | Decision | ADR impl |
 | --- | --- | --- | --- |
@@ -147,6 +147,9 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-149 | Store hours HTTP/UI | accepted | complete |
 | ADR-150 | DB migration hygiene + integrity | accepted | complete |
 | ADR-152 | Catalog cost + tax boundary | accepted | complete |
+| ADR-146 | ERPNext dual-run soak + finance honesty | accepted | complete |
+| ADR-154 | Admin Security Dashboard Monitoring | accepted | complete |
+| ADR-155 | Offline POS Queue Runtime | accepted | complete |
 
 ## future/ — Not implemented (9)
 
