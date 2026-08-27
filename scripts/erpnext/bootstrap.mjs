@@ -59,7 +59,7 @@ async function waitForHttp(url) {
 
 const PY = `
 import frappe
-frappe.init(site="${SITE}", sites_path="sites")
+frappe.init(site="${SITE}", sites_path="/home/frappe/frappe-bench/sites")
 frappe.connect()
 frappe.set_user("Administrator")
 

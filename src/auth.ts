@@ -21,6 +21,35 @@ const appConfig = createAppAuthConfig({
     verifyOtp: (input) => runtime().merchant.verifyOtp(input),
     resolveClaims: async (verified) => {
       const api = getApiContext();
+      if (api.repos.adminUsers) {
+        const admin =
+          (await api.repos.adminUsers.findById(verified.authUserId)) ??
+          (await api.repos.adminUsers.findByLogin(verified.phoneNational)) ??
+          (await api.repos.adminUsers.findByLogin(verified.phoneE164));
+        if (admin && admin.status === "active") {
+          if (admin.id !== verified.authUserId) {
+            const existingForSub = await api.repos.adminUsers.findById(verified.authUserId);
+            if (!existingForSub) {
+              await api.repos.adminUsers.save({
+                id: verified.authUserId,
+                login: `${admin.login}_${verified.authUserId.slice(0, 8)}`,
+                displayName: admin.displayName,
+                status: "active",
+                role: "platform_admin",
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              });
+            }
+          }
+          return {
+            merchantId: null,
+            roles: ["platform_admin"],
+            permissions: [...ROLE_PERMISSION_MATRIX.platform_admin],
+            storeIds: [],
+          };
+        }
+      }
+
       const merchant = await api.repos.merchants.findByOwnerUserId(
         verified.authUserId,
       );

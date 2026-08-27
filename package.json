@@ -22,6 +22,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
+    "db:seed:admin": "tsx --env-file=.env scripts/seed-admin.ts",
     "erpnext:up": "docker compose -f docker-compose.erpnext.yml up -d",
     "erpnext:down": "docker compose -f docker-compose.erpnext.yml down",
     "erpnext:logs": "docker compose -f docker-compose.erpnext.yml logs -f create-site",

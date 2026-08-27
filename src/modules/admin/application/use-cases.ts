@@ -83,7 +83,10 @@ async function requireActiveAdminUser(
   deps: AdminUseCaseDeps,
   auth: AuthContext,
 ): Promise<AdminUser> {
-  const admin = await deps.adminUsers.findById(auth.sub);
+  let admin = await deps.adminUsers.findById(auth.sub);
+  if (!admin) {
+    admin = await deps.adminUsers.findByLogin(auth.sub);
+  }
   if (!admin) {
     throw new AdminDomainError("ADMIN_USER_NOT_FOUND");
   }

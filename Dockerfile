@@ -5,7 +5,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --prefer-offline
 
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN AUTH_SECRET="$AUTH_SECRET" DATABASE_URL="$DATABASE_URL" npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0

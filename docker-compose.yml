@@ -11,13 +11,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     image: merchantos-app:local
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       MOS_ENV: ${MOS_ENV:-local}
-      AUTH_SECRET: ${AUTH_SECRET:-change-me-auth-secret}
+      AUTH_SECRET: ${AUTH_SECRET:-snlwgV3GCAk65IacuMYRfOpd48z7qKvQj91yeoS2ih0PDbJZ}
       DATABASE_URL: postgres://${POSTGRES_USER:-merchantos}:${POSTGRES_PASSWORD:-merchantos}@postgres:5432/${POSTGRES_DB:-merchantos}
       REDIS_URL: redis://redis:6379
       MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-merchantos}:${MONGO_INITDB_ROOT_PASSWORD:-merchantos}@mongo:27017/${MONGO_DB:-merchantos_analytics}?authSource=admin
@@ -28,7 +29,7 @@ services:
       MINIO_CONSOLE_URL: http://minio:9001
       MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM: ${MOS_ALLOW_SANDBOX_PAYMENT_CONFIRM:-1}
       # Local Docker parity: return OTP in JSON when MOS_ENV=local (also honors explicit flag)
-      MOS_RETURN_DEV_OTP: ${MOS_RETURN_DEV_OTP:-}
+      MOS_RETURN_DEV_OTP: ${MOS_RETURN_DEV_OTP:-1}
       MOS_ACCOUNTING_PROVIDER: ${MOS_ACCOUNTING_PROVIDER:-erpnext}
       MOS_ERPNEXT_URL: ${MOS_ERPNEXT_INTERNAL_URL:-http://frontend:8080}
       MOS_ERPNEXT_API_KEY: ${MOS_ERPNEXT_API_KEY:-}
@@ -58,17 +59,11 @@ services:
   worker:
     profiles:
       - worker
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - .:/app
-      - app_node_modules:/app/node_modules
-    command:
-      [
-        "sh",
-        "-c",
-        "if [ ! -x node_modules/.bin/tsx ]; then npm ci; fi; npx tsx src/workers/outbox-worker.ts",
-      ]
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: merchantos-worker:local
+    command: ["sh", "-c", "npx tsx src/workers/outbox-worker.ts"]
     environment:
       NODE_ENV: development
       MOS_ENV: ${MOS_ENV:-local}
@@ -208,7 +203,7 @@ networks:
     driver: bridge
   frappe_network:
     name: merchantos-erpnext_frappe_network
-    external: true
+    driver: bridge
 
 volumes:
   postgres_data:
