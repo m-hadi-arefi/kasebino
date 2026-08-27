@@ -3,14 +3,14 @@
 | Field | Value |
 | --- | --- |
 | ID | ADR-146 |
-| Status | `Proposed` |
+| Status | `Accepted` |
 | Date | 2026-08-09 |
 | Origin | `docs/audit/` Critical #4 + High #7; complements ADR-135…141 |
-| Folder | `adrs/tasks/` |
+| Folder | `adrs/done/` |
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
@@ -39,14 +39,14 @@ Included:
 
 - Soak runbook automation notes + bootstrap hardening
 - Finance reader honesty + KPI availability flags
-- `POST /api/v1/erpnext/finance/sync/{id}/retry` (or resync by saleId)
+- `POST /api/v1/erpnext/finance/sync` retry (or resync by saleId)
 - Persian UX for unavailable metrics
 - Staging checklist in readiness-report
 
 Excluded:
 
 - Purchasing/AP phases (future)
-- Full P&amp;L/BS/CF native rebuild
+- Full P&L/BS/CF native rebuild
 - Embedding ERPNext Desk
 
 ## Technical Design
@@ -84,7 +84,7 @@ Indexes: existing sync indexes
 
 Routes:
 
-- `POST /api/v1/erpnext/finance/sync/retry` body `{ syncRecordId }`
+- `POST /api/v1/erpnext/finance/sync` body `{ syncRecordId }`
 - Dashboard response includes `kpis[].status: available|unavailable`
 
 ## Frontend Changes
@@ -101,11 +101,11 @@ Manual/E2E staging: live Desk invoice assert
 
 ## Acceptance Criteria
 
-- [ ] Local Fake cannot be mistaken for live when provider=erpnext
-- [ ] Unavailable KPIs do not render as 0 تومان without label
-- [ ] Failed sync retry works for at least SaleCompleted path
-- [ ] Documented soak: one CompleteSale appears as Sales Invoice in Desk
-- [ ] Readiness report updated with evidence links
+- [x] Local Fake cannot be mistaken for live when provider=erpnext
+- [x] Unavailable KPIs do not render as 0 تومان without label
+- [x] Failed sync retry works for at least SaleCompleted path
+- [x] Documented soak: one CompleteSale appears as Sales Invoice in Desk
+- [x] Readiness report updated with evidence links
 
 ## Dependencies
 

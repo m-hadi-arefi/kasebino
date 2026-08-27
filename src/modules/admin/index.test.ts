@@ -290,6 +290,30 @@ describe("ADR-013 Admin Domain", () => {
     expect(platformAudits.length).toBeGreaterThanOrEqual(2);
   });
 
+  it("retrieves security overview and records security events (ADR-154)", async () => {
+    const h = createHarness();
+    await h.seedAdmin();
+
+    await h.useCases.recordSecurityEvent({
+      auth: platformAuth(h.admin.id),
+      signal: {
+        type: "auth_failure",
+        severity: "warning",
+        source: "auth_service",
+        descriptionFa: "ورود ناموفق با رمز عبور اشتباه",
+        ip: "192.168.1.1",
+      },
+    });
+
+    const overview = await h.useCases.getSecurityOverview({
+      auth: platformAuth(h.admin.id),
+    });
+
+    expect(overview.summary.authFailures24h).toBe(1);
+    expect(overview.signals.length).toBeGreaterThan(0);
+    expect(overview.signals[0]?.descriptionFa).toBe("ورود ناموفق با رمز عبور اشتباه");
+  });
+
   it("exports drizzle admin schema stubs", () => {
     expect(adminUsers).toBeDefined();
     expect(adminActions).toBeDefined();

@@ -74,19 +74,25 @@ export function FinanceDashboardClient() {
         {/* Tab 1: Dashboard */}
         <TabsContent value="dashboard" className="space-y-6 pt-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <StatCard title={fa.todaySales} value={summary.todaySales.displayToman} />
+            <StatCard
+              title={fa.todaySales}
+              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.todaySales.displayToman}
+            />
             <StatCard
               title={fa.monthRevenue}
-              value={summary.monthRevenue.displayToman}
+              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.monthRevenue.displayToman}
             />
             <StatCard
               title={fa.receivables}
-              value={summary.receivables.displayToman}
+              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.receivables.displayToman}
             />
-            <StatCard title={fa.payables} value={summary.payables.displayToman} />
+            <StatCard
+              title={fa.payables}
+              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.payables.displayToman}
+            />
             <StatCard
               title={fa.profit}
-              value={summary.profitOverview?.displayToman ?? "—"}
+              value={summary.source === "unavailable" ? fa.metricUnavailable : (summary.profitOverview?.displayToman ?? "—")}
             />
             <StatCard
               title={fa.invoicesSynced}

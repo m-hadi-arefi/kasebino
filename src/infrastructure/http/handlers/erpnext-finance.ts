@@ -73,7 +73,7 @@ export async function handleFinanceSyncList(
   const result = await ctx.erpnext.listSyncRecords({
     merchantId: authed.actor.merchantId,
     ...(status !== undefined ? { status } : {}),
-  });
+  }  );
   return ok(
     {
       records: result.records.map((r) => ({
@@ -85,6 +85,51 @@ export async function handleFinanceSyncList(
     },
     { meta: { correlationId } },
   );
+}
+
+export async function handleFinanceSyncRetry(
+  request: Request,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  const authed = await requireMerchantPermissionResolved(
+    session,
+    correlationId,
+    ctx.repos.merchants,
+    { permission: "finance.view" },
+  );
+  if (!authed.ok) return authed.result;
+
+  let body: { syncRecordId?: string; entityType?: string; entityId?: string };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return fail({
+      code: "VALIDATION_ERROR",
+      correlationId,
+      status: 400,
+      messageFa: "فرمت درخواست نامعتبر است",
+    });
+  }
+
+  const result = await ctx.erpnext.retrySyncRecord({
+    merchantId: authed.actor.merchantId,
+    syncRecordId: body?.syncRecordId,
+    entityType: body?.entityType,
+    entityId: body?.entityId,
+  });
+
+  if (!result.ok && result.status === "not_found") {
+    return fail({
+      code: "NOT_FOUND",
+      correlationId,
+      status: 404,
+      messageFa: result.messageFa,
+    });
+  }
+
+  return ok(result, { meta: { correlationId } });
 }
 
 export async function handleSaleFinancialStatus(

@@ -29,6 +29,13 @@ export class InMemoryErpNextSyncRecordRepository
     );
   }
 
+  async findById(id: string): Promise<ErpNextSyncRecord | null> {
+    for (const record of this.byKey.values()) {
+      if (record.id === id) return { ...record };
+    }
+    return null;
+  }
+
   async findByInternal(input: {
     merchantId: string;
     entityType: string;
@@ -119,6 +126,16 @@ export class DrizzleErpNextSyncRecordRepository
           storeId: record.storeId,
         },
       });
+  }
+
+  async findById(id: string): Promise<ErpNextSyncRecord | null> {
+    const rows = await this.db
+      .select()
+      .from(erpnextSyncRecords)
+      .where(eq(erpnextSyncRecords.id, id))
+      .limit(1);
+    const row = rows[0];
+    return row ? toDomain(row) : null;
   }
 
   async findByInternal(input: {

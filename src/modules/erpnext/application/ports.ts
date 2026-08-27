@@ -67,4 +67,5 @@ export type ErpNextModuleDeps = {
   mappings?: ExternalEntityMappingRepository;
   now?: () => Date;
   idFactory?: () => string;
+  onRetrySync?: (record: import("../domain/sync-record.js").ErpNextSyncRecord) => Promise<{ ok: boolean; messageFa?: string; externalId?: string | null }>;
 };

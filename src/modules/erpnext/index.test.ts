@@ -192,4 +192,47 @@ describe("ADR-141 ERPNext capability foundation", () => {
     const rec = await useCases.getReceivables({ merchantId });
     expect(rec.receivables.totalReceivable.amountMinor).toBe("0");
   });
+
+  it("retries failed sync record and updates status", async () => {
+    const syncRecords = new InMemoryErpNextSyncRecordRepository();
+    const now = () => new Date();
+    await markSyncPending({
+      repo: syncRecords,
+      merchantId: "m1",
+      storeId: null,
+      entityType: "sale",
+      entityId: "s1",
+      eventId: "e1",
+      idFactory: () => "rec-1",
+      now,
+    });
+    await markSyncFailed({
+      repo: syncRecords,
+      merchantId: "m1",
+      storeId: null,
+      entityType: "sale",
+      entityId: "s1",
+      eventId: "e1",
+      idFactory: () => "rec-1",
+      error: new Error("Network timeout"),
+      now,
+    });
+
+    const useCases = createErpNextUseCases({
+      financeReader: new FakeFinanceReader({ syncRecords }),
+      syncRecords,
+    });
+
+    const retryRes = await useCases.retrySyncRecord({
+      merchantId: "m1",
+      syncRecordId: "rec-1",
+    });
+
+    expect(retryRes.ok).toBe(true);
+    expect(retryRes.status).toBe("pending");
+
+    const record = await syncRecords.findById("rec-1");
+    expect(record?.status).toBe("pending");
+    expect(record?.errorMessageFa).toBeNull();
+  });
 });

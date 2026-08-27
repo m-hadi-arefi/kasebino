@@ -132,6 +132,59 @@ export function createErpNextUseCases(deps: ErpNextModuleDeps) {
       const receivables = await deps.financeReader.getReceivables(input);
       return { receivables };
     },
+
+    async retrySyncRecord(input: {
+      merchantId: string;
+      syncRecordId?: string;
+      entityType?: string;
+      entityId?: string;
+    }) {
+      let record = input.syncRecordId
+        ? await deps.syncRecords.findById(input.syncRecordId)
+        : null;
+
+      if (!record && input.entityType && input.entityId) {
+        record = await deps.syncRecords.findByInternal({
+          merchantId: input.merchantId,
+          entityType: input.entityType,
+          entityId: input.entityId,
+        });
+      }
+
+      if (!record || record.merchantId !== input.merchantId) {
+        return {
+          ok: false,
+          status: "not_found",
+          messageFa: "رکورد همگام‌سازی یافت نشد.",
+        };
+      }
+
+      if (deps.onRetrySync) {
+        const result = await deps.onRetrySync(record);
+        return {
+          ok: result.ok,
+          status: result.ok ? "synced" : "failed",
+          externalId: result.externalId ?? null,
+          messageFa: result.messageFa ?? (result.ok ? "با موفقیت همگام‌سازی شد." : "همگام‌سازی با خطا مواجه شد."),
+        };
+      }
+
+      // Mark pending for worker retry pick-up
+      await deps.syncRecords.upsert({
+        ...record,
+        status: "pending",
+        errorMessageFa: null,
+        attemptCount: record.attemptCount + 1,
+        updatedAt: now(),
+      });
+
+      return {
+        ok: true,
+        status: "pending",
+        externalId: record.erpnextId,
+        messageFa: "درخواست همگام‌سازی مجدد در صف پردازش قرار گرفت.",
+      };
+    },
   };
 }
 

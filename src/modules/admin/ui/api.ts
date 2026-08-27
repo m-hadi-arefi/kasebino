@@ -93,3 +93,46 @@ export async function fetchAdminAudit(): Promise<AdminActionDto[]> {
   if (!res.ok) throw new Error(errorMessage(body, ADMIN_UI_COPY_FA.auditError));
   return body.data?.actions ?? [];
 }
+
+export type AdminSecurityOverviewDto = {
+  summary: {
+    activeAlertsCount: number;
+    criticalAlertsCount: number;
+    warningAlertsCount: number;
+    authFailures24h: number;
+    otpAbuse24h: number;
+    rateLimitViolations24h: number;
+    suspiciousActivity24h: number;
+    eventsBySeverity: {
+      critical: number;
+      warning: number;
+      info: number;
+    };
+  };
+  signals: Array<{
+    id: string;
+    type: string;
+    severity: "info" | "warning" | "critical";
+    source: string;
+    merchantId?: string | null;
+    storeId?: string | null;
+    actorId?: string | null;
+    ip?: string | null;
+    userAgent?: string | null;
+    descriptionFa: string;
+    metadata?: Record<string, unknown>;
+    traceId?: string | null;
+    createdAt: string;
+  }>;
+};
+
+export async function fetchAdminSecurityOverview(): Promise<AdminSecurityOverviewDto> {
+  const res = await fetch("/api/v1/admin/security", {
+    credentials: "same-origin",
+  });
+  const body = await parseJson<AdminSecurityOverviewDto>(res);
+  if (!res.ok || !body.data) {
+    throw new Error(errorMessage(body, "خطا در دریافت اطلاعات پایش امنیت"));
+  }
+  return body.data;
+}

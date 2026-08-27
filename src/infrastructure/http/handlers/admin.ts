@@ -307,3 +307,33 @@ export async function handleAdminAssignMerchantPlan(
   if (!ran.ok) return ran.result;
   return ok({ subscription: subscriptionSummaryDto(ran.data) });
 }
+
+export async function handleAdminSecurityOverview(
+  request: HttpRequestLike,
+  ctx: ApiContext,
+  session: AuthSessionSnapshot,
+): Promise<HttpHandlerResult> {
+  const correlationId = correlationIdFrom(request);
+  if (request.method.toUpperCase() !== "GET") {
+    return methodNotAllowed(correlationId, "GET");
+  }
+  const admin = requireAdminPermission(session, correlationId);
+  if (!admin.ok) return admin.result;
+  const limited = await enforceAdminRateLimit({
+    request,
+    ctx,
+    correlationId,
+    adminUserId: admin.actor.userId,
+  });
+  if (limited) return limited;
+
+  const ran = await runUseCase(correlationId, () =>
+    ctx.admin.getSecurityOverview({
+      auth: admin.auth,
+      correlationId,
+      ip: clientIp(request),
+    }),
+  );
+  if (!ran.ok) return ran.result;
+  return ok(ran.data);
+}

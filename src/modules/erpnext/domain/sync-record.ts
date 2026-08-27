@@ -29,6 +29,7 @@ export type ErpNextSyncRecord = {
 
 export type ErpNextSyncRecordRepository = {
   upsert(record: ErpNextSyncRecord): Promise<void>;
+  findById(id: string): Promise<ErpNextSyncRecord | null>;
   findByInternal(input: {
     merchantId: string;
     entityType: string;

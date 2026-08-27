@@ -111,6 +111,7 @@ export class ErpNextFinanceReader implements FinanceReader {
     let receivablesMinor = "0";
     let payablesMinor = "0";
     let netProfitMinor: string | null = null;
+    let erpConnected = false;
 
     try {
       const { client, tenant } = await this.resolveClientAndTenant(input.merchantId);
@@ -119,6 +120,10 @@ export class ErpNextFinanceReader implements FinanceReader {
         this.reports.getReceivables(client, tenant).catch(() => null),
         this.reports.getPayables(client, tenant).catch(() => null),
       ]);
+
+      if (pnl || rec || pay) {
+        erpConnected = true;
+      }
 
       if (pnl) {
         monthRevenueMinor = String(Math.round(pnl.totalIncome ?? 0));
@@ -132,12 +137,11 @@ export class ErpNextFinanceReader implements FinanceReader {
         payablesMinor = String(Math.round(pay.totalPayable));
       }
     } catch {
-      monthRevenueMinor = String(saleSynced * 1_000_000);
-      todaySalesMinor = monthRevenueMinor;
+      erpConnected = false;
     }
 
     return {
-      source: "erpnext",
+      source: erpConnected ? "erpnext" : "unavailable",
       asOf: new Date().toISOString(),
       todaySales: moneyOf(todaySalesMinor),
       monthRevenue: moneyOf(monthRevenueMinor),

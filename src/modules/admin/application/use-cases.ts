@@ -5,6 +5,8 @@ import {
   ADMIN_PRIVILEGE_WARNINGS_FA,
 } from "../domain/contracts/index.js";
 import type { AuditPort } from "../../../infrastructure/security/contracts/audit-logging/index.js";
+import { getGlobalSecurityMonitoringStore } from "../../../infrastructure/security/monitoring/store.js";
+import type { SecuritySignal } from "../../../infrastructure/security/monitoring/types.js";
 import {
   authorize,
   type AuthContext,
@@ -440,6 +442,31 @@ export function createAdminUseCases(deps: AdminUseCaseDeps) {
     getMerchant,
     activateMerchant,
     suspendMerchant,
+    async getSecurityOverview(input: AdminActorInput) {
+      requirePlatformAdmin(input.auth);
+      await requireActiveAdminUser(deps, input.auth);
+      const store = getGlobalSecurityMonitoringStore();
+      const summary = await store.getMetricsSummary();
+      const signals = await store.listSignals({ limit: 50 });
+      return {
+        summary,
+        signals: signals.map((s) => ({
+          ...s,
+          createdAt: s.createdAt.toISOString(),
+        })),
+      };
+    },
+    async recordSecurityEvent(input: AdminActorInput & {
+      signal: Omit<SecuritySignal, "id" | "createdAt">;
+    }) {
+      const store = getGlobalSecurityMonitoringStore();
+      await store.recordSignal({
+        id: crypto.randomUUID(),
+        ...input.signal,
+        createdAt: now(),
+      });
+      return { ok: true };
+    },
   };
 }
 

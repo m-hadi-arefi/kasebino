@@ -4,10 +4,12 @@
  */
 
 import type { AuditPort } from "../../../infrastructure/security/contracts/audit-logging/index.js";
+import { getGlobalSecurityMonitoringStore } from "../../../infrastructure/security/monitoring/store.js";
+import type { SecuritySignal, SecuritySeverity, SecuritySignalType } from "../../../infrastructure/security/monitoring/types.js";
 
 export type { AuditPort };
 
-/** Security monitoring hook — placeholder until ARD-026. */
+/** Security monitoring port (ADR-154). */
 export type SecurityMonitoringPort = {
   recordAdminSignal(input: {
     type: "AdminMerchantActivated" | "AdminMerchantSuspended";
@@ -16,16 +18,42 @@ export type SecurityMonitoringPort = {
     occurredAt: Date;
     metadata?: Record<string, unknown>;
   }): Promise<void>;
+  recordSecuritySignal?(signal: Omit<SecuritySignal, "id" | "createdAt">): Promise<void>;
 };
 
 export type NoopSecurityMonitoringPort = SecurityMonitoringPort;
 
-export function createNoopSecurityMonitoringPort(): SecurityMonitoringPort {
+export function createProductionSecurityMonitoringPort(): SecurityMonitoringPort {
+  const store = getGlobalSecurityMonitoringStore();
   return {
-    async recordAdminSignal(): Promise<void> {
-      /* ARD-026 */
+    async recordAdminSignal(input): Promise<void> {
+      await store.recordSignal({
+        id: crypto.randomUUID(),
+        type: "admin_enforcement",
+        severity: input.type === "AdminMerchantSuspended" ? "warning" : "info",
+        source: "admin_panel",
+        merchantId: input.merchantId,
+        actorId: input.adminUserId,
+        descriptionFa:
+          input.type === "AdminMerchantSuspended"
+            ? `پذیرنده با شناسه ${input.merchantId.slice(0, 8)} توسط مدیر پلتفرم تعلیق شد.`
+            : `پذیرنده با شناسه ${input.merchantId.slice(0, 8)} توسط مدیر پلتفرم فعال شد.`,
+        metadata: input.metadata,
+        createdAt: input.occurredAt,
+      });
+    },
+    async recordSecuritySignal(signal): Promise<void> {
+      await store.recordSignal({
+        id: crypto.randomUUID(),
+        ...signal,
+        createdAt: new Date(),
+      });
     },
   };
+}
+
+export function createNoopSecurityMonitoringPort(): SecurityMonitoringPort {
+  return createProductionSecurityMonitoringPort();
 }
 
 /** In-memory stub that records signals for tests. */

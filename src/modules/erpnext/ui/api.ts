@@ -69,6 +69,25 @@ export async function fetchFinanceSyncRecords(status?: string): Promise<{
   return parseJson(res);
 }
 
+export async function retryFinanceSync(params: {
+  syncRecordId?: string;
+  entityType?: string;
+  entityId?: string;
+}): Promise<{
+  ok: boolean;
+  status: string;
+  externalId: string | null;
+  messageFa: string;
+}> {
+  const res = await fetch("/api/v1/erpnext/finance/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(params),
+  });
+  return parseJson(res);
+}
+
 export async function fetchSaleFinancialStatus(saleId: string): Promise<{
   saleId: string;
   syncStatus: string;
