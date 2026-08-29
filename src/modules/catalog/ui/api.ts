@@ -14,8 +14,28 @@ export type CatalogProductDto = {
   categoryId: string | null;
   priceAmountMinor: string;
   priceDisplayToman: string;
+  imageObjectKey: string | null;
+  imageUpdatedAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type StockMovementDto = {
+  id: string;
+  merchantId: string;
+  storeId: string;
+  productId: string;
+  stockItemId: string;
+  quantityDelta: number;
+  unitCode: string;
+  reason: string;
+  reasonDisplayFa: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  source: string | null;
+  note: string | null;
+  occurredAt: string;
+  createdAt: string;
 };
 
 export type CatalogCategoryDto = {
@@ -215,4 +235,91 @@ export async function adjustInventory(input: {
   if (!res.ok) throw new Error(errorMessage(body, "adjust_failed"));
   if (!body.data?.item) throw new Error("adjust_failed");
   return body.data.item;
+}
+
+export async function fetchStockMovements(input: {
+  storeId: string;
+  productId?: string;
+  cursor?: string;
+  limit?: number;
+}): Promise<{ items: StockMovementDto[]; nextCursor: string | null }> {
+  const params = new URLSearchParams({ storeId: input.storeId });
+  if (input.productId) params.set("productId", input.productId);
+  if (input.cursor) params.set("cursor", input.cursor);
+  if (input.limit !== undefined) params.set("limit", String(input.limit));
+  const res = await fetch(`/api/v1/inventory/movements?${params}`, {
+    credentials: "same-origin",
+  });
+  const body = await parseJson<{
+    items: StockMovementDto[];
+    nextCursor: string | null;
+  }>(res);
+  if (!res.ok) throw new Error(errorMessage(body, "movements_failed"));
+  return {
+    items: body.data?.items ?? [],
+    nextCursor: body.data?.nextCursor ?? null,
+  };
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("image_read_failed"));
+        return;
+      }
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(new Error("image_read_failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function uploadProductImage(
+  productId: string,
+  file: File,
+): Promise<CatalogProductDto> {
+  const dataBase64 = await fileToBase64(file);
+  const res = await fetch(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/image`,
+    {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        ...csrfHeadersForBrowserFetch(),
+      },
+      body: JSON.stringify({
+        dataBase64,
+        contentType: file.type || "image/jpeg",
+        filename: file.name,
+      }),
+    },
+  );
+  const body = await parseJson<{ product: CatalogProductDto }>(res);
+  if (!res.ok) throw new Error(errorMessage(body, "image_upload_failed"));
+  if (!body.data?.product) throw new Error("image_upload_failed");
+  return body.data.product;
+}
+
+export async function deleteProductImage(
+  productId: string,
+): Promise<CatalogProductDto> {
+  const res = await fetch(
+    `/api/v1/catalog/products/${encodeURIComponent(productId)}/image`,
+    {
+      method: "DELETE",
+      credentials: "same-origin",
+      headers: {
+        ...csrfHeadersForBrowserFetch(),
+      },
+    },
+  );
+  const body = await parseJson<{ product: CatalogProductDto }>(res);
+  if (!res.ok) throw new Error(errorMessage(body, "image_delete_failed"));
+  if (!body.data?.product) throw new Error("image_delete_failed");
+  return body.data.product;
 }

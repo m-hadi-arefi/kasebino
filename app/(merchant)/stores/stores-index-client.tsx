@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { STORE_SWITCHER_UI_COPY_FA } from "@/modules/merchant/ui";
 import {
+  STORE_HOURS_UI_COPY_FA,
   STORE_LOCATION_UI_COPY_FA,
   STORE_QR_PRINT_UI_COPY_FA,
   listMerchantStores,
@@ -79,6 +80,11 @@ export function StoresIndexClient() {
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/stores/${encodeURIComponent(store.id)}/location`}>
                     {STORE_LOCATION_UI_COPY_FA.locationTitle}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/stores/${encodeURIComponent(store.id)}/hours`}>
+                    {STORE_HOURS_UI_COPY_FA.title}
                   </Link>
                 </Button>
                 <Button size="sm" asChild>

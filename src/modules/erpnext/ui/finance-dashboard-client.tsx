@@ -49,16 +49,19 @@ export function FinanceDashboardClient() {
   }
 
   const { summary } = dashboardQuery.data;
+  const booksTrusted = summary.source === "erpnext";
   const sourceNote =
     summary.source === "erpnext"
       ? fa.sourceErpnext
       : summary.source === "fake"
         ? fa.sourceFake
         : fa.sourceUnavailable;
+  const moneyOrUnavailable = (display: string) =>
+    booksTrusted ? display : fa.metricUnavailable;
 
   return (
     <div className="flex flex-col gap-6" dir="rtl">
-      <Alert>
+      <Alert variant={booksTrusted ? "default" : "destructive"}>
         <AlertDescription aria-live="polite">{sourceNote}</AlertDescription>
       </Alert>
 
@@ -76,23 +79,25 @@ export function FinanceDashboardClient() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard
               title={fa.todaySales}
-              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.todaySales.displayToman}
+              value={moneyOrUnavailable(summary.todaySales.displayToman)}
             />
             <StatCard
               title={fa.monthRevenue}
-              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.monthRevenue.displayToman}
+              value={moneyOrUnavailable(summary.monthRevenue.displayToman)}
             />
             <StatCard
               title={fa.receivables}
-              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.receivables.displayToman}
+              value={moneyOrUnavailable(summary.receivables.displayToman)}
             />
             <StatCard
               title={fa.payables}
-              value={summary.source === "unavailable" ? fa.metricUnavailable : summary.payables.displayToman}
+              value={moneyOrUnavailable(summary.payables.displayToman)}
             />
             <StatCard
               title={fa.profit}
-              value={summary.source === "unavailable" ? fa.metricUnavailable : (summary.profitOverview?.displayToman ?? "—")}
+              value={moneyOrUnavailable(
+                summary.profitOverview?.displayToman ?? "—",
+              )}
             />
             <StatCard
               title={fa.invoicesSynced}

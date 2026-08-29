@@ -13,11 +13,12 @@ import { getApiContext } from "@/infrastructure/composition";
 import { StoreSwitcher } from "../stores/store-switcher";
 import { DashboardAnalyticsWidgets } from "./dashboard-analytics-widgets";
 import { DashboardCustomersWidget } from "./dashboard-customers-widget";
+import { DashboardOpsWidget } from "./dashboard-ops-widget";
 import { DashboardProviders } from "./dashboard-providers";
 
 export const metadata: Metadata = {
   title: "داشبورد فروشگاه | کاسبینو",
-  description: "نبض حفظ مشتری — فروش، عضویت و بازگشت",
+  description: "وضعیت کسب‌وکار — فروش، مشتری، پیکاپ و موجودی",
   robots: { index: false, follow: false },
 };
 
@@ -43,28 +44,26 @@ export default async function MerchantDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" dir="rtl">
       <PageHeader
-        title="داشبورد فروشگاه"
-        description="نبض حفظ مشتری — فروش، عضویت و بازگشت"
+        title="وضعیت کسب‌وکار"
+        description="فروش و درآمد به تومان · تاریخ شمسی · فقط پیکاپ حضوری"
       />
 
       <StoreSwitcher />
 
-      <section aria-label="ویجت‌های نمای کلی" className="flex flex-col gap-4">
-        <SectionHeader
-          title="نمای کلی"
-          description="مبالغ به تومان · بازهٔ تاریخ‌ها به تقویم شمسی (تهران) · کش حدود ۶۰ ثانیه"
-        />
-        <DashboardProviders>
+      <DashboardProviders>
+        <section aria-label="نمای کلی فروش" className="flex flex-col gap-4">
+          <SectionHeader
+            title="نمای کلی"
+            description="مبالغ به تومان · بازهٔ شمسی (تهران) · کش حدود ۶۰ ثانیه"
+          />
           <DashboardAnalyticsWidgets />
-          <DashboardCustomersWidget />
-        </DashboardProviders>
-      </section>
+        </section>
 
-      <p className="text-sm text-muted-foreground">
-        این داشبورد فقط برای فروشنده است. فقط پیکاپ حضوری — بدون ارسال/پیک
-      </p>
+        <DashboardOpsWidget />
+        <DashboardCustomersWidget />
+      </DashboardProviders>
     </div>
   );
 }

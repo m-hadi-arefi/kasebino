@@ -18,7 +18,7 @@ Last updated: 2026-08-03
 | ARD-010 | Storefront Experience | todo | ADR-017 `/s/[storeSlug]` scaffold + ADR-077 public DTO ACL + ADR-086 architecture (`src/storefront-architecture`) + catalog/about Persian stubs; route handlers / live catalog remain |
 | ARD-011 | Orders | in_progress | Domain + HTTP lifecycle APIs; ADR-101 merchant `/orders` pickup board (poll); auto timer jobs ADR-109 remain |
 | ARD-012 | Payments | in_progress | ADR-102 HTTP: intents / webhooks / refunds / sandbox confirm (env-gated); OrderPaid via verified path; تومان DTO + storefront simulate UX; real Iranian PSP still ADR-084 Proposed |
-| ARD-013 | Dashboard | todo | ADR-017 shell + ADR-088 `src/merchant-dashboard` Persian AN overview stubs (TTL 60s / OLTP wire); live overview API load / Lighthouse / CRM-04 remain |
+| ARD-013 | Dashboard | in_progress | ADR-155 merchant dashboard redesign (AN-01…04 trend + ops strips); Lighthouse / CRM-04 remain |
 | ARD-014 | Notifications | todo | ADR-090 module + architecture + outbox consumer + SMS ports + Persian templates; HTTP list/read + Kit migrations + center UI remain |
 | ARD-015 | Realtime Layer | todo | ADR-038 `src/emqx-realtime` publisher + ADR-039 `src/realtime-client` (token HTTP + MQTT/poll); compose e2e + live boards remain |
 | ARD-016 | Analytics (Merchant OLTP Dashboards) | todo | ADR-014 plane + ADR-063 `src/merchant-oltp-analytics` + ADR-088 dashboard UI stubs (`src/merchant-dashboard`); Drizzle Kit migrations / HTTP APIs / Redis live / live charts remain |

@@ -10,6 +10,7 @@ import {
 
 import { ErrorState } from "@/components/composites/error-state";
 import { LoadingState } from "@/components/composites/loading-state";
+import { SectionHeader } from "@/components/composites/section-header";
 import { StatCard } from "@/components/composites/stat-card";
 import {
   ANALYTICS_UI_COPY_FA,
@@ -20,6 +21,8 @@ import {
   formatAnalyticsJalaliDay,
   formatAnalyticsToman,
 } from "@/modules/analytics/ui";
+
+import { DashboardRevenueTrend } from "./dashboard-revenue-trend";
 
 const fa = ANALYTICS_UI_COPY_FA;
 
@@ -63,18 +66,19 @@ export function DashboardAnalyticsWidgets() {
       : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <p className="text-sm text-muted-foreground">
         {fa.cacheHint} · {fa.jalaliHint}
       </p>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={BarChart3}
           title={overview.data?.titleFa ?? fa.overviewTitle}
           value={
             overview.data?.salesCount === 0
               ? fa.empty
-              : overview.data?.salesCount.toLocaleString("fa-IR") ?? "—"
+              : (overview.data?.salesCount.toLocaleString("fa-IR") ?? "—")
           }
           description={
             overview.data && overview.data.salesCount > 0
@@ -107,7 +111,8 @@ export function DashboardAnalyticsWidgets() {
             customers.data.activeMemberships === 0 &&
             customers.data.newMemberships === 0
               ? fa.emptyCustomers
-              : customers.data?.activeMemberships.toLocaleString("fa-IR") ?? "—"
+              : (customers.data?.activeMemberships.toLocaleString("fa-IR") ??
+                "—")
           }
           description={
             customers.data &&
@@ -132,6 +137,11 @@ export function DashboardAnalyticsWidgets() {
           }
         />
       </div>
+
+      <section aria-label={fa.trendTitle} className="flex flex-col gap-3">
+        <SectionHeader title={fa.trendTitle} />
+        <DashboardRevenueTrend days={revenue.data?.days ?? []} />
+      </section>
     </div>
   );
 }

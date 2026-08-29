@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/composites/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Shield } from "lucide-react";
+import { AdminProviders } from "../admin-providers";
 import { AdminSecurityDashboardClient } from "@/modules/admin/ui/security-dashboard-client";
 
 export const metadata: Metadata = {
@@ -31,7 +32,9 @@ export default function AdminSecurityPage() {
         </AlertDescription>
       </Alert>
 
-      <AdminSecurityDashboardClient />
+      <AdminProviders>
+        <AdminSecurityDashboardClient />
+      </AdminProviders>
     </div>
   );
 }

@@ -43,10 +43,6 @@ export class InMemorySecurityMonitoringStore implements SecurityMonitoringStore 
   }
 
   async getMetricsSummary(): Promise<SecurityMetricsSummary> {
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    // If signals were created with mock clocks from before, include all or check recent
-    const recent = this.signals.length > 0 ? this.signals : [];
-
     const critical = this.signals.filter((s) => s.severity === "critical").length;
     const warning = this.signals.filter((s) => s.severity === "warning").length;
     const info = this.signals.filter((s) => s.severity === "info").length;

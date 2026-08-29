@@ -24,12 +24,14 @@ import {
   adjustInventory,
   createCategory,
   createProduct,
+  deleteProductImage,
   fetchCategories,
   fetchMerchantStores,
   fetchProduct,
   softDeleteCategory,
   softDeleteProduct,
   updateProduct,
+  uploadProductImage,
 } from "@/modules/catalog/ui/api";
 import { CATALOG_UI_COPY_FA } from "@/modules/catalog/ui/copy";
 import { minorToTomanInt, tomanToMinor } from "@/modules/catalog/ui/format";
@@ -62,6 +64,8 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hasImage, setHasImage] = useState(false);
 
   const productQuery = useQuery({
     queryKey: ["catalog", "product", productId],
@@ -89,6 +93,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     setPriceToman(String(minorToTomanInt(p.priceAmountMinor)));
     setDescription(p.description ?? "");
     setSelectedCategoryId(p.categoryId ?? "");
+    setHasImage(Boolean(p.imageObjectKey));
   }, [productQuery.data]);
 
   const saveMutation = useMutation({
@@ -164,6 +169,43 @@ export function ProductForm({ productId }: ProductFormProps) {
     onSuccess: async () => {
       if (selectedCategoryId) setSelectedCategoryId("");
       await queryClient.invalidateQueries({ queryKey: ["catalog", "categories"] });
+    },
+    onError: (err: Error) => setError(err.message || fa.networkError),
+  });
+
+  const imageUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!productId) throw new Error(fa.imageSaveFirst);
+      return uploadProductImage(productId, file);
+    },
+    onSuccess: async (product) => {
+      setHasImage(Boolean(product.imageObjectKey));
+      setSuccess(fa.imageSuccess);
+      setError(null);
+      await queryClient.invalidateQueries({
+        queryKey: ["catalog", "product", product.id],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
+    },
+    onError: (err: Error) => {
+      setSuccess(null);
+      setError(err.message || fa.networkError);
+    },
+  });
+
+  const imageDeleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!productId) throw new Error(fa.imageSaveFirst);
+      return deleteProductImage(productId);
+    },
+    onSuccess: async (product) => {
+      setHasImage(false);
+      setImagePreview(null);
+      setSuccess(fa.imageDeleted);
+      await queryClient.invalidateQueries({
+        queryKey: ["catalog", "product", product.id],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["catalog", "products"] });
     },
     onError: (err: Error) => setError(err.message || fa.networkError),
   });
@@ -300,6 +342,54 @@ export function ProductForm({ productId }: ProductFormProps) {
           ) : null}
         </FormSection>
       </form>
+
+      <FormSection title={fa.imageTitle}>
+        <p className="text-sm text-muted-foreground">{fa.imageHint}</p>
+        {!productId ? (
+          <p className="text-sm text-muted-foreground">{fa.imageSaveFirst}</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm">
+              {hasImage || imagePreview ? fa.imagePresent : fa.imageAbsent}
+            </p>
+            {imagePreview ? (
+              // Local Object URL preview until a merchant binary media proxy exists
+              <img
+                src={imagePreview}
+                alt=""
+                className="h-32 w-32 rounded-md border border-border object-cover"
+              />
+            ) : null}
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="min-h-11"
+              disabled={imageUploadMutation.isPending}
+              aria-label={fa.imageUpload}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const url = URL.createObjectURL(file);
+                setImagePreview(url);
+                imageUploadMutation.mutate(file);
+              }}
+            />
+            {imageUploadMutation.isPending ? (
+              <p className="text-sm text-muted-foreground">{fa.imageUploading}</p>
+            ) : null}
+            {hasImage ? (
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={imageDeleteMutation.isPending}
+                onClick={() => imageDeleteMutation.mutate()}
+              >
+                {fa.imageDelete}
+              </Button>
+            ) : null}
+          </div>
+        )}
+      </FormSection>
 
       <section className="flex flex-col gap-3">
         <SectionHeader title={fa.categoriesTitle} />

@@ -11,6 +11,7 @@ Code-backed gap analysis. Supersedes the optimism of older `AUDIT_REPORT.md` (20
 | [production-readiness.md](./production-readiness.md) | MVP-calibrated scores |
 | [next-development-roadmap.md](./next-development-roadmap.md) | Prioritized work |
 | [incomplete-items.md](./incomplete-items.md) | Stubs, Fakes, unused schema |
+| [frontend-completion-audit.md](./frontend-completion-audit.md) | Merchant FE ↔ backend coverage (2026-08-29, ADR-155) |
 
 **Source of truth:** `src/`, `app/`, schema, workers, tests — not ADR prose alone.
 

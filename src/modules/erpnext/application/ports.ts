@@ -14,7 +14,7 @@ import type {
   FinanceReceivablesSummary,
   FinanceTrialBalanceReport,
 } from "../domain/finance-types.js";
-import type { ErpNextSyncRecordRepository } from "../domain/sync-record.js";
+import type { ErpNextSyncRecord, ErpNextSyncRecordRepository } from "../domain/sync-record.js";
 import type { ExternalEntityMappingRepository } from "../../accounting/domain/external-entity-mapping.js";
 
 export type FinanceReader = {
@@ -67,5 +67,5 @@ export type ErpNextModuleDeps = {
   mappings?: ExternalEntityMappingRepository;
   now?: () => Date;
   idFactory?: () => string;
-  onRetrySync?: (record: import("../domain/sync-record.js").ErpNextSyncRecord) => Promise<{ ok: boolean; messageFa?: string; externalId?: string | null }>;
+  onRetrySync?: (record: ErpNextSyncRecord) => Promise<{ ok: boolean; messageFa?: string; externalId?: string | null }>;
 };

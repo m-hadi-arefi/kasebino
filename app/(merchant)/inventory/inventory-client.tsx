@@ -22,6 +22,7 @@ import { formatInventoryJalali } from "@/modules/catalog/ui/format";
 import { fetchActiveStore } from "@/modules/merchant/ui";
 
 import { StoreSwitcher } from "../stores/store-switcher";
+import { StockMovementsSheet } from "./stock-movements-sheet";
 
 const fa = CATALOG_UI_COPY_FA;
 
@@ -32,6 +33,10 @@ export function InventoryClient() {
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [historyProduct, setHistoryProduct] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const storesQuery = useQuery({
     queryKey: ["catalog", "stores"],
@@ -95,6 +100,9 @@ export function InventoryClient() {
       await queryClient.invalidateQueries({
         queryKey: ["catalog", "inventory", storeId],
       });
+      await queryClient.invalidateQueries({
+        queryKey: ["catalog", "movements", storeId],
+      });
     },
     onError: (err: Error) => {
       setSuccess(null);
@@ -128,13 +136,21 @@ export function InventoryClient() {
 
       {!productsQuery.isLoading &&
       (productsQuery.data?.length ?? 0) === 0 ? (
-        <EmptyState title={fa.emptyProducts} actionHref="/products/new" actionLabel={fa.addProduct} />
+        <EmptyState
+          title={fa.emptyProducts}
+          actionHref="/products/new"
+          actionLabel={fa.addProduct}
+        />
       ) : null}
 
       <ul className="flex flex-col gap-4">
         {(productsQuery.data ?? []).map((product) => {
           const stock = stockByProduct.get(product.id);
           const qty = stock?.quantity ?? 0;
+          const low =
+            stock != null &&
+            qty <= (stock.reorderLevel ?? 0) &&
+            stock.reorderLevel > 0;
           return (
             <li key={product.id}>
               <Card>
@@ -142,6 +158,7 @@ export function InventoryClient() {
                   <CardTitle className="text-base">{product.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {fa.quantityLabel}: {qty.toLocaleString("fa-IR")}
+                    {low ? ` · ${fa.lowStockLabel}` : ""}
                     {stock
                       ? ` · ${fa.updatedAt}: ${formatInventoryJalali(stock.updatedAt)}`
                       : ""}
@@ -175,16 +192,31 @@ export function InventoryClient() {
                       }
                     />
                   </div>
-                  <Button
-                    type="button"
-                    disabled={adjustMutation.isPending}
-                    onClick={() => {
-                      setError(null);
-                      adjustMutation.mutate(product.id);
-                    }}
-                  >
-                    {fa.adjustSubmit}
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      disabled={adjustMutation.isPending}
+                      onClick={() => {
+                        setError(null);
+                        adjustMutation.mutate(product.id);
+                      }}
+                    >
+                      {fa.adjustSubmit}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!storeId}
+                      onClick={() =>
+                        setHistoryProduct({
+                          id: product.id,
+                          name: product.name,
+                        })
+                      }
+                    >
+                      {fa.movementsOpen}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </li>
@@ -210,6 +242,18 @@ export function InventoryClient() {
           </Alert>
         ) : null}
       </div>
+
+      {historyProduct ? (
+        <StockMovementsSheet
+          open={Boolean(historyProduct)}
+          onOpenChange={(open) => {
+            if (!open) setHistoryProduct(null);
+          }}
+          storeId={storeId}
+          productId={historyProduct.id}
+          productName={historyProduct.name}
+        />
+      ) : null}
     </div>
   );
 }

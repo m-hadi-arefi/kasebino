@@ -16,6 +16,20 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
+### 2026-08-29 — ADR-155 Merchant Frontend Completion & Dashboard Redesign — completed
+
+- Plan: `docs/execution/plans/ADR-155.md`
+- Changes:
+  - App Router: `GET /api/v1/inventory/movements`, `POST|DELETE /api/v1/catalog/products/[id]/image`
+  - Merchant UI: stock movements sheet, product image upload/delete, store hours editor (`/stores/[id]/hours`)
+  - Dashboard redesign: revenue `days[]` trend, pickup open counts, low-stock strip; CRM shortcuts on customers
+  - De-surfaced mock purchases/suppliers/expenses/treasury/reports/returns via `UnavailableCapabilityPage`
+  - Finance fake/noop sources no longer show money zeros as books; audit pack + capability matrix refresh
+  - Build-blocking lint cleanups in admin security UI import path and unused vars
+- Validations: focused vitest (catalog/analytics/store UI + HTTP handlers); eslint on changed FE; production build
+- Docs: `docs/audit/frontend-completion-audit.md`, uiux brief, ADR-155 → `adrs/done/`
+- Next: Remaining queue is ADR-143 (PSP, blocked on ADR-084) unless new FE/storefront scope opens
+
 ### 2026-08-12 — ADR-152 Catalog Cost and Tax Presentation Boundary — completed
 
 - Plan: `docs/execution/plans/ADR-152.md`

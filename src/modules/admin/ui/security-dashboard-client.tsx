@@ -1,17 +1,16 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, AlertTriangle, CheckCircle2, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 
 import { EmptyState } from "@/components/composites/empty-state";
 import { ErrorState } from "@/components/composites/error-state";
 import { LoadingState } from "@/components/composites/loading-state";
-import { StatusChip } from "@/components/composites/status-chip";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/composites/stat-card";
 import { Badge } from "@/components/ui/badge";
 
-import { fetchAdminSecurityOverview, type AdminSecurityOverviewDto } from "../api.js";
+import { fetchAdminSecurityOverview } from "./api.js";
 
 function severityLabelFa(severity: string): string {
   switch (severity) {

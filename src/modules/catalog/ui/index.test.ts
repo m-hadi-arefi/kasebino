@@ -37,6 +37,14 @@ describe("ADR-097 Catalog merchant UI + update", () => {
     expect(CATALOG_UI_COPY_FA.emptyProducts).toMatch(/[\u0600-\u06FF]/);
     expect(CATALOG_UI_COPY_FA.priceTomanLabel).toMatch(/تومان/);
     expect(CATALOG_UI_COPY_FA.inventoryTitle).toMatch(/موجودی/);
+    expect(CATALOG_UI_COPY_FA.movementsTitle).toMatch(/تاریخچه/);
+    expect(CATALOG_UI_COPY_FA.imageTitle).toMatch(/تصویر/);
+  });
+
+  it("ADR-155: documents image and movements Persian copy for merchant UI", () => {
+    expect(CATALOG_UI_COPY_FA.imageUpload).toMatch(/[\u0600-\u06FF]/);
+    expect(CATALOG_UI_COPY_FA.movementsOpen).toMatch(/[\u0600-\u06FF]/);
+    expect(CATALOG_UI_COPY_FA.lowStockLabel).toMatch(/کم/);
   });
 
   it("converts تومان form input to IRR minor and formats display", () => {

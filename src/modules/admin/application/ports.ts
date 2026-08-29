@@ -5,7 +5,7 @@
 
 import type { AuditPort } from "../../../infrastructure/security/contracts/audit-logging/index.js";
 import { getGlobalSecurityMonitoringStore } from "../../../infrastructure/security/monitoring/store.js";
-import type { SecuritySignal, SecuritySeverity, SecuritySignalType } from "../../../infrastructure/security/monitoring/types.js";
+import type { SecuritySignal } from "../../../infrastructure/security/monitoring/types.js";
 
 export type { AuditPort };
 

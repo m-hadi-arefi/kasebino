@@ -4,6 +4,7 @@
 
 import { csrfHeadersForBrowserFetch } from "../../../infrastructure/security/index.js";
 import {
+  STORE_HOURS_UI_COPY_FA,
   STORE_LOCATION_UI_COPY_FA,
   STORE_QR_PRINT_UI_COPY_FA,
 } from "./copy.js";
@@ -30,6 +31,22 @@ export type MerchantStoreDto = {
     primaryColor: string | null;
   };
   address: MerchantStoreAddressDto;
+  hours?: StoreHoursDto;
+};
+
+export type DayHoursDto = {
+  open: string;
+  close: string;
+};
+
+export type StoreHoursDto = {
+  saturday: DayHoursDto | null;
+  sunday: DayHoursDto | null;
+  monday: DayHoursDto | null;
+  tuesday: DayHoursDto | null;
+  wednesday: DayHoursDto | null;
+  thursday: DayHoursDto | null;
+  friday: DayHoursDto | null;
 };
 
 type Envelope<T> = {
@@ -119,6 +136,27 @@ export async function fetchStoreQrMeta(
     throw new Error(errorMessage(body, STORE_QR_PRINT_UI_COPY_FA.loadError));
   }
   return body.data;
+}
+
+export async function patchStoreHours(input: {
+  storeId: string;
+  hours: StoreHoursDto;
+}): Promise<MerchantStoreDto> {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  for (const [k, v] of Object.entries(csrfHeadersForBrowserFetch())) {
+    headers.set(k, v);
+  }
+  const res = await fetch(`/api/v1/stores/${encodeURIComponent(input.storeId)}`, {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers,
+    body: JSON.stringify({ hours: input.hours }),
+  });
+  const body = await parseJson<{ store: MerchantStoreDto }>(res);
+  if (!res.ok || !body.data?.store) {
+    throw new Error(errorMessage(body, STORE_HOURS_UI_COPY_FA.networkError));
+  }
+  return body.data.store;
 }
 
 /** Upload store logo/icon to MinIO media bucket (ADR-111). */

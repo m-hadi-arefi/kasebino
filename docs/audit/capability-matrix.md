@@ -1,6 +1,6 @@
 # Feature capability matrix
 
-**Audit date:** 2026-08-09  
+**Audit date:** 2026-08-09 (rows refreshed 2026-08-29 for staff / images / hours / movements — see also [`frontend-completion-audit.md`](./frontend-completion-audit.md))  
 Statuses: `IMPLEMENTED` | `PARTIALLY_IMPLEMENTED` | `PLACEHOLDER` | `MISSING` | `BROKEN`
 
 Every row cites code paths inspected in this audit.
@@ -14,7 +14,7 @@ Every row cites code paths inspected in this audit.
 | Merchant SMS OTP login | IMPLEMENTED | `app/api/v1/auth/merchant/otp/*`, `src/modules/identity`, NextAuth `app/api/auth/[...nextauth]` | Production SMS provider (`adrs/future/ADR-115`) — console SMS allowed only local |
 | Customer SMS OTP | IMPLEMENTED | `src/modules/customer-identity`, `app/api/v1/customer/auth/otp/*`, storefront login UI | Same SMS production gap |
 | RBAC matrix + route enforcement | PARTIALLY_IMPLEMENTED | `src/rbac/index.ts`, `authorization.test.ts`, handlers use `requireMerchantPermission*` | Roles not persisted per employee; default JWT role often owner when empty |
-| Employee invite / staff CRUD | MISSING | `auth_users` table exists | No staff invite API/UI; no store assignment SoT |
+| Employee invite / staff CRUD | IMPLEMENTED | `app/api/v1/staff/*`, `/roles`, `/permissions`, `app/(merchant)/staff`, ADR-144 | Per-staff fine-grained store grants still shallow |
 | Platform admin | PARTIALLY_IMPLEMENTED | `src/modules/admin`, `app/(admin)/admin/*`, merchant activate/suspend APIs | Fraud/security monitoring largely noop port |
 
 ---
@@ -26,7 +26,7 @@ Every row cites code paths inspected in this audit.
 | Merchant create / onboarding | IMPLEMENTED | `src/modules/merchant`, `app/(merchant)/onboarding`, merchants APIs | Deep settings UX shallow |
 | Multi-store | IMPLEMENTED | `createStore`, stores list, `store-switcher`, active store cookie | Per-staff store grants |
 | Store branding / assets | PARTIALLY_IMPLEMENTED | Branding domain, MinIO upload APIs, onboarding | Dedicated post-create branding editor limited |
-| Store hours | PARTIALLY_IMPLEMENTED | Domain + UC `updateHours`, `hours_json` column | Not exposed in HTTP update handler / no merchant hours UI |
+| Store hours | PARTIALLY_IMPLEMENTED | Domain + UC `updateHours`, PATCH `/api/v1/stores/{id}` hours field (ADR-149) | Merchant hours UI wired under ADR-155 (`/stores/[id]/hours`) |
 | Location + QR | IMPLEMENTED | `stores/[id]/location`, `stores/[id]/qr`, QR APIs | — |
 | `merchant_settings` KV table | PLACEHOLDER | Schema `merchant_settings` | Runtime settings use `merchants.settings_json` |
 
@@ -39,7 +39,7 @@ Every row cites code paths inspected in this audit.
 | Product CRUD + soft delete | IMPLEMENTED | `src/modules/catalog`, `app/api/v1/catalog/products/*`, products UI, `catalog/index.test.ts` | — |
 | SKU / barcode | IMPLEMENTED | Unique indexes; lookup / by-barcode APIs; POS camera sheet | — |
 | Categories | IMPLEMENTED | Categories CRUD API + product form | Hierarchical categories |
-| Images | MISSING | — | No image fields/schema/UC |
+| Images | PARTIALLY_IMPLEMENTED | Schema + UC + handlers (ADR-147); App Router + product form UI (ADR-155) | Public binary GET proxy for merchant thumbnails optional follow-up |
 | Variants / brands | MISSING | Domain comment single-SKU MVP | — |
 | Sell price (IRR minor) | IMPLEMENTED | `priceAmountMinor` + تومان UI | — |
 | Cost / tax / catalog discount | MISSING | — | Cost, tax rates, line discounts |
@@ -53,7 +53,7 @@ Every row cites code paths inspected in this audit.
 | --- | --- | --- | --- |
 | Stock balance per store | IMPLEMENTED | `stock_items`, inventory APIs/UI, UC | — |
 | Manual adjustment | IMPLEMENTED | `adjustStock`, `/inventory/adjust`, outbox event | — |
-| Movement ledger | PARTIALLY_IMPLEMENTED | `stock_movements` + append on adjust/sale; `stock-movements.test.ts` | No merchant timeline API/UI |
+| Movement ledger | PARTIALLY_IMPLEMENTED | Ledger + `handleListStockMovements` (ADR-148); App Router + inventory history UI (ADR-155) | Was missing route file before ADR-155 |
 | Negative stock reject | IMPLEMENTED | UC rejects qty &lt; 0 | Allow-negative mode n/a |
 | Reservation for online orders | PLACEHOLDER | `createStubInventoryReservePort` default; composition does **not** inject real port (`create-api-context.ts` L412–418) | Real reserve/release + table |
 | Pickup paid decrement UC | PARTIALLY_IMPLEMENTED | `decrementForPickupPaid` exists + unit tested | Not called from production ordering wiring |
@@ -141,8 +141,8 @@ Every row cites code paths inspected in this audit.
 | POS + offline | Strong |
 | Storefront pickup + orders UI | Strong (inventory stub softens) |
 | CRM membership + loyalty (POS) | Strong / partial coupons |
-| Catalog core | Strong; media/tax/variants missing |
+| Catalog core | Strong; media UI landed; tax/variants still limited |
 | Inventory ops | Strong POS path; **broken online stock** via stub ports |
 | Payments | Sandbox only |
-| Staff ops | Auth works; **employees missing** |
+| Staff ops | Strong (invite/roles UI landed) |
 | Finance/ERPNext | Adapter+UI landed; books not trusted yet |

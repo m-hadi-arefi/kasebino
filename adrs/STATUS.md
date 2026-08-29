@@ -149,6 +149,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-152 | Catalog cost + tax boundary | accepted | complete |
 | ADR-146 | ERPNext dual-run soak + finance honesty | accepted | complete |
 | ADR-154 | Admin Security Dashboard Monitoring | accepted | complete |
+| ADR-155 | Merchant Frontend Completion and Dashboard Redesign | accepted | complete |
 | ADR-155 | Offline POS Queue Runtime | accepted | complete |
 
 ## future/ — Not implemented (9)

@@ -30,6 +30,8 @@ describe("analytics UI (ADR-106)", () => {
     expect(ANALYTICS_UI_COPY_FA.overviewTitle).toMatch(/[\u0600-\u06FF]/);
     expect(ANALYTICS_UI_COPY_FA.empty).toMatch(/[\u0600-\u06FF]/);
     expect(ANALYTICS_UI_COPY_FA.northStarTitle).toMatch(/بازمانده/);
+    expect(ANALYTICS_UI_COPY_FA.trendTitle).toMatch(/روند/);
+    expect(ANALYTICS_UI_COPY_FA.opsTitle).toMatch(/عملیات/);
     expect(formatAnalyticsToman(42_000n)).toMatch(/تومان/);
   });
 });

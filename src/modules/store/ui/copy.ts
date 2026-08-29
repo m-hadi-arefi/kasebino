@@ -45,6 +45,30 @@ export const STORE_QR_PRINT_UI_COPY_FA = {
   backDashboard: "داشبورد",
 } as const;
 
+export const STORE_HOURS_UI_COPY_FA = {
+  title: "ساعات کاری",
+  subtitle: "هفتهٔ ایرانی از شنبه تا جمعه · زمان به وقت تهران",
+  saveCta: "ذخیره ساعات",
+  saving: "در حال ذخیره…",
+  saveSuccess: "ساعات کاری ذخیره شد.",
+  loadError: "بارگذاری ساعات ممکن نشد.",
+  networkError: "ارتباط برقرار نشد. دوباره تلاش کنید.",
+  closed: "بسته",
+  openLabel: "ساعت باز شدن",
+  closeLabel: "ساعت بسته شدن",
+  dayOpen: "باز است",
+  backStores: "فروشگاه‌ها",
+  weekday: {
+    saturday: "شنبه",
+    sunday: "یکشنبه",
+    monday: "دوشنبه",
+    tuesday: "سه‌شنبه",
+    wednesday: "چهارشنبه",
+    thursday: "پنجشنبه",
+    friday: "جمعه",
+  },
+} as const;
+
 export const STORE_LOCATION_UIUX_GATE = {
   gatePassed: true,
   skillPresent: true,

@@ -107,8 +107,8 @@ export async function fetchAnalyticsRetention(): Promise<RetentionDto> {
 
 /** Avoid circular import at runtime for fallbacks. */
 const ANALYTICS_UI_COPY_FA_FALLBACK: typeof ANALYTICS_UI_COPY_FA = {
-  overviewTitle: "نمای کلی",
-  revenueTitle: "درآمد",
+  overviewTitle: "وضعیت کسب‌وکار",
+  revenueTitle: "درآمد دوره",
   customersTitle: "مشتریان",
   retentionTitle: "بازماندگی",
   northStarTitle: "مشتریان بازمانده ماهانه",
@@ -124,4 +124,14 @@ const ANALYTICS_UI_COPY_FA_FALLBACK: typeof ANALYTICS_UI_COPY_FA = {
   cacheHint: "به‌روزرسانی کش حدود هر ۶۰ ثانیه",
   jalaliHint: "مبالغ به تومان · بازهٔ تاریخ‌ها به تقویم شمسی (تهران)",
   rangeLabel: "بازهٔ شمسی",
+  trendTitle: "روند درآمد روزانه",
+  trendEmpty: "برای این بازه دادهٔ روزانه نیست.",
+  opsTitle: "عملیات فروشگاه",
+  opsOrders: "سفارش‌های باز پیکاپ",
+  opsLowStock: "کالای کم‌موجودی",
+  opsOpenOrders: "مشاهده سفارش‌ها",
+  opsOpenInventory: "مشاهده موجودی",
+  opsLoading: "در حال بارگذاری عملیات…",
+  opsEmptyOrders: "سفارش باز ندارید",
+  opsEmptyStock: "کم‌موجودی ثبت نشده",
 };
