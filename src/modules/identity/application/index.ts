@@ -51,5 +51,12 @@ export {
   type UpdateCustomRoleInput,
   type DeleteCustomRoleInput,
 } from "./role-use-cases.js";
+export {
+  ensureSystemRoles,
+  ensureSystemRolesOnce,
+  resetEnsureSystemRolesOnceForTests,
+  SYSTEM_ROLE_IDS,
+  SYSTEM_ROLE_LABELS,
+} from "./ensure-system-roles.js";
 export type { SmsMessage, SmsPort } from "./ports/sms-port.js";
 

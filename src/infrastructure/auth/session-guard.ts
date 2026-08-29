@@ -120,6 +120,8 @@ export function isMerchantProtectedPath(pathname: string): boolean {
     path.startsWith("/inventory/") ||
     path === "/customers" ||
     path.startsWith("/customers/") ||
+    path === "/crm" ||
+    path.startsWith("/crm/") ||
     path === "/loyalty" ||
     path.startsWith("/loyalty/") ||
     path === "/orders" ||
@@ -129,7 +131,23 @@ export function isMerchantProtectedPath(pathname: string): boolean {
     path === "/onboarding" ||
     path.startsWith("/onboarding/") ||
     path === "/notifications" ||
-    path.startsWith("/notifications/")
+    path.startsWith("/notifications/") ||
+    path === "/staff" ||
+    path.startsWith("/staff/") ||
+    path === "/finance" ||
+    path.startsWith("/finance/") ||
+    path === "/purchases" ||
+    path.startsWith("/purchases/") ||
+    path === "/suppliers" ||
+    path.startsWith("/suppliers/") ||
+    path === "/expenses" ||
+    path.startsWith("/expenses/") ||
+    path === "/treasury" ||
+    path.startsWith("/treasury/") ||
+    path === "/reports" ||
+    path.startsWith("/reports/") ||
+    path === "/returns" ||
+    path.startsWith("/returns/")
   );
 }
 

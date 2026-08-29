@@ -1,6 +1,7 @@
 /**
- * ADR-095 — Merge merchant + customer Auth.js configs into one NextAuth() input.
+ * ADR-095 / ADR-156 — Merge merchant + customer Auth.js configs into one NextAuth() input.
  * Domain modules stay free of NextAuth handler wiring.
+ * ADR-156: JWT callback re-resolves incomplete merchant claims after onboarding/staff.
  */
 
 import {
@@ -18,9 +19,21 @@ import {
   type MerchantAuthJsConfig,
   type MerchantAuthUser,
 } from "../../modules/identity/infrastructure/auth/index.js";
+import {
+  merchantClaimsNeedRefresh,
+  type MerchantSessionClaims,
+} from "./resolve-merchant-session-claims.js";
 
 export type CreateAppAuthConfigDeps = {
-  merchant: CreateMerchantAuthConfigDeps;
+  merchant: CreateMerchantAuthConfigDeps & {
+    /**
+     * ADR-156 — when merchant JWT has null merchantId or empty roles,
+     * re-resolve from ownership / staff membership (no OTP required).
+     */
+    refreshClaims?: (
+      authUserId: string,
+    ) => Promise<MerchantSessionClaims | null>;
+  };
   customer: CreateCustomerAuthConfigDeps;
 };
 
@@ -32,6 +45,7 @@ export type AppAuthConfig = Omit<MerchantAuthJsConfig, "callbacks" | "providers"
     jwt: (args: {
       token: Record<string, unknown>;
       user?: AppAuthUser;
+      trigger?: "signIn" | "signUp" | "update";
     }) => Promise<Record<string, unknown>>;
     session: (args: {
       session: { user?: Record<string, unknown> } & Record<string, unknown>;
@@ -78,7 +92,7 @@ export function createAppAuthConfig(
     cookies: merchant.cookies,
     trustHost: merchant.trustHost,
     callbacks: {
-      async jwt({ token, user }) {
+      async jwt({ token, user, trigger }) {
         if (user) {
           if (isCustomerAuthUser(user)) {
             return applyCustomerClaimsToToken(token, user);
@@ -87,6 +101,39 @@ export function createAppAuthConfig(
             return applyMerchantClaimsToToken(token, user);
           }
         }
+
+        const isMerchantAudience =
+          token.audience === "merchant" ||
+          (token.audience !== "customer" &&
+            token.role !== "customer" &&
+            typeof token.sub === "string");
+
+        const shouldRefresh =
+          isMerchantAudience &&
+          typeof token.sub === "string" &&
+          deps.merchant.refreshClaims &&
+          (trigger === "update" || merchantClaimsNeedRefresh(token));
+
+        if (shouldRefresh && deps.merchant.refreshClaims) {
+          const resolved = await deps.merchant.refreshClaims(token.sub as string);
+          if (
+            resolved &&
+            (resolved.merchantId ||
+              resolved.roles.length > 0 ||
+              resolved.permissions.length > 0)
+          ) {
+            return applyMerchantClaimsToToken(token, {
+              id: token.sub as string,
+              merchantId: resolved.merchantId,
+              roles: resolved.roles,
+              permissions: resolved.permissions,
+              storeIds: resolved.storeIds,
+              tokenVersion:
+                typeof token.tokenVersion === "number" ? token.tokenVersion : 0,
+            });
+          }
+        }
+
         return token;
       },
       async session({ session, token }) {

@@ -1,6 +1,7 @@
 /**
  * ADR-095 — Auth.js App Router entry (handlers / auth / signIn / signOut).
  * Node runtime: Credentials OTP providers + merchant/customer verify.
+ * ADR-156 — shared claim resolver + JWT incomplete-claim refresh.
  */
 
 import NextAuth from "next-auth";
@@ -10,81 +11,34 @@ import { authConfig } from "./auth.config.js";
 import { createAppAuthConfig } from "./infrastructure/auth/create-app-auth-config.js";
 import { bootstrapCustomerStoreSession } from "./infrastructure/auth/customer-session-bootstrap.js";
 import { getOtpRuntime } from "./infrastructure/auth/otp-runtime.js";
+import { resolveMerchantSessionClaims } from "./infrastructure/auth/resolve-merchant-session-claims.js";
 import { getApiContext } from "./infrastructure/composition/index.js";
 
-import { ROLE_PERMISSION_MATRIX } from "./infrastructure/security/rbac/index.js";
-
 const runtime = () => getOtpRuntime();
+
+function claimDeps(phones?: { national?: string; e164?: string }) {
+  const api = getApiContext();
+  return {
+    merchants: api.repos.merchants,
+    adminUsers: api.repos.adminUsers,
+    staffMemberships: api.repos.staffMemberships,
+    resolveEffectivePermissions: (roleIds: readonly string[]) =>
+      api.roles.resolveEffectivePermissions(roleIds),
+    adminLookupPhones: phones,
+  };
+}
 
 const appConfig = createAppAuthConfig({
   merchant: {
     verifyOtp: (input) => runtime().merchant.verifyOtp(input),
     resolveClaims: async (verified) => {
-      const api = getApiContext();
-      if (api.repos.adminUsers) {
-        const admin =
-          (await api.repos.adminUsers.findById(verified.authUserId)) ??
-          (await api.repos.adminUsers.findByLogin(verified.phoneNational)) ??
-          (await api.repos.adminUsers.findByLogin(verified.phoneE164));
-        if (admin && admin.status === "active") {
-          if (admin.id !== verified.authUserId) {
-            const existingForSub = await api.repos.adminUsers.findById(verified.authUserId);
-            if (!existingForSub) {
-              await api.repos.adminUsers.save({
-                id: verified.authUserId,
-                login: `${admin.login}_${verified.authUserId.slice(0, 8)}`,
-                displayName: admin.displayName,
-                status: "active",
-                role: "platform_admin",
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              });
-            }
-          }
-          return {
-            merchantId: null,
-            roles: ["platform_admin"],
-            permissions: [...ROLE_PERMISSION_MATRIX.platform_admin],
-            storeIds: [],
-          };
-        }
-      }
-
-      const merchant = await api.repos.merchants.findByOwnerUserId(
-        verified.authUserId,
-      );
-      if (merchant) {
-        return {
-          merchantId: merchant.id,
-          roles: ["merchant_owner"],
-          permissions: [...ROLE_PERMISSION_MATRIX.merchant_owner],
-          storeIds: [],
-        };
-      }
-      
-      if (api.repos.staffMemberships) {
-        const staffMemberships = await api.repos.staffMemberships.findByAuthUserId(
-          verified.authUserId,
-        );
-        if (staffMemberships.length > 0) {
-          const active = staffMemberships.find((m) => m.membership.status === "active") ?? staffMemberships[0];
-          if (active && active.membership.status === "active") {
-            const roleIds = active.roleIds && active.roleIds.length > 0
-              ? active.roleIds
-              : [active.membership.role];
-            const effectivePermissions = await api.roles.resolveEffectivePermissions(roleIds);
-
-            return {
-              merchantId: active.membership.merchantId,
-              roles: roleIds,
-              permissions: Array.from(effectivePermissions),
-              storeIds: active.storeScopes.map((s) => s.storeId),
-            };
-          }
-        }
-      }
-
-      return { merchantId: null, roles: [], permissions: [], storeIds: [] };
+      return resolveMerchantSessionClaims(verified.authUserId, claimDeps({
+        national: verified.phoneNational,
+        e164: verified.phoneE164,
+      }));
+    },
+    refreshClaims: async (authUserId) => {
+      return resolveMerchantSessionClaims(authUserId, claimDeps());
     },
     nodeEnv: process.env.NODE_ENV,
   },

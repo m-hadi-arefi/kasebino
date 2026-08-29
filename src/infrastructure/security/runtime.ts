@@ -98,7 +98,13 @@ export function buildSecurityHeaders(input?: {
 }
 
 export function defaultCorsAllowedOrigins(): readonly string[] {
-  return ["http://localhost:3000", "https://localhost:3000"] as const;
+  return [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3020",
+    "http://127.0.0.1:3020",
+  ] as const;
 }
 
 /** Resolve CORS allowlist from env (comma-separated) + localhost defaults. */

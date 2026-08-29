@@ -3,6 +3,12 @@ export {
   type CreateAppAuthConfigDeps,
 } from "./create-app-auth-config.js";
 export {
+  resolveMerchantSessionClaims,
+  merchantClaimsNeedRefresh,
+  type MerchantSessionClaims,
+  type ResolveMerchantSessionClaimsDeps,
+} from "./resolve-merchant-session-claims.js";
+export {
   bootstrapCustomerStoreSession,
   type CustomerSessionBootstrapInput,
   type CustomerSessionBootstrapResult,

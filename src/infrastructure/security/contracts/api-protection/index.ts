@@ -112,6 +112,9 @@ export const CORS_POLICY = {
   defaultAllowedOrigins: [
     "http://localhost:3000",
     "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3020",
+    "http://127.0.0.1:3020",
   ] as const,
   /** Production origins injected via env allowlist when app shell wires CORS. */
   productionOriginsFromEnv: "CORS_ALLOWED_ORIGINS",

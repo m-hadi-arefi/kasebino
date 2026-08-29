@@ -16,6 +16,18 @@ Autonomous execution diary. Append-only.
 
 ## Entries
 
+### 2026-08-29 — ADR-156 RBAC Session Claim Refresh — completed
+
+- Plan: `docs/execution/plans/ADR-156.md`
+- Changes:
+  - Shared `resolveMerchantSessionClaims` + Auth.js JWT refresh when merchant claims incomplete
+  - `hydrateMerchantSessionClaims` sets owner permissions; merchant layout hydrates before PermissionsProvider
+  - Idempotent `ensureSystemRoles` for PG system roles (staff UI listing)
+  - Audit report: `docs/audit/rbac-audit-implementation-report.md`
+- Validations: focused vitest (JWT refresh, hydrate, nav filter, seed); typecheck/lint/build
+- Docs: ADR-156 → `adrs/done/`; STATUS + progress log
+- Next: New users see seller nav after createMerchant + refresh without re-OTP
+
 ### 2026-08-29 — ADR-155 Merchant Frontend Completion & Dashboard Redesign — completed
 
 - Plan: `docs/execution/plans/ADR-155.md`

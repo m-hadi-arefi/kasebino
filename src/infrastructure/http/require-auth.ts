@@ -16,6 +16,7 @@ import {
   merchantIdFromSession,
   type AuthSessionSnapshot,
 } from "../auth/session-guard.js";
+import { ROLE_PERMISSION_MATRIX } from "../security/rbac/index.js";
 import type { MerchantRepository } from "../../modules/merchant/domain/repositories.js";
 import { fail } from "./envelopes.js";
 import type {
@@ -28,8 +29,9 @@ import type {
 export type SessionLoader = () => Promise<AuthSessionSnapshot>;
 
 /**
- * ADR-121 / AUTH-06 — when JWT still has null merchantId after create-merchant,
- * hydrate from ownerUserId so subsequent store APIs work without re-login.
+ * ADR-121 / AUTH-06 / ADR-156 — when JWT still has null merchantId after
+ * create-merchant, hydrate from ownerUserId (roles + permissions) so APIs and
+ * the merchant shell work without re-login.
  */
 export async function hydrateMerchantSessionClaims(
   session: AuthSessionSnapshot,
@@ -51,15 +53,24 @@ export async function hydrateMerchantSessionClaims(
   }
   const roles =
     rolesOf(session).length > 0 ? rolesOf(session) : ["merchant_owner"];
+  const existingPermissions = permissionsOf(session);
+  const permissions =
+    existingPermissions.length > 0
+      ? existingPermissions
+      : roles.includes("merchant_owner")
+        ? [...ROLE_PERMISSION_MATRIX.merchant_owner]
+        : existingPermissions;
   return {
     ...session,
     merchantId: merchant.id,
     roles,
+    permissions,
     user: {
       ...(session.user ?? {}),
       id: userId,
       merchantId: merchant.id,
       roles,
+      permissions,
       audience: "merchant",
     },
     audience: "merchant",
@@ -78,6 +89,18 @@ function rolesOf(session: AuthSessionSnapshot): string[] {
   const single = session?.role ?? session?.user?.role;
   if (typeof single === "string" && single.length > 0) {
     return [single];
+  }
+  return [];
+}
+
+function permissionsOf(session: AuthSessionSnapshot): string[] {
+  const fromRoot = session?.permissions;
+  const fromUser = session?.user?.permissions;
+  if (Array.isArray(fromRoot) && fromRoot.length > 0) {
+    return fromRoot.filter((p): p is string => typeof p === "string");
+  }
+  if (Array.isArray(fromUser) && fromUser.length > 0) {
+    return fromUser.filter((p): p is string => typeof p === "string");
   }
   return [];
 }

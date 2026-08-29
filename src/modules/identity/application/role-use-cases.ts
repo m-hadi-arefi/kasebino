@@ -7,6 +7,7 @@ import {
 } from "../../../infrastructure/security/rbac/index.js";
 import type { RoleRepository } from "../domain/repositories.js";
 import type { Role, RoleWithPermissions } from "../domain/staff.js";
+import { ensureSystemRolesOnce } from "./ensure-system-roles.js";
 
 export type RoleUseCaseDeps = {
   roles: RoleRepository;
@@ -42,6 +43,7 @@ export function createRoleUseCases(deps: RoleUseCaseDeps) {
   const idFactory = deps.idFactory ?? (() => randomUUID());
 
   async function listRoles(merchantId: string): Promise<RoleWithPermissions[]> {
+    await ensureSystemRolesOnce(deps.roles);
     return deps.roles.findByMerchantId(merchantId);
   }
 
@@ -49,6 +51,7 @@ export function createRoleUseCases(deps: RoleUseCaseDeps) {
     merchantId: string,
     roleId: string,
   ): Promise<RoleWithPermissions> {
+    await ensureSystemRolesOnce(deps.roles);
     const item = await deps.roles.findById(roleId);
     if (!item) {
       throw new Error("ROLE_NOT_FOUND");

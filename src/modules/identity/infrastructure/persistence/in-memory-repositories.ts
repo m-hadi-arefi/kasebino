@@ -1,9 +1,12 @@
 import {
   CANONICAL_ROLES,
   ROLE_PERMISSION_MATRIX,
-  type CanonicalRole,
   type Permission,
 } from "../../../../infrastructure/security/rbac/index.js";
+import {
+  SYSTEM_ROLE_IDS,
+  SYSTEM_ROLE_LABELS,
+} from "../../application/ensure-system-roles.js";
 import type { AuthUser } from "../../domain/auth-user.js";
 import {
   isOtpChallengeConsumed,
@@ -59,29 +62,6 @@ export class InMemoryAuthUserRepository implements AuthUserRepository {
   }
 }
 
-const SYSTEM_ROLE_LABELS: Record<CanonicalRole, { name: string; description: string }> = {
-  merchant_owner: {
-    name: "صاحب کسب‌وکار",
-    description: "دسترسی کامل مدیریتی، مالی و تنظیمات فروشگاه",
-  },
-  store_manager: {
-    name: "مدیر فروشگاه",
-    description: "مدیریت عملیات، پرسنل، انبار و امور مالی فروشگاه",
-  },
-  store_employee: {
-    name: "صندوقدار / کارمند",
-    description: "دسترسی به صندوق فروش، مشتریان و انبار",
-  },
-  customer: {
-    name: "مشتری",
-    description: "دسترسی سطح مشتری فروشگاه",
-  },
-  platform_admin: {
-    name: "مدیر کل پلتفرم",
-    description: "دسترسی ارشد به کل سامانه کاسبینو",
-  },
-};
-
 export class InMemoryRoleRepository implements RoleRepository {
   private readonly roles = new Map<string, RoleWithPermissions>();
 
@@ -95,11 +75,11 @@ export class InMemoryRoleRepository implements RoleRepository {
       const meta = SYSTEM_ROLE_LABELS[code];
       const perms = [...ROLE_PERMISSION_MATRIX[code]];
       const role: Role = {
-        id: `sys-${code}`,
+        id: SYSTEM_ROLE_IDS[code],
         merchantId: null,
-        name: meta ? meta.name : code,
+        name: meta.name,
         code,
-        description: meta ? meta.description : null,
+        description: meta.description,
         isSystem: true,
         createdAt: epoch,
         updatedAt: epoch,

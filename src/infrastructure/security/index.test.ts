@@ -55,6 +55,7 @@ describe("ADR-119 security hardening runtime", () => {
       "https://app.example.ir, https://preview.example.ir",
     );
     expect(allowed).toContain("http://localhost:3000");
+    expect(allowed).toContain("http://localhost:3020");
     expect(allowed).toContain("https://app.example.ir");
     expect(isOriginAllowed("https://app.example.ir", allowed)).toBe(true);
     expect(isOriginAllowed("https://evil.example", allowed)).toBe(false);

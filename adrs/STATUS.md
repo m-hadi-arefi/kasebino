@@ -151,6 +151,7 @@ Decision status remains orthogonal: `Proposed` \| `Accepted`.
 | ADR-154 | Admin Security Dashboard Monitoring | accepted | complete |
 | ADR-155 | Merchant Frontend Completion and Dashboard Redesign | accepted | complete |
 | ADR-155 | Offline POS Queue Runtime | accepted | complete |
+| ADR-156 | RBAC Session Claim Refresh | accepted | complete |
 
 ## future/ — Not implemented (9)
 
