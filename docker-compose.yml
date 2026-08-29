@@ -16,9 +16,14 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      NODE_ENV: development
+      # Next.js standalone is always a production runtime (`node server.js`).
+      # Keep MOS_ENV=local for local OTP/SMS conveniences during Docker parity tests.
+      NODE_ENV: production
       MOS_ENV: ${MOS_ENV:-local}
       AUTH_SECRET: ${AUTH_SECRET:-snlwgV3GCAk65IacuMYRfOpd48z7qKvQj91yeoS2ih0PDbJZ}
+      AUTH_TRUST_HOST: "true"
+      AUTH_URL: ${APP_URL:-http://localhost:3020}
+      APP_URL: ${APP_URL:-http://localhost:3020}
       DATABASE_URL: postgres://${POSTGRES_USER:-merchantos}:${POSTGRES_PASSWORD:-merchantos}@postgres:5432/${POSTGRES_DB:-merchantos}
       REDIS_URL: redis://redis:6379
       MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-merchantos}:${MONGO_INITDB_ROOT_PASSWORD:-merchantos}@mongo:27017/${MONGO_DB:-merchantos_analytics}?authSource=admin
