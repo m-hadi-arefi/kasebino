@@ -45,7 +45,7 @@ export function AppSidebarNav({
   });
 
   return (
-    <Sidebar collapsible="icon" side="right" variant="inset">
+    <Sidebar collapsible="icon" side="right" variant="inset" dir="rtl">
       <SidebarHeader className="gap-1 px-4 py-5 text-center">
         <Link
           href={brandHref}

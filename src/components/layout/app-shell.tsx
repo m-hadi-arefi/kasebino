@@ -53,31 +53,29 @@ export function AppShell({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <SidebarProvider defaultOpen>
-        <div className="flex min-h-dvh w-full">
-          <AppSidebarNav
-            items={navItems}
-            brand={brand}
-            brandHref={brandHref}
-            footer={sidebarFooter}
+      <SidebarProvider defaultOpen className="min-h-dvh">
+        <AppSidebarNav
+          items={navItems}
+          brand={brand}
+          brandHref={brandHref}
+          footer={sidebarFooter}
+        />
+        <SidebarInset className="min-w-0 overflow-x-clip">
+          <AppTopbar
+            title={variant === "merchant" ? "فضای فروشنده" : "پنل مدیریت"}
+            trailing={topbarTrailing}
           />
-          <SidebarInset className="min-w-0">
-            <AppTopbar
-              title={variant === "merchant" ? "فضای فروشنده" : "پنل مدیریت"}
-              trailing={topbarTrailing}
-            />
-            <div
-              className={cn(
-                "mx-auto w-full flex-1 px-4 py-6 sm:px-6 lg:px-8",
-                "pb-24 md:pb-8",
-                "max-w-7xl",
-              )}
-            >
-              {children}
-            </div>
-            <AppBottomNav items={bottomItems} />
-          </SidebarInset>
-        </div>
+          <div
+            className={cn(
+              "mx-auto w-full min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8",
+              "pb-24 md:pb-8",
+              "max-w-7xl",
+            )}
+          >
+            {children}
+          </div>
+          <AppBottomNav items={bottomItems} />
+        </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
   );

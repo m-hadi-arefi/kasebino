@@ -24,7 +24,7 @@ export function AppTopbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/40 bg-surface/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-surface/80 sm:px-6",
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/40 bg-background/95 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/95 sm:px-6",
         className,
       )}
     >
